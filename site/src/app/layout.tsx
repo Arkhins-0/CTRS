@@ -3,6 +3,7 @@ import { titillium } from "@ctr/ui/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3001"),
   title: {
     default: "CTR Sports — Formula Racing",
     template: "%s | CTR Sports",

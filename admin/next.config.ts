@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@ctr/db", "@ctr/ui"],
   serverExternalPackages: ["ws", "sharp", "mammoth"],
   images: { remotePatterns },
+  // monorepo root for correct file tracing in production builds (Vercel/standalone)
+  outputFileTracingRoot: path.resolve(process.cwd(), ".."),
+  poweredByHeader: false,
 };
 
 export default nextConfig;
