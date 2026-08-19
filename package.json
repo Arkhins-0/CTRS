@@ -1,0 +1,24 @@
+{
+  "name": "ctrsports",
+  "private": true,
+  "workspaces": [
+    "site",
+    "admin",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n site,admin -c red,blue \"npm run dev -w @ctr/site\" \"npm run dev -w @ctr/admin\"",
+    "dev:site": "npm run dev -w @ctr/site",
+    "dev:admin": "npm run dev -w @ctr/admin",
+    "build": "npm run build -w @ctr/site && npm run build -w @ctr/admin",
+    "db:generate": "npm run generate -w @ctr/db",
+    "db:migrate": "npm run migrate -w @ctr/db",
+    "db:push": "npm run push -w @ctr/db",
+    "db:seed": "npm run seed -w @ctr/db",
+    "db:fetch-data": "npm run fetch-data -w @ctr/db"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.3"
+  }
+}

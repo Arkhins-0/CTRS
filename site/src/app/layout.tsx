@@ -1,0 +1,20 @@
+import type { Metadata } from "next";
+import { titillium } from "@ctr/ui/fonts";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: {
+    default: "CTR Sports — Formula Racing",
+    template: "%s | CTR Sports",
+  },
+  description:
+    "The home of Formula Racing — latest news, race schedule, results, standings, drivers and teams.",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={titillium.variable}>
+      <body className="min-h-screen antialiased">{children}</body>
+    </html>
+  );
+}

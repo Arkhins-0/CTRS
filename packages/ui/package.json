@@ -1,0 +1,16 @@
+{
+  "name": "@ctr/ui",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./theme.css": "./src/theme.css",
+    "./fonts": "./src/fonts.ts",
+    "./components/*": "./src/components/*"
+  },
+  "peerDependencies": {
+    "next": "*",
+    "react": "*",
+    "react-dom": "*"
+  }
+}

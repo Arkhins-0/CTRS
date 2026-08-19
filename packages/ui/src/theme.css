@@ -1,0 +1,85 @@
+/* ── CTRSports shared F1 design tokens (Tailwind v4) ─────────────────────── */
+@theme {
+  /* Brand */
+  --color-f1-red: #e10600;
+  --color-f1-red-dark: #b30500;
+  --color-f1-red-bright: #ff1e00;
+
+  /* Carbon darks (nav, footer, dark surfaces) */
+  --color-carbon: #15151e;
+  --color-carbon-900: #1a1a24;
+  --color-carbon-800: #1f1f2b;
+  --color-carbon-700: #2a2a38;
+  --color-carbon-600: #38384a;
+
+  /* Light surfaces */
+  --color-off-white: #f7f4f1;
+  --color-warm-grey: #e8e4e1;
+
+  /* Text greys */
+  --color-f1-grey: #67676d;
+  --color-f1-grey-light: #949498;
+
+  /* Typography — Titillium Web is the free stand-in for the licensed F1 face */
+  --font-display: var(--font-titillium), "Segoe UI", system-ui, sans-serif;
+  --font-body: var(--font-titillium), "Segoe UI", system-ui, sans-serif;
+
+  /* Chamfer size used across cards */
+  --chamfer: 14px;
+  --chamfer-lg: 24px;
+}
+
+/* ── F1-style chamfered (cut) corners ────────────────────────────────────── */
+@utility chamfer-tr {
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--chamfer)) 0,
+    100% var(--chamfer),
+    100% 100%,
+    0 100%
+  );
+}
+
+@utility chamfer-br {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - var(--chamfer)),
+    calc(100% - var(--chamfer)) 100%,
+    0 100%
+  );
+}
+
+@utility chamfer-both {
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--chamfer)) 0,
+    100% var(--chamfer),
+    100% 100%,
+    var(--chamfer) 100%,
+    0 calc(100% - var(--chamfer))
+  );
+}
+
+@utility chamfer-tr-lg {
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--chamfer-lg)) 0,
+    100% var(--chamfer-lg),
+    100% 100%,
+    0 100%
+  );
+}
+
+/* Carbon-fibre texture accent */
+@utility bg-carbon-fibre {
+  background-color: var(--color-carbon);
+  background-image:
+    linear-gradient(27deg, #1c1c26 5px, transparent 5px),
+    linear-gradient(207deg, #1c1c26 5px, transparent 5px),
+    linear-gradient(27deg, #12121a 5px, transparent 5px),
+    linear-gradient(207deg, #12121a 5px, transparent 5px),
+    linear-gradient(90deg, #17171f 10px, transparent 10px),
+    linear-gradient(#1a1a23 25%, #12121a 25%, #12121a 50%, transparent 50%, transparent 75%, #14141c 75%, #14141c);
+  background-size: 20px 20px;
+}

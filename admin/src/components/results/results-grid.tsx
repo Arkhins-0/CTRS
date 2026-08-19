@@ -1,0 +1,343 @@
+"use client";
+
+import { useState } from "react";
+import {
+  compareRows,
+  isPractice,
+  isQualiLike,
+  isRaceLike,
+  schemePoints,
+  RESULT_STATUSES,
+  type GridRow,
+  type SessionKind,
+} from "./types";
+
+const cell = "px-2 py-1.5 align-middle";
+const inputBase =
+  "w-full border border-warm-grey bg-white px-2 py-1 text-sm text-carbon outline-none focus:border-f1-red";
+
+function NumberInput({
+  value,
+  onChange,
+  onBlur,
+  min,
+  max,
+  step,
+  className = "",
+  ariaLabel,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+  onBlur?: () => void;
+  min?: number;
+  max?: number;
+  step?: number | string;
+  className?: string;
+  ariaLabel: string;
+}) {
+  return (
+    <input
+      type="number"
+      aria-label={ariaLabel}
+      className={`${inputBase} ${className}`}
+      value={value ?? ""}
+      min={min}
+      max={max}
+      step={step}
+      onChange={(e) => {
+        const raw = e.target.value;
+        onChange(raw === "" ? null : Number(raw));
+      }}
+      onBlur={onBlur}
+    />
+  );
+}
+
+export function ResultsGrid({
+  sessionType,
+  initialRows,
+  racePoints,
+  sprintPoints,
+}: {
+  sessionType: SessionKind;
+  initialRows: GridRow[];
+  racePoints: number[];
+  sprintPoints: number[];
+}) {
+  const [rows, setRows] = useState<GridRow[]>(initialRows);
+
+  const raceLike = isRaceLike(sessionType);
+  const qualiLike = isQualiLike(sessionType);
+  const practice = isPractice(sessionType);
+  const scheme = sessionType === "sprint" ? sprintPoints : racePoints;
+
+  const patchRow = (entryId: string, patch: Partial<GridRow>) =>
+    setRows((prev) => prev.map((r) => (r.entryId === entryId ? { ...r, ...patch } : r)));
+
+  /** POS / STATUS changes on race & sprint auto-fill points (still editable). */
+  const patchWithAutoPoints = (row: GridRow, patch: Partial<GridRow>) => {
+    const next = { ...row, ...patch };
+    if (raceLike) next.points = schemePoints(scheme, next.position, next.status);
+    patchRow(row.entryId, next);
+  };
+
+  const sortByPosition = () => setRows((prev) => [...prev].sort(compareRows));
+
+  const fillPositions = () =>
+    setRows((prev) =>
+      prev.map((r, i) => ({
+        ...r,
+        position: i + 1,
+        points: raceLike ? schemePoints(scheme, i + 1, r.status) : r.points,
+      })),
+    );
+
+  const reapplyPoints = () =>
+    setRows((prev) => prev.map((r) => ({ ...r, points: schemePoints(scheme, r.position, r.status) })));
+
+  const setFastestLap = (entryId: string, checked: boolean) =>
+    setRows((prev) => prev.map((r) => ({ ...r, fastestLap: checked && r.entryId === entryId })));
+
+  return (
+    <div>
+      {/* everything the surrounding <form> needs, in one field */}
+      <input type="hidden" name="rows" value={JSON.stringify(rows)} />
+
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={fillPositions}
+          className="chamfer-tr border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon"
+        >
+          Fill positions 1–{rows.length} in current order
+        </button>
+        {raceLike ? (
+          <button
+            type="button"
+            onClick={reapplyPoints}
+            className="chamfer-tr border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon"
+          >
+            Re-apply points
+          </button>
+        ) : null}
+        <span className="text-xs text-f1-grey">
+          {raceLike
+            ? 'Times: winner "1:26:33.291", gaps "+5.848" or "+2 laps". Points auto-fill from the season scheme — edit for penalties.'
+            : qualiLike
+              ? 'Lap times like "1:26.204". Leave blank when no lap was set.'
+              : 'Best lap like "1:26.204".'}
+        </span>
+      </div>
+
+      <div className="chamfer-tr overflow-x-auto border border-warm-grey bg-white shadow-sm">
+        <table className="w-full min-w-760px text-sm">
+          <thead>
+            <tr className="border-b-2 border-carbon bg-carbon text-left text-xs font-bold uppercase tracking-wide text-white [&>th]:px-2 [&>th]:py-2.5">
+              <th className="w-16 pl-3">Pos</th>
+              <th>Driver</th>
+              {raceLike ? (
+                <>
+                  <th className="w-16">Grid</th>
+                  <th className="w-16">Laps</th>
+                  <th className="w-40">Time / Gap</th>
+                  <th className="w-28">Status</th>
+                  <th className="w-12 text-center" title="Fastest lap">
+                    FL
+                  </th>
+                  <th className="w-20">Pts</th>
+                </>
+              ) : null}
+              {qualiLike ? (
+                <>
+                  <th className="w-28">Q1</th>
+                  <th className="w-28">Q2</th>
+                  <th className="w-28">Q3</th>
+                </>
+              ) : null}
+              {practice ? (
+                <>
+                  <th className="w-32">Time</th>
+                  <th className="w-16">Laps</th>
+                </>
+              ) : null}
+            </tr>
+          </thead>
+          <tbody className="[&>tr]:border-b [&>tr]:border-warm-grey [&>tr:hover]:bg-off-white">
+            {rows.map((row) => (
+              <tr key={row.entryId}>
+                <td className={`${cell} pl-3`}>
+                  <NumberInput
+                    ariaLabel={`Position for ${row.driverName}`}
+                    value={row.position}
+                    min={1}
+                    max={rows.length}
+                    className="w-14 text-center font-black"
+                    onChange={(v) => patchWithAutoPoints(row, { position: v })}
+                    onBlur={sortByPosition}
+                  />
+                </td>
+                <td className={cell}>
+                  <span className="flex items-stretch gap-2">
+                    <span
+                      aria-hidden
+                      className="w-1 shrink-0 rounded-sm"
+                      style={{ backgroundColor: row.teamColor, minHeight: "1.4em" }}
+                    />
+                    <span className="flex items-baseline gap-2 whitespace-nowrap">
+                      <span className="font-black">{row.driverCode}</span>
+                      <span>{row.driverName}</span>
+                      <span className="text-xs text-f1-grey">
+                        #{row.carNumber} · {row.teamName}
+                      </span>
+                    </span>
+                  </span>
+                </td>
+
+                {raceLike ? (
+                  <>
+                    <td className={cell}>
+                      <NumberInput
+                        ariaLabel={`Grid position for ${row.driverName}`}
+                        value={row.gridPosition}
+                        min={0}
+                        max={rows.length + 5}
+                        className="w-14 text-center"
+                        onChange={(v) => patchRow(row.entryId, { gridPosition: v })}
+                      />
+                    </td>
+                    <td className={cell}>
+                      <NumberInput
+                        ariaLabel={`Laps for ${row.driverName}`}
+                        value={row.laps}
+                        min={0}
+                        max={200}
+                        className="w-14 text-center"
+                        onChange={(v) => patchRow(row.entryId, { laps: v })}
+                      />
+                    </td>
+                    <td className={cell}>
+                      {row.position === 1 ? (
+                        <input
+                          type="text"
+                          aria-label={`Total race time for ${row.driverName}`}
+                          className={`${inputBase} font-mono`}
+                          placeholder="1:26:33.291"
+                          value={row.timeText}
+                          onChange={(e) => patchRow(row.entryId, { timeText: e.target.value })}
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          aria-label={`Gap for ${row.driverName}`}
+                          className={`${inputBase} font-mono`}
+                          placeholder="+5.848 / +2 laps"
+                          value={row.gapText}
+                          onChange={(e) => patchRow(row.entryId, { gapText: e.target.value })}
+                        />
+                      )}
+                    </td>
+                    <td className={cell}>
+                      <select
+                        aria-label={`Status for ${row.driverName}`}
+                        className={`${inputBase} uppercase`}
+                        value={row.status}
+                        onChange={(e) =>
+                          patchWithAutoPoints(row, { status: e.target.value as GridRow["status"] })
+                        }
+                      >
+                        {RESULT_STATUSES.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className={`${cell} text-center`}>
+                      <input
+                        type="checkbox"
+                        aria-label={`Fastest lap for ${row.driverName}`}
+                        className="size-4 accent-f1-red"
+                        checked={row.fastestLap}
+                        onChange={(e) => setFastestLap(row.entryId, e.target.checked)}
+                      />
+                    </td>
+                    <td className={cell}>
+                      <NumberInput
+                        ariaLabel={`Points for ${row.driverName}`}
+                        value={row.points}
+                        min={0}
+                        step="0.5"
+                        className="w-16 text-center font-bold"
+                        onChange={(v) => patchRow(row.entryId, { points: v ?? 0 })}
+                      />
+                    </td>
+                  </>
+                ) : null}
+
+                {qualiLike ? (
+                  <>
+                    <td className={cell}>
+                      <input
+                        type="text"
+                        aria-label={`Q1 time for ${row.driverName}`}
+                        className={`${inputBase} font-mono`}
+                        placeholder="1:26.204"
+                        value={row.q1Text}
+                        onChange={(e) => patchRow(row.entryId, { q1Text: e.target.value })}
+                      />
+                    </td>
+                    <td className={cell}>
+                      <input
+                        type="text"
+                        aria-label={`Q2 time for ${row.driverName}`}
+                        className={`${inputBase} font-mono`}
+                        placeholder="1:26.204"
+                        value={row.q2Text}
+                        onChange={(e) => patchRow(row.entryId, { q2Text: e.target.value })}
+                      />
+                    </td>
+                    <td className={cell}>
+                      <input
+                        type="text"
+                        aria-label={`Q3 time for ${row.driverName}`}
+                        className={`${inputBase} font-mono`}
+                        placeholder="1:26.204"
+                        value={row.q3Text}
+                        onChange={(e) => patchRow(row.entryId, { q3Text: e.target.value })}
+                      />
+                    </td>
+                  </>
+                ) : null}
+
+                {practice ? (
+                  <>
+                    <td className={cell}>
+                      <input
+                        type="text"
+                        aria-label={`Best lap for ${row.driverName}`}
+                        className={`${inputBase} font-mono`}
+                        placeholder="1:26.204"
+                        value={row.timeText}
+                        onChange={(e) => patchRow(row.entryId, { timeText: e.target.value })}
+                      />
+                    </td>
+                    <td className={cell}>
+                      <NumberInput
+                        ariaLabel={`Laps for ${row.driverName}`}
+                        value={row.laps}
+                        min={0}
+                        max={200}
+                        className="w-14 text-center"
+                        onChange={(v) => patchRow(row.entryId, { laps: v })}
+                      />
+                    </td>
+                  </>
+                ) : null}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
