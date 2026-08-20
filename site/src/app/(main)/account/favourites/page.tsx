@@ -7,11 +7,13 @@ import {
   drivers,
   driverSeasonEntries,
   fanFavourites,
+  findChampionshipSeason,
   siteSettings,
   teams,
   teamSeasonEntries,
 } from "@ctr/db";
 import { ChamferCard, CountryFlag, SectionHeading, TeamColorBar } from "@ctr/ui";
+import { HOME_CHAMPIONSHIP } from "@/components/racing/data";
 import { requireFan } from "@/lib/fan-auth";
 import { mediaUrl, placeholderStyle } from "@/lib/media";
 import { Field, SelectInput } from "@/components/fanzone/form";
@@ -35,6 +37,8 @@ export default async function FavouritesPage() {
     .where(eq(siteSettings.key, "current_season"));
   const seasonYear =
     (seasonRow?.value as { year?: number } | undefined)?.year ?? new Date().getFullYear();
+  // entries are keyed by championship season — resolve the current INCRC one
+  const seasonId = await findChampionshipSeason(db, HOME_CHAMPIONSHIP, seasonYear);
 
   const favourites = await db
     .select()
@@ -51,11 +55,11 @@ export default async function FavouritesPage() {
             with: { headshot: true },
           })
         : Promise.resolve(undefined),
-      driverFav
+      driverFav && seasonId
         ? db.query.driverSeasonEntries.findFirst({
             where: and(
               eq(driverSeasonEntries.driverId, driverFav.entityId),
-              eq(driverSeasonEntries.seasonYear, seasonYear),
+              eq(driverSeasonEntries.championshipSeasonId, seasonId),
             ),
             with: { teamSeasonEntry: true },
           })
@@ -66,22 +70,26 @@ export default async function FavouritesPage() {
             with: { logo: true },
           })
         : Promise.resolve(undefined),
-      teamFav
+      teamFav && seasonId
         ? db.query.teamSeasonEntries.findFirst({
             where: and(
               eq(teamSeasonEntries.teamId, teamFav.entityId),
-              eq(teamSeasonEntries.seasonYear, seasonYear),
+              eq(teamSeasonEntries.championshipSeasonId, seasonId),
             ),
           })
         : Promise.resolve(undefined),
-      db.query.driverSeasonEntries.findMany({
-        where: eq(driverSeasonEntries.seasonYear, seasonYear),
-        with: { driver: true, teamSeasonEntry: true },
-      }),
-      db.query.teamSeasonEntries.findMany({
-        where: eq(teamSeasonEntries.seasonYear, seasonYear),
-        with: { team: true },
-      }),
+      seasonId
+        ? db.query.driverSeasonEntries.findMany({
+            where: eq(driverSeasonEntries.championshipSeasonId, seasonId),
+            with: { driver: true, teamSeasonEntry: true },
+          })
+        : Promise.resolve([]),
+      seasonId
+        ? db.query.teamSeasonEntries.findMany({
+            where: eq(teamSeasonEntries.championshipSeasonId, seasonId),
+            with: { team: true },
+          })
+        : Promise.resolve([]),
     ]);
 
   // active current-season drivers, de-duplicated (mid-season swaps create 2 entries)
@@ -97,7 +105,7 @@ export default async function FavouritesPage() {
     <main className="mx-auto max-w-7xl px-4 py-8">
       <SectionHeading
         right={
-          <Link href="/account" className="uppercase text-f1-red hover:underline">
+          <Link href="/account" className="uppercase text-accent hover:underline">
             ← My account
           </Link>
         }
@@ -108,14 +116,14 @@ export default async function FavouritesPage() {
       <div className="mt-6 grid gap-8 lg:grid-cols-2">
         {/* ── favourite driver ─────────────────────────────────────────── */}
         <section>
-          <h3 className="text-sm font-black uppercase tracking-wide text-f1-grey">
+          <h3 className="text-sm font-black uppercase tracking-wide text-white">
             Favourite driver
           </h3>
 
           {favDriver ? (
-            <ChamferCard className="relative mt-3 overflow-hidden bg-carbon p-5 text-white">
+            <ChamferCard className="relative mt-3 overflow-hidden border border-line bg-surface p-5 pl-6 text-white">
               <div
-                className="absolute inset-x-0 top-0 h-1"
+                className="absolute inset-y-0 left-0 w-1"
                 style={{
                   backgroundColor: favDriverEntry?.teamSeasonEntry?.primaryColor ?? "#67676d",
                 }}
@@ -141,7 +149,7 @@ export default async function FavouritesPage() {
                 <div className="flex items-stretch gap-3">
                   <TeamColorBar color={favDriverEntry?.teamSeasonEntry?.primaryColor} />
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wide text-f1-grey-light">
+                    <p className="text-xs font-bold uppercase tracking-wide text-fg-faint">
                       {favDriverEntry
                         ? `#${favDriverEntry.carNumber} · ${favDriverEntry.teamSeasonEntry.shortName}`
                         : "No current-season entry"}
@@ -157,14 +165,14 @@ export default async function FavouritesPage() {
                 <input type="hidden" name="entityType" value="driver" />
                 <button
                   type="submit"
-                  className="text-xs font-bold uppercase tracking-wide text-f1-grey-light transition-colors hover:text-f1-red"
+                  className="text-xs font-bold uppercase tracking-wide text-fg-faint transition-colors hover:text-accent"
                 >
                   Remove favourite
                 </button>
               </form>
             </ChamferCard>
           ) : (
-            <ChamferCard className="mt-3 border border-dashed border-f1-grey-light bg-white p-6 text-center text-sm text-f1-grey">
+            <ChamferCard className="mt-3 border border-dashed border-line bg-surface p-6 text-center text-sm text-fg-muted">
               No favourite driver yet — pick one below.
             </ChamferCard>
           )}
@@ -199,14 +207,14 @@ export default async function FavouritesPage() {
 
         {/* ── favourite team ───────────────────────────────────────────── */}
         <section>
-          <h3 className="text-sm font-black uppercase tracking-wide text-f1-grey">
+          <h3 className="text-sm font-black uppercase tracking-wide text-white">
             Favourite team
           </h3>
 
           {favTeam ? (
-            <ChamferCard className="relative mt-3 overflow-hidden bg-carbon p-5 text-white">
+            <ChamferCard className="relative mt-3 overflow-hidden border border-line bg-surface p-5 pl-6 text-white">
               <div
-                className="absolute inset-x-0 top-0 h-1"
+                className="absolute inset-y-0 left-0 w-1"
                 style={{ backgroundColor: favTeamEntry?.primaryColor ?? "#67676d" }}
                 aria-hidden
               />
@@ -230,7 +238,7 @@ export default async function FavouritesPage() {
                 <div className="flex items-stretch gap-3">
                   <TeamColorBar color={favTeamEntry?.primaryColor} />
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wide text-f1-grey-light">
+                    <p className="text-xs font-bold uppercase tracking-wide text-fg-faint">
                       {favTeam.base ? `${favTeam.base} · ` : ""}
                       {favTeam.worldChampionships}× champions
                     </p>
@@ -245,14 +253,14 @@ export default async function FavouritesPage() {
                 <input type="hidden" name="entityType" value="team" />
                 <button
                   type="submit"
-                  className="text-xs font-bold uppercase tracking-wide text-f1-grey-light transition-colors hover:text-f1-red"
+                  className="text-xs font-bold uppercase tracking-wide text-fg-faint transition-colors hover:text-accent"
                 >
                   Remove favourite
                 </button>
               </form>
             </ChamferCard>
           ) : (
-            <ChamferCard className="mt-3 border border-dashed border-f1-grey-light bg-white p-6 text-center text-sm text-f1-grey">
+            <ChamferCard className="mt-3 border border-dashed border-line bg-surface p-6 text-center text-sm text-fg-muted">
               No favourite team yet — pick one below.
             </ChamferCard>
           )}

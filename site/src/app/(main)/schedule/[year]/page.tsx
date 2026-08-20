@@ -9,8 +9,8 @@ type Props = { params: Promise<{ year: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { year } = await params;
   return {
-    title: `${year} Schedule`,
-    description: `Every race weekend of the ${year} Formula Racing season.`,
+    title: `${year} Race Calendar`,
+    description: `Every round of the ${year} CTR–JK Tyre FMSCI Indian National Car Racing Championship — dates, circuits and results.`,
   };
 }
 

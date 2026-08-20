@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
-import { Badge } from "@ctr/ui";
 import { mediaUrl, placeholderStyle } from "@/lib/media";
 
 export type ArticleCardData = {
@@ -14,14 +13,14 @@ export type ArticleCardData = {
   category?: { slug: string; name: string } | null;
 };
 
-/** F1.com-style news card: image (or gradient), category chip, title, standfirst. */
+/** Dark F1.com-style news card: image (or gradient), accent category chip, title, standfirst. */
 export function ArticleCard({ article }: { article: ArticleCardData }) {
   const img = mediaUrl(article.hero?.path);
 
   return (
     <Link href={`/latest/article/${article.slug}`} className="group block h-full">
-      <article className="chamfer-tr flex h-full flex-col overflow-hidden border border-warm-grey bg-white transition-transform duration-200 group-hover:-translate-y-1">
-        <div className="relative aspect-video w-full overflow-hidden bg-carbon">
+      <article className="chamfer-tr flex h-full flex-col overflow-hidden border border-line bg-surface transition-transform duration-200 group-hover:-translate-y-1">
+        <div className="relative aspect-video w-full overflow-hidden bg-panel">
           {img ? (
             <Image
               src={img}
@@ -44,17 +43,31 @@ export function ArticleCard({ article }: { article: ArticleCardData }) {
 
         <div className="flex flex-1 flex-col gap-2 p-4">
           <div className="flex flex-wrap items-center gap-2">
-            {article.isBreaking ? <Badge tone="red">Breaking</Badge> : null}
-            {article.category ? <Badge tone="grey">{article.category.name}</Badge> : null}
+            {article.isBreaking ? (
+              <span
+                className="chamfer-tr inline-flex items-center bg-white px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-page"
+                style={{ ["--chamfer" as string]: "6px" }}
+              >
+                Breaking
+              </span>
+            ) : null}
+            {article.category ? (
+              <span
+                className="chamfer-tr inline-flex items-center bg-accent px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-accent-fg"
+                style={{ ["--chamfer" as string]: "6px" }}
+              >
+                {article.category.name}
+              </span>
+            ) : null}
           </div>
-          <h3 className="text-base font-black uppercase leading-snug tracking-tight text-carbon transition-colors group-hover:text-f1-red">
+          <h3 className="text-base font-black uppercase leading-snug tracking-tight text-white transition-colors group-hover:text-accent">
             {article.title}
           </h3>
           {article.standfirst ? (
-            <p className="line-clamp-2 text-sm text-f1-grey">{article.standfirst}</p>
+            <p className="line-clamp-2 text-sm text-fg-muted">{article.standfirst}</p>
           ) : null}
           {article.publishedAt ? (
-            <p className="mt-auto pt-1 text-xs font-semibold uppercase tracking-wide text-f1-grey-light">
+            <p className="mt-auto pt-1 text-xs font-semibold uppercase tracking-wide text-fg-faint">
               {format(new Date(article.publishedAt), "d MMM yyyy")}
             </p>
           ) : null}

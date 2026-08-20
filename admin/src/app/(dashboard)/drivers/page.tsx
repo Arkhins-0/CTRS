@@ -29,8 +29,13 @@ export default async function DriversPage({
     with: {
       headshot: { columns: { path: true, alt: true } },
       seasonEntries: {
-        orderBy: (t, { desc }) => [desc(t.seasonYear)],
-        with: { teamSeasonEntry: { columns: { shortName: true, seasonYear: true, primaryColor: true } } },
+        with: {
+          teamSeasonEntry: { columns: { shortName: true, primaryColor: true } },
+          championshipSeason: {
+            columns: { year: true },
+            with: { championship: { columns: { shortName: true } } },
+          },
+        },
       },
     },
   });
@@ -68,7 +73,9 @@ export default async function DriversPage({
           }
         >
           {rows.map((d) => {
-            const latest = d.seasonEntries[0];
+            const latest = [...d.seasonEntries].sort(
+              (a, b) => b.championshipSeason.year - a.championshipSeason.year,
+            )[0];
             return (
               <tr key={d.id}>
                 <td>
@@ -103,7 +110,10 @@ export default async function DriversPage({
                         style={{ backgroundColor: latest.teamSeasonEntry.primaryColor }}
                       />
                       {latest.teamSeasonEntry.shortName}
-                      <span className="text-xs text-f1-grey">({latest.seasonYear})</span>
+                      <span className="text-xs text-f1-grey">
+                        ({latest.championshipSeason.championship.shortName}{" "}
+                        {latest.championshipSeason.year})
+                      </span>
                     </span>
                   ) : (
                     <span className="text-f1-grey-light">—</span>

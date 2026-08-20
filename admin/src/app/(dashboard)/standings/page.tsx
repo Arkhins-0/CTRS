@@ -1,69 +1,140 @@
-import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { format } from "date-fns";
 import { TeamColorBar } from "@ctr/ui";
-import { constructorStandings, db, driverStandings, seasons, PERMISSIONS } from "@ctr/db";
+import { constructorStandings, db, driverStandings, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { EmptyState, PageHeader, Table } from "@/components/ui";
 import { SubmitButton } from "@/components/ui-client";
+import { loadSeasonTabs, pickSeason, SeasonTabs } from "@/components/racing/season-tabs";
 import { recalcStandingsAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-function SeasonTabs({ years, active }: { years: number[]; active: number }) {
+type CategoryInfo = { id: string; shortName: string; color: string; sort: number } | null;
+
+const catKey = (c: CategoryInfo) => c?.id ?? "__none__";
+
+function DriversTable({
+  rows,
+}: {
+  rows: {
+    id: string;
+    position: number;
+    wins: number;
+    podiums: number;
+    poles: number;
+    points: number;
+    driver: { firstName: string; lastName: string; code: string };
+  }[];
+}) {
   return (
-    <div className="mb-5 flex flex-wrap gap-1 border-b-2 border-carbon">
-      {years.map((y) => (
-        <Link
-          key={y}
-          href={`/standings?year=${y}`}
-          className={`px-4 py-2 text-sm font-black uppercase tracking-wide transition-colors ${
-            y === active ? "chamfer-tr bg-carbon text-white" : "text-f1-grey hover:text-carbon"
-          }`}
-        >
-          {y}
-        </Link>
+    <Table
+      head={
+        <>
+          <th className="w-12">Pos</th>
+          <th>Driver</th>
+          <th className="text-right">Wins</th>
+          <th className="text-right">Podiums</th>
+          <th className="text-right">Poles</th>
+          <th className="text-right">Pts</th>
+        </>
+      }
+    >
+      {rows.map((r) => (
+        <tr key={r.id}>
+          <td className="font-black">{r.position}</td>
+          <td>
+            <span className="font-bold">
+              {r.driver.firstName} {r.driver.lastName}
+            </span>{" "}
+            <span className="text-xs font-black text-f1-grey">{r.driver.code}</span>
+          </td>
+          <td className="text-right">{r.wins}</td>
+          <td className="text-right">{r.podiums}</td>
+          <td className="text-right">{r.poles}</td>
+          <td className="text-right font-black">{r.points}</td>
+        </tr>
       ))}
-    </div>
+    </Table>
   );
 }
 
 export default async function StandingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string }>;
+  searchParams: Promise<{ season?: string }>;
 }) {
   await requirePermission(PERMISSIONS.RESULTS_MANAGE);
   const sp = await searchParams;
 
-  const allSeasons = await db.select().from(seasons).orderBy(desc(seasons.year));
-  if (!allSeasons.length) {
+  const seasons = await loadSeasonTabs();
+  const season = pickSeason(seasons, sp.season);
+  if (!season) {
     return (
       <>
         <PageHeader title="Standings" sub="Championship snapshots" />
-        <EmptyState title="No seasons yet" hint="Seed a season before computing standings." />
+        <EmptyState
+          title="No championship seasons yet"
+          hint="Create a championship season before computing standings."
+        />
       </>
     );
   }
 
-  const years = allSeasons.map((s) => s.year);
-  const parsedYear = Number(sp.year);
-  const year = years.includes(parsedYear) ? parsedYear : years[0];
-
   const [driverRows, teamRows] = await Promise.all([
     db.query.driverStandings.findMany({
-      where: eq(driverStandings.seasonYear, year),
+      where: eq(driverStandings.championshipSeasonId, season.id),
       orderBy: (t, { asc }) => [asc(t.position)],
-      with: { driver: { columns: { firstName: true, lastName: true, code: true } } },
+      with: {
+        driver: { columns: { firstName: true, lastName: true, code: true } },
+        category: { columns: { id: true, shortName: true, color: true, sort: true } },
+      },
     }),
     db.query.constructorStandings.findMany({
-      where: eq(constructorStandings.seasonYear, year),
+      where: eq(constructorStandings.championshipSeasonId, season.id),
       orderBy: (t, { asc }) => [asc(t.position)],
-      with: { teamSeasonEntry: { columns: { displayName: true, primaryColor: true } } },
+      with: {
+        teamSeasonEntry: { columns: { displayName: true, primaryColor: true } },
+        category: { columns: { id: true, shortName: true, color: true, sort: true } },
+      },
     }),
   ]);
 
   const meta = driverRows[0] ?? teamRows[0];
+
+  // one block per category (standings are computed per racing class)
+  const groups = new Map<
+    string,
+    {
+      category: CategoryInfo;
+      overall: typeof driverRows;
+      subTables: Map<string, typeof driverRows>;
+      teams: typeof teamRows;
+    }
+  >();
+  const groupFor = (category: CategoryInfo) => {
+    const key = catKey(category);
+    let g = groups.get(key);
+    if (!g) {
+      g = { category, overall: [], subTables: new Map(), teams: [] };
+      groups.set(key, g);
+    }
+    return g;
+  };
+  for (const r of driverRows) {
+    const g = groupFor(r.category);
+    if (r.standingsType === "overall") g.overall.push(r);
+    else {
+      const list = g.subTables.get(r.standingsType) ?? [];
+      list.push(r);
+      g.subTables.set(r.standingsType, list);
+    }
+  }
+  for (const r of teamRows) groupFor(r.category).teams.push(r);
+
+  const orderedGroups = [...groups.values()].sort(
+    (a, b) => (a.category?.sort ?? -1) - (b.category?.sort ?? -1),
+  );
 
   return (
     <>
@@ -72,13 +143,13 @@ export default async function StandingsPage({
         sub="Snapshots recomputed automatically on every results publish"
         actions={
           <form action={recalcStandingsAction}>
-            <input type="hidden" name="year" value={year} />
-            <SubmitButton variant="secondary">Recalculate {year} standings</SubmitButton>
+            <input type="hidden" name="championshipSeasonId" value={season.id} />
+            <SubmitButton variant="secondary">Recalculate {season.label} standings</SubmitButton>
           </form>
         }
       />
 
-      <SeasonTabs years={years} active={year} />
+      <SeasonTabs seasons={seasons} activeId={season.id} base="/standings" />
 
       {meta ? (
         <p className="mb-4 text-sm text-f1-grey">
@@ -87,79 +158,86 @@ export default async function StandingsPage({
         </p>
       ) : null}
 
-      {driverRows.length || teamRows.length ? (
-        <div className="grid gap-5 xl:grid-cols-2">
-          <div>
-            <h2 className="mb-2 text-sm font-black uppercase tracking-wide">Drivers&rsquo; Championship</h2>
-            {driverRows.length ? (
-              <Table
-                head={
+      {orderedGroups.length ? (
+        <div className="space-y-8">
+          {orderedGroups.map((g) => (
+            <section key={catKey(g.category)}>
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wide">
+                {g.category ? (
                   <>
-                    <th className="w-12">Pos</th>
-                    <th>Driver</th>
-                    <th className="text-right">Wins</th>
-                    <th className="text-right">Podiums</th>
-                    <th className="text-right">Poles</th>
-                    <th className="text-right">Pts</th>
+                    <span
+                      aria-hidden
+                      className="inline-block size-3 rounded-sm border border-warm-grey"
+                      style={{ backgroundColor: g.category.color }}
+                    />
+                    {g.category.shortName}
                   </>
-                }
-              >
-                {driverRows.map((r) => (
-                  <tr key={r.id}>
-                    <td className="font-black">{r.position}</td>
-                    <td>
-                      <span className="font-bold">
-                        {r.driver.firstName} {r.driver.lastName}
-                      </span>{" "}
-                      <span className="text-xs font-black text-f1-grey">{r.driver.code}</span>
-                    </td>
-                    <td className="text-right">{r.wins}</td>
-                    <td className="text-right">{r.podiums}</td>
-                    <td className="text-right">{r.poles}</td>
-                    <td className="text-right font-black">{r.points}</td>
-                  </tr>
-                ))}
-              </Table>
-            ) : (
-              <EmptyState title="No driver standings yet" />
-            )}
-          </div>
+                ) : (
+                  "Championship"
+                )}
+              </h2>
 
-          <div>
-            <h2 className="mb-2 text-sm font-black uppercase tracking-wide">Constructors&rsquo; Championship</h2>
-            {teamRows.length ? (
-              <Table
-                head={
-                  <>
-                    <th className="w-12">Pos</th>
-                    <th>Team</th>
-                    <th className="text-right">Wins</th>
-                    <th className="text-right">Pts</th>
-                  </>
-                }
-              >
-                {teamRows.map((r) => (
-                  <tr key={r.id}>
-                    <td className="font-black">{r.position}</td>
-                    <td>
-                      <span className="flex items-stretch gap-2">
-                        <TeamColorBar color={r.teamSeasonEntry.primaryColor} />
-                        <span className="font-bold">{r.teamSeasonEntry.displayName}</span>
-                      </span>
-                    </td>
-                    <td className="text-right">{r.wins}</td>
-                    <td className="text-right font-black">{r.points}</td>
-                  </tr>
+              <div className="grid gap-5 xl:grid-cols-2">
+                <div>
+                  <h3 className="mb-2 text-xs font-black uppercase tracking-wide text-f1-grey">
+                    Drivers&rsquo; standings
+                  </h3>
+                  {g.overall.length ? (
+                    <DriversTable rows={g.overall} />
+                  ) : (
+                    <EmptyState title="No driver standings yet" />
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="mb-2 text-xs font-black uppercase tracking-wide text-f1-grey">
+                    Teams&rsquo; standings
+                  </h3>
+                  {g.teams.length ? (
+                    <Table
+                      head={
+                        <>
+                          <th className="w-12">Pos</th>
+                          <th>Team</th>
+                          <th className="text-right">Wins</th>
+                          <th className="text-right">Pts</th>
+                        </>
+                      }
+                    >
+                      {g.teams.map((r) => (
+                        <tr key={r.id}>
+                          <td className="font-black">{r.position}</td>
+                          <td>
+                            <span className="flex items-stretch gap-2">
+                              <TeamColorBar color={r.teamSeasonEntry.primaryColor} />
+                              <span className="font-bold">{r.teamSeasonEntry.displayName}</span>
+                            </span>
+                          </td>
+                          <td className="text-right">{r.wins}</td>
+                          <td className="text-right font-black">{r.points}</td>
+                        </tr>
+                      ))}
+                    </Table>
+                  ) : (
+                    <EmptyState title="No team standings yet" />
+                  )}
+                </div>
+
+                {[...g.subTables.entries()].map(([type, rows]) => (
+                  <div key={type}>
+                    <h3 className="mb-2 text-xs font-black uppercase tracking-wide text-f1-grey">
+                      {type} standings
+                    </h3>
+                    <DriversTable rows={rows} />
+                  </div>
                 ))}
-              </Table>
-            ) : (
-              <EmptyState title="No constructor standings yet" />
-            )}
-          </div>
+              </div>
+            </section>
+          ))}
         </div>
       ) : (
         <EmptyState
-          title={`No standings for ${year} yet`}
+          title={`No standings for ${season.label} yet`}
           hint="Publish results (or hit Recalculate) to build the snapshots."
         />
       )}

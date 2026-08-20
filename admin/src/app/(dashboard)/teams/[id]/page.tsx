@@ -1,10 +1,14 @@
 import { notFound } from "next/navigation";
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { TeamColorBar } from "@ctr/ui";
-import { db, seasons, teams, PERMISSIONS } from "@ctr/db";
+import { db, teams, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
+import { publicUrl } from "@/lib/storage";
+import { variantKey } from "@/components/media/variants";
+import { MediaPickerInput } from "@/components/media/media-picker";
 import { Card, Field, Input, LinkButton, PageHeader, Select, Textarea } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
+import { loadSeasonTabs } from "@/components/racing/season-tabs";
 import {
   createTeamEntryAction,
   deleteTeamAction,
@@ -23,21 +27,31 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
     db.query.teams.findFirst({
       where: eq(teams.id, id),
       with: {
+        logo: { columns: { path: true } },
         seasonEntries: {
-          orderBy: (t, { desc: d }) => [d(t.seasonYear)],
           with: {
-            car: true,
+            championshipSeason: { with: { championship: { columns: { shortName: true } } } },
+            car: { with: { image: { columns: { path: true } } } },
+            logo: { columns: { path: true } },
+            carImage: { columns: { path: true } },
             driverEntries: { with: { driver: { columns: { firstName: true, lastName: true, code: true } } } },
           },
         },
       },
     }),
-    db.select().from(seasons).orderBy(desc(seasons.year)),
+    loadSeasonTabs(),
   ]);
   if (!team) notFound();
 
-  const usedYears = new Set(team.seasonEntries.map((e) => e.seasonYear));
-  const availableSeasons = allSeasons.filter((s) => !usedYears.has(s.year));
+  const seasonEntries = [...team.seasonEntries].sort(
+    (a, b) =>
+      b.championshipSeason.year - a.championshipSeason.year ||
+      a.championshipSeason.championship.shortName.localeCompare(
+        b.championshipSeason.championship.shortName,
+      ),
+  );
+  const usedSeasonIds = new Set(seasonEntries.map((e) => e.championshipSeasonId));
+  const availableSeasons = allSeasons.filter((s) => !usedSeasonIds.has(s.id));
 
   return (
     <>
@@ -76,6 +90,13 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
           <Field label="Description" className="sm:col-span-2">
             <Textarea name="description" rows={5} defaultValue={team.description ?? ""} />
           </Field>
+          <Field label="Team logo" className="sm:col-span-2" hint="Canonical logo used across the site.">
+            <MediaPickerInput
+              name="logoMediaId"
+              initialId={team.logoMediaId}
+              initialUrl={team.logo ? publicUrl(variantKey(team.logo.path, "thumb")) : null}
+            />
+          </Field>
           <div className="sm:col-span-2">
             <SubmitButton>Save team</SubmitButton>
           </div>
@@ -87,13 +108,15 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
         <h2 className="text-sm font-black uppercase tracking-wide">Season entries</h2>
       </div>
 
-      {team.seasonEntries.map((entry) => {
+      {seasonEntries.map((entry) => {
         const specs = (entry.car?.specs ?? {}) as Record<string, string | undefined>;
         return (
           <Card key={entry.id} className="mt-3">
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <TeamColorBar color={entry.primaryColor} className="!min-h-6" />
-              <span className="text-lg font-black uppercase">{entry.seasonYear}</span>
+              <span className="text-lg font-black uppercase">
+                {entry.championshipSeason.championship.shortName} {entry.championshipSeason.year}
+              </span>
               <span className="font-bold">{entry.displayName}</span>
               {entry.driverEntries.length ? (
                 <span className="ml-auto text-xs text-f1-grey">
@@ -139,6 +162,20 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
               <Field label="Power unit supplier">
                 <Input name="powerUnitSupplier" maxLength={120} defaultValue={entry.powerUnitSupplier ?? ""} />
               </Field>
+              <Field label="Season logo" hint="Overrides the canonical logo for this season.">
+                <MediaPickerInput
+                  name="logoMediaId"
+                  initialId={entry.logoMediaId}
+                  initialUrl={entry.logo ? publicUrl(variantKey(entry.logo.path, "thumb")) : null}
+                />
+              </Field>
+              <Field label="Car image" hint="Season car shot for team/car pages.">
+                <MediaPickerInput
+                  name="carImageMediaId"
+                  initialId={entry.carImageMediaId}
+                  initialUrl={entry.carImage ? publicUrl(variantKey(entry.carImage.path, "thumb")) : null}
+                />
+              </Field>
               <div className="flex items-end">
                 <SubmitButton variant="secondary" className="!px-3 !py-2 !text-xs">
                   Save entry
@@ -180,6 +217,15 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
                 <Field label="Note">
                   <Input name="note" maxLength={500} defaultValue={specs.note ?? ""} />
                 </Field>
+                <Field label="Car image (media)" className="sm:col-span-3" hint="Studio/side-on car render.">
+                  <MediaPickerInput
+                    name="imageMediaId"
+                    initialId={entry.car?.imageMediaId}
+                    initialUrl={
+                      entry.car?.image ? publicUrl(variantKey(entry.car.image.path, "thumb")) : null
+                    }
+                  />
+                </Field>
                 <div className="sm:col-span-3">
                   <SubmitButton variant="secondary" className="!px-3 !py-2 !text-xs">
                     Save car
@@ -197,10 +243,10 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
           <form action={createTeamEntryAction} className="grid gap-4 sm:grid-cols-3">
             <input type="hidden" name="teamId" value={team.id} />
             <Field label="Season">
-              <Select name="seasonYear" required defaultValue={availableSeasons[0].year}>
+              <Select name="championshipSeasonId" required defaultValue={availableSeasons[0].id}>
                 {availableSeasons.map((s) => (
-                  <option key={s.year} value={s.year}>
-                    {s.year}
+                  <option key={s.id} value={s.id}>
+                    {s.label}
                   </option>
                 ))}
               </Select>

@@ -14,9 +14,9 @@ export function Pagination({
 
   const href = (p: number) => (p <= 1 ? basePath : `${basePath}?page=${p}`);
   const buttonClass =
-    "chamfer-tr bg-carbon px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-f1-red";
+    "chamfer-tr border border-line bg-panel px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-accent hover:text-accent-fg";
   const disabledClass =
-    "chamfer-tr cursor-not-allowed bg-warm-grey px-4 py-2 text-xs font-bold uppercase tracking-wide text-f1-grey-light";
+    "chamfer-tr cursor-not-allowed border border-line bg-surface px-4 py-2 text-xs font-bold uppercase tracking-wide text-fg-faint";
 
   return (
     <nav aria-label="Pagination" className="mt-10 flex items-center justify-center gap-4">
@@ -30,7 +30,7 @@ export function Pagination({
         </span>
       )}
 
-      <span className="text-sm font-bold uppercase tracking-wide text-f1-grey">
+      <span className="text-sm font-bold uppercase tracking-wide text-fg-muted">
         Page {page} of {totalPages}
       </span>
 

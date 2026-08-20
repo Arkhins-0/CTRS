@@ -107,6 +107,7 @@ const updatePageSchema = z.object({
   slug: z.string().min(1).max(120).regex(/^[a-z0-9-]+$/),
   metaTitle: z.string().max(255),
   metaDescription: z.string(),
+  ogMediaId: z.string().uuid().nullable(),
   status: z.enum(["draft", "published"]),
 });
 
@@ -118,6 +119,7 @@ export async function updatePageMetaAction(formData: FormData) {
     slug: str(formData, "slug"),
     metaTitle: str(formData, "metaTitle"),
     metaDescription: str(formData, "metaDescription"),
+    ogMediaId: str(formData, "ogMediaId") || null,
     status: str(formData, "status"),
   });
 
@@ -131,6 +133,7 @@ export async function updatePageMetaAction(formData: FormData) {
       slug: data.slug,
       metaTitle: data.metaTitle || null,
       metaDescription: data.metaDescription || null,
+      ogMediaId: data.ogMediaId,
       status: data.status,
       updatedBy: session.user.id,
       updatedAt: new Date(),
@@ -148,6 +151,7 @@ export async function updatePageMetaAction(formData: FormData) {
         slug: before.slug,
         metaTitle: before.metaTitle,
         metaDescription: before.metaDescription,
+        ogMediaId: before.ogMediaId,
         status: before.status,
       },
       after: data,

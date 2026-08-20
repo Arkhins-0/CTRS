@@ -3,6 +3,7 @@
  * here — this module is used by both the client grid and the server actions.
  */
 
+/** "race2" is retired — a second race is type "race" with sequence 2. */
 export type SessionKind =
   | "fp1"
   | "fp2"
@@ -41,6 +42,7 @@ export type GridRow = {
   fastestLap: boolean;
 };
 
+/** Race 1/2/3 are all type "race" (any sequence); sprint also pays points. */
 export const isRaceLike = (t: SessionKind): boolean => t === "race" || t === "sprint";
 export const isQualiLike = (t: SessionKind): boolean =>
   t === "qualifying" || t === "sprint_qualifying";

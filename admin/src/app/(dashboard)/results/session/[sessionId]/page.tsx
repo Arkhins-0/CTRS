@@ -14,7 +14,7 @@ import { requirePermission } from "@/lib/auth";
 import { EmptyState, LinkButton, PageHeader, StatusPill } from "@/components/ui";
 import { SubmitButton } from "@/components/ui-client";
 import { ResultsGrid } from "@/components/results/results-grid";
-import { compareRows, isRaceLike, type GridRow } from "@/components/results/types";
+import { compareRows, isRaceLike, type GridRow, type SessionKind } from "@/components/results/types";
 import { publishResultsAction, saveResultsDraftAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +29,10 @@ const SESSION_LABELS: Record<string, string> = {
   race: "Race",
 };
 
+/** "Race 2" for (race, 2); the stored label still wins for display. */
+const sessionTypeLabel = (type: string, sequence: number) =>
+  type === "race" ? `Race ${sequence}` : (SESSION_LABELS[type] ?? type);
+
 export default async function SessionResultsPage({
   params,
   searchParams,
@@ -42,19 +46,32 @@ export default async function SessionResultsPage({
   const session = await db.query.raceSessions.findFirst({
     where: eq(raceSessions.id, sessionId),
     with: {
-      grandPrix: { with: { season: true, circuit: { columns: { name: true } } } },
+      round: {
+        with: {
+          championshipSeason: { with: { championship: { columns: { shortName: true } } } },
+          circuit: { columns: { name: true } },
+        },
+      },
+      category: { columns: { id: true, name: true, shortName: true, color: true } },
       results: true,
     },
   });
   if (!session) notFound();
-  const gp = session.grandPrix;
+  const round = session.round;
+  const championshipSeason = round.championshipSeason;
+  const seasonLabel = `${championshipSeason.championship.shortName} ${championshipSeason.year}`;
 
-  // driver entries active at this GP's round
+  // the retired "race2" enum value can still exist on legacy rows — treat as a race
+  const sessionKind: SessionKind = session.type === "race2" ? "race" : session.type;
+
+  // driver entries active at this round — restricted to the session's
+  // category when it has one (multi-class weekends).
   const entries = await db.query.driverSeasonEntries.findMany({
     where: and(
-      eq(driverSeasonEntries.seasonYear, gp.seasonYear),
-      or(isNull(driverSeasonEntries.fromRound), lte(driverSeasonEntries.fromRound, gp.round)),
-      or(isNull(driverSeasonEntries.toRound), gte(driverSeasonEntries.toRound, gp.round)),
+      eq(driverSeasonEntries.championshipSeasonId, round.championshipSeasonId),
+      session.categoryId ? eq(driverSeasonEntries.categoryId, session.categoryId) : undefined,
+      or(isNull(driverSeasonEntries.fromRound), lte(driverSeasonEntries.fromRound, round.round)),
+      or(isNull(driverSeasonEntries.toRound), gte(driverSeasonEntries.toRound, round.round)),
     ),
     with: {
       driver: { columns: { firstName: true, lastName: true, code: true } },
@@ -63,7 +80,7 @@ export default async function SessionResultsPage({
   });
 
   const resultByEntry = new Map(session.results.map((r) => [r.driverSeasonEntryId, r]));
-  const raceLike = isRaceLike(session.type);
+  const raceLike = isRaceLike(sessionKind);
 
   const rows: GridRow[] = entries
     .map((e): GridRow => {
@@ -95,17 +112,30 @@ export default async function SessionResultsPage({
     })
     .sort(compareRows);
 
+  // points schemes come from the championship season's points system
+  const pointsSystem = championshipSeason.pointsSystem;
+
   return (
     <>
       <PageHeader
-        title={`${gp.name} — ${SESSION_LABELS[session.type] ?? session.type}`}
-        sub={`Round ${gp.round} · ${gp.seasonYear} · ${gp.circuit.name}${
+        title={`${round.name} — ${session.label ?? sessionTypeLabel(session.type, session.sequence)}`}
+        sub={`Round ${round.round} · ${seasonLabel} · ${round.circuit.name}${
           session.startsAt ? ` · ${format(session.startsAt, "EEE d MMM yyyy, HH:mm")}` : ""
         }`}
         actions={
           <>
+            {session.category ? (
+              <span className="inline-flex items-center gap-1.5 border border-warm-grey bg-white px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-carbon">
+                <span
+                  aria-hidden
+                  className="inline-block size-3 rounded-sm"
+                  style={{ backgroundColor: session.category.color }}
+                />
+                {session.category.shortName}
+              </span>
+            ) : null}
             <StatusPill status={session.status} />
-            <LinkButton href={`/results?year=${gp.seasonYear}`} variant="ghost">
+            <LinkButton href={`/results?season=${round.championshipSeasonId}`} variant="ghost">
               Back to results
             </LinkButton>
           </>
@@ -126,10 +156,10 @@ export default async function SessionResultsPage({
         <form action={publishResultsAction}>
           <input type="hidden" name="sessionId" value={session.id} />
           <ResultsGrid
-            sessionType={session.type}
+            sessionType={sessionKind}
             initialRows={rows}
-            racePoints={gp.season.racePoints}
-            sprintPoints={gp.season.sprintPoints}
+            racePoints={pointsSystem.race}
+            sprintPoints={pointsSystem.sprint ?? []}
           />
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <SubmitButton>Publish results</SubmitButton>
@@ -138,19 +168,24 @@ export default async function SessionResultsPage({
             </SubmitButton>
             <span className="text-xs text-f1-grey">
               Publishing replaces the stored classification, marks the session completed
-              {session.type === "race" ? ", completes the Grand Prix" : ""} and recomputes the
-              {" "}
-              {gp.seasonYear} standings.
+              {sessionKind === "race" ? ", completes the round" : ""} and recomputes the{" "}
+              {seasonLabel} standings.
             </span>
-            {gp.season.fastestLapPoint && session.type === "race" ? (
+            {pointsSystem.fastestLapPoint && sessionKind === "race" ? (
               <Badge tone="outline">Fastest-lap point season — add it to PTS manually</Badge>
             ) : null}
           </div>
         </form>
       ) : (
         <EmptyState
-          title="No active driver entries for this round"
-          hint={`Add ${gp.seasonYear} driver season entries (Drivers → season entries) before entering results.`}
+          title={
+            session.category
+              ? `No active ${session.category.shortName} driver entries for this round`
+              : "No active driver entries for this round"
+          }
+          hint={`Add ${seasonLabel} driver season entries${
+            session.category ? ` in the ${session.category.name} category` : ""
+          } (Drivers → season entries) before entering results.`}
         />
       )}
     </>

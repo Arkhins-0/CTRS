@@ -54,8 +54,8 @@ export function RegisterForm() {
         <CountrySelect id="countryCode" />
       </Field>
 
-      <label className="flex cursor-pointer items-start gap-3 text-sm text-carbon">
-        <input type="checkbox" name="newsletter" className="mt-0.5 accent-f1-red" />
+      <label className="flex cursor-pointer items-start gap-3 text-sm text-fg-muted">
+        <input type="checkbox" name="newsletter" className="mt-0.5 accent-accent" />
         <span>
           Sign me up for the <strong>race week newsletter</strong> — the biggest stories, straight
           to my inbox.

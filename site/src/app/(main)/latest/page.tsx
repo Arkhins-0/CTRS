@@ -3,7 +3,8 @@ import { ArticleHub } from "@/components/news/article-hub";
 
 export const metadata: Metadata = {
   title: "Latest News",
-  description: "All the latest Formula Racing news, features and analysis from CTR Sports.",
+  description:
+    "All the latest news, features and analysis from the CTR–JK Tyre FMSCI Indian National Car Racing Championship.",
 };
 
 export default async function LatestPage({

@@ -1,57 +1,40 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { format, parseISO } from "date-fns";
 import { Badge } from "@ctr/ui";
-import { db, grandsPrix, seasons, PERMISSIONS } from "@ctr/db";
+import { db, rounds, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { EmptyState, LinkButton, PageHeader, StatusPill, Table } from "@/components/ui";
+import { loadSeasonTabs, pickSeason, SeasonTabs } from "@/components/racing/season-tabs";
 
 export const dynamic = "force-dynamic";
-
-function SeasonTabs({ years, active }: { years: number[]; active: number }) {
-  return (
-    <div className="mb-5 flex flex-wrap gap-1 border-b-2 border-carbon">
-      {years.map((y) => (
-        <Link
-          key={y}
-          href={`/races?year=${y}`}
-          className={`px-4 py-2 text-sm font-black uppercase tracking-wide transition-colors ${
-            y === active ? "chamfer-tr bg-carbon text-white" : "text-f1-grey hover:text-carbon"
-          }`}
-        >
-          {y}
-        </Link>
-      ))}
-    </div>
-  );
-}
 
 const fmtDate = (d: string | null) => (d ? format(parseISO(d), "d MMM") : "—");
 
 export default async function RacesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string }>;
+  searchParams: Promise<{ season?: string }>;
 }) {
   await requirePermission(PERMISSIONS.RACES_MANAGE);
   const sp = await searchParams;
 
-  const allSeasons = await db.select().from(seasons).orderBy(desc(seasons.year));
-  if (!allSeasons.length) {
+  const seasons = await loadSeasonTabs();
+  const season = pickSeason(seasons, sp.season);
+  if (!season) {
     return (
       <>
         <PageHeader title="Race Weekends" sub="Season calendar & session timetables" />
-        <EmptyState title="No seasons yet" hint="Seed a season before creating race weekends." />
+        <EmptyState
+          title="No championship seasons yet"
+          hint="Create a championship season before adding race weekends."
+        />
       </>
     );
   }
 
-  const years = allSeasons.map((s) => s.year);
-  const parsedYear = Number(sp.year);
-  const year = years.includes(parsedYear) ? parsedYear : years[0];
-
-  const gps = await db.query.grandsPrix.findMany({
-    where: eq(grandsPrix.seasonYear, year),
+  const roundRows = await db.query.rounds.findMany({
+    where: eq(rounds.championshipSeasonId, season.id),
     orderBy: (t, { asc }) => [asc(t.round)],
     with: {
       circuit: { columns: { name: true, country: true } },
@@ -63,18 +46,18 @@ export default async function RacesPage({
     <>
       <PageHeader
         title="Race Weekends"
-        sub={`${gps.length} round${gps.length === 1 ? "" : "s"} in the ${year} season`}
-        actions={<LinkButton href={`/races/new?year=${year}`}>New race weekend</LinkButton>}
+        sub={`${roundRows.length} round${roundRows.length === 1 ? "" : "s"} in ${season.label}`}
+        actions={<LinkButton href={`/races/new?season=${season.id}`}>New race weekend</LinkButton>}
       />
 
-      <SeasonTabs years={years} active={year} />
+      <SeasonTabs seasons={seasons} activeId={season.id} base="/races" />
 
-      {gps.length ? (
+      {roundRows.length ? (
         <Table
           head={
             <>
               <th className="w-12">Rd</th>
-              <th>Grand Prix</th>
+              <th>Round</th>
               <th>Circuit</th>
               <th>Dates</th>
               <th>Format</th>
@@ -84,29 +67,29 @@ export default async function RacesPage({
             </>
           }
         >
-          {gps.map((gp) => (
-            <tr key={gp.id}>
-              <td className="font-black">{gp.round}</td>
+          {roundRows.map((r) => (
+            <tr key={r.id}>
+              <td className="font-black">{r.round}</td>
               <td>
-                <Link href={`/races/${gp.id}`} className="font-bold hover:text-f1-red">
-                  {gp.name}
+                <Link href={`/races/${r.id}`} className="font-bold hover:text-f1-red">
+                  {r.name}
                 </Link>
               </td>
               <td className="text-f1-grey">
-                {gp.circuit.name}
-                <span className="text-f1-grey-light"> · {gp.circuit.country}</span>
+                {r.circuit.name}
+                <span className="text-f1-grey-light"> · {r.circuit.country}</span>
               </td>
               <td className="whitespace-nowrap">
-                {fmtDate(gp.startDate)} → {fmtDate(gp.endDate)}
+                {fmtDate(r.startDate)} → {fmtDate(r.endDate)}
               </td>
-              <td>{gp.hasSprint ? <Badge tone="red">Sprint</Badge> : <span className="text-f1-grey-light">—</span>}</td>
+              <td>{r.hasSprint ? <Badge tone="red">Sprint</Badge> : <span className="text-f1-grey-light">—</span>}</td>
               <td>
-                <StatusPill status={gp.status} />
+                <StatusPill status={r.status} />
               </td>
-              <td className="text-right font-bold">{gp.sessions.length}</td>
+              <td className="text-right font-bold">{r.sessions.length}</td>
               <td className="text-right">
                 <Link
-                  href={`/races/${gp.id}`}
+                  href={`/races/${r.id}`}
                   className="text-xs font-bold uppercase text-f1-red hover:underline"
                 >
                   Edit →
@@ -117,7 +100,7 @@ export default async function RacesPage({
         </Table>
       ) : (
         <EmptyState
-          title={`No race weekends in ${year}`}
+          title={`No race weekends in ${season.label}`}
           hint="Create the first round with “New race weekend”."
         />
       )}

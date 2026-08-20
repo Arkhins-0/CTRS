@@ -4,7 +4,7 @@ import { ArticleBody } from "./article-body";
 
 /* ── Block data shapes (contentBlocks.data jsonb) ────────────────────────── */
 
-type HeroData = { heading?: string; sub?: string };
+type HeroData = { kicker?: string; heading?: string; sub?: string };
 type RichTextData = { html?: string };
 type ImageItem = { mediaId?: string; url?: string; alt?: string; caption?: string };
 type ImageGridData = { items?: ImageItem[] };
@@ -46,13 +46,16 @@ export type BlockSponsor = {
 
 function HeroBlock({ data, pageTitle }: { data: HeroData; pageTitle: string }) {
   return (
-    <section className="bg-carbon-fibre">
+    <section className="border-b border-line bg-carbon-fibre">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:py-20">
-        <h1 className="max-w-3xl text-4xl font-black uppercase leading-tight tracking-tight text-white sm:text-5xl">
+        <p className="text-xs font-black uppercase tracking-[0.3em] text-accent">
+          {data.kicker ?? "CTR Sports"}
+        </p>
+        <h1 className="mt-3 max-w-3xl text-4xl font-black uppercase leading-tight tracking-tight text-white sm:text-5xl">
           {data.heading ?? pageTitle}
         </h1>
-        {data.sub ? <p className="mt-4 max-w-2xl text-lg text-warm-grey">{data.sub}</p> : null}
-        <div className="mt-6 h-1 w-24 bg-f1-red" aria-hidden />
+        {data.sub ? <p className="mt-4 max-w-2xl text-lg text-fg-muted">{data.sub}</p> : null}
+        <div className="mt-6 h-1 w-24 bg-accent" aria-hidden />
       </div>
     </section>
   );
@@ -67,7 +70,7 @@ function ImageFigure({ item, media }: { item: ImageItem; media: BlockMedia | und
       {/* CMS images have unknown dimensions — plain <img> by design */}
       <img src={src} alt={item.alt ?? media?.alt ?? ""} className="chamfer-tr h-auto w-full" />
       {caption ? (
-        <figcaption className="mt-2 text-sm text-f1-grey">{caption}</figcaption>
+        <figcaption className="mt-2 text-sm text-fg-faint">{caption}</figcaption>
       ) : null}
     </figure>
   );
@@ -75,7 +78,7 @@ function ImageFigure({ item, media }: { item: ImageItem; media: BlockMedia | und
 
 function CtaBlock({ data }: { data: CtaData }) {
   return (
-    <section className="my-12 bg-carbon-fibre">
+    <section className="my-12 border-y border-line bg-carbon-fibre">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 py-12 text-center">
         {data.heading ? (
           <h2 className="max-w-2xl text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
@@ -85,7 +88,7 @@ function CtaBlock({ data }: { data: CtaData }) {
         {data.href && data.buttonLabel ? (
           <Link
             href={data.href}
-            className="chamfer-tr bg-f1-red px-8 py-3 text-sm font-black uppercase tracking-wide text-white transition-colors hover:bg-f1-red-dark"
+            className="chamfer-tr bg-accent px-8 py-3 text-sm font-black uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
           >
             {data.buttonLabel}
           </Link>
@@ -100,19 +103,19 @@ function FaqBlock({ data }: { data: FaqData }) {
   if (!items.length) return null;
   return (
     <div className="mx-auto my-10 max-w-3xl px-4">
-      <div className="chamfer-tr overflow-hidden border border-warm-grey bg-white">
+      <div className="chamfer-tr overflow-hidden border border-line bg-surface">
         {items.map((item, i) => (
-          <details key={i} className="group border-b border-warm-grey last:border-b-0">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-black uppercase tracking-tight text-carbon transition-colors hover:text-f1-red">
+          <details key={i} className="group border-b border-line last:border-b-0">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-black uppercase tracking-tight text-white transition-colors hover:text-accent">
               {item.q}
               <span
                 aria-hidden
-                className="text-lg font-black text-f1-red transition-transform group-open:rotate-45"
+                className="text-lg font-black text-accent transition-transform group-open:rotate-45"
               >
                 +
               </span>
             </summary>
-            <div className="px-5 pb-5 text-[15px] leading-relaxed text-f1-grey">
+            <div className="px-5 pb-5 text-[15px] leading-relaxed text-fg-muted">
               <p>{item.a}</p>
             </div>
           </details>
@@ -134,7 +137,7 @@ function SponsorTierRow({
   if (!sponsors.length) return null;
   return (
     <div>
-      <p className="text-center text-[11px] font-bold uppercase tracking-[0.25em] text-f1-grey">
+      <p className="text-center text-[11px] font-bold uppercase tracking-[0.25em] text-fg-faint">
         {label}
       </p>
       <ul className="mt-5 flex flex-wrap items-stretch justify-center gap-4">
@@ -142,7 +145,7 @@ function SponsorTierRow({
           const logo = mediaUrl(s.logo?.path);
           const card = (
             <span
-              className={`chamfer-tr flex h-full items-center justify-center border border-warm-grey bg-white transition-transform duration-200 hover:-translate-y-0.5 ${
+              className={`chamfer-tr flex h-full items-center justify-center border border-line bg-surface transition-all duration-200 hover:-translate-y-0.5 hover:border-accent ${
                 size === "lg" ? "min-w-[180px] px-8 py-6" : "min-w-[140px] px-6 py-4"
               }`}
             >
@@ -155,7 +158,7 @@ function SponsorTierRow({
                 />
               ) : (
                 <span
-                  className={`font-black uppercase tracking-wider text-carbon ${
+                  className={`font-black uppercase tracking-wider text-white ${
                     size === "lg" ? "text-lg" : "text-sm"
                   }`}
                 >
@@ -188,9 +191,9 @@ function SponsorGridBlock({ sponsors }: { sponsors: BlockSponsor[] }) {
   if (!sponsors.length) return null;
   return (
     <div className="mx-auto my-10 max-w-7xl space-y-12 px-4">
-      <SponsorTierRow label="Global Partners" sponsors={global} size="lg" />
-      <SponsorTierRow label="Official Partners" sponsors={official} size="sm" />
-      <SponsorTierRow label="Suppliers" sponsors={suppliers} size="sm" />
+      <SponsorTierRow label="Title Partners" sponsors={global} size="lg" />
+      <SponsorTierRow label="CTR Associates" sponsors={official} size="sm" />
+      <SponsorTierRow label="Championship Partners" sponsors={suppliers} size="sm" />
     </div>
   );
 }

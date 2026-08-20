@@ -1,6 +1,30 @@
-/* ── CTRSports shared F1 design tokens (Tailwind v4) ─────────────────────── */
+/* ── CTRSports shared design tokens (Tailwind v4) ────────────────────────── */
 @theme {
-  /* Brand */
+  /*
+   * Editable brand accent: the real values are injected at runtime as
+   * --ctr-accent* on <html> (from the CMS "theme" setting). Defaults are the
+   * CTR yellow. Text placed on the accent must use accent-fg.
+   */
+  --color-accent: var(--ctr-accent, #f7d619);
+  --color-accent-dark: var(--ctr-accent-dark, #e0bf06);
+  --color-accent-fg: var(--ctr-accent-fg, #0a0a0a);
+
+  /*
+   * Per-championship theming: ChampionshipTheme sets --champ-primary/-secondary
+   * on a wrapper; champ tokens fall back to the global accent when unset.
+   */
+  --color-champ: var(--champ-primary, var(--ctr-accent, #f7d619));
+  --color-champ-secondary: var(--champ-secondary, #0a0a0a);
+
+  /* CTR dark surfaces (site is dark-first, like formula1.com) */
+  --color-page: #000000;
+  --color-surface: #0c0e11;
+  --color-panel: #1b2027;
+  --color-line: #39414d;
+  --color-fg-muted: #c2c9d4;
+  --color-fg-faint: #98a1af;
+
+  /* Legacy F1 palette (kept so existing classes compile; prefer accent-*) */
   --color-f1-red: #e10600;
   --color-f1-red-dark: #b30500;
   --color-f1-red-bright: #ff1e00;

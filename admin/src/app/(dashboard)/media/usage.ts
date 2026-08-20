@@ -3,13 +3,15 @@ import {
   adminUsers,
   articles,
   cars,
+  championships,
+  championshipSeasons,
   circuits,
   db,
   drivers,
   galleries,
   galleryItems,
-  grandsPrix,
   pages,
+  rounds,
   sponsors,
   teamSeasonEntries,
   teams,
@@ -26,12 +28,13 @@ export type MediaUsage = { type: string; name: string; href: string };
 export async function findMediaUsage(mediaId: string): Promise<MediaUsage[]> {
   const [
     articleRows,
+    championshipRows,
     teamRows,
     entryRows,
     carRows,
     driverRows,
     circuitRows,
-    gpRows,
+    roundRows,
     videoRows,
     galleryRows,
     pageRows,
@@ -42,14 +45,22 @@ export async function findMediaUsage(mediaId: string): Promise<MediaUsage[]> {
       .select({ id: articles.id, title: articles.title })
       .from(articles)
       .where(eq(articles.heroMediaId, mediaId)),
+    db
+      .select({ id: championships.id, name: championships.name })
+      .from(championships)
+      .where(eq(championships.logoMediaId, mediaId)),
     db.select({ id: teams.id, name: teams.name }).from(teams).where(eq(teams.logoMediaId, mediaId)),
     db
       .select({
         id: teamSeasonEntries.id,
         name: teamSeasonEntries.displayName,
-        year: teamSeasonEntries.seasonYear,
+        year: championshipSeasons.year,
       })
       .from(teamSeasonEntries)
+      .innerJoin(
+        championshipSeasons,
+        eq(teamSeasonEntries.championshipSeasonId, championshipSeasons.id),
+      )
       .where(
         or(
           eq(teamSeasonEntries.logoMediaId, mediaId),
@@ -69,9 +80,10 @@ export async function findMediaUsage(mediaId: string): Promise<MediaUsage[]> {
       .from(circuits)
       .where(eq(circuits.mapMediaId, mediaId)),
     db
-      .select({ id: grandsPrix.id, name: grandsPrix.name, year: grandsPrix.seasonYear })
-      .from(grandsPrix)
-      .where(eq(grandsPrix.heroMediaId, mediaId)),
+      .select({ id: rounds.id, name: rounds.name, year: championshipSeasons.year })
+      .from(rounds)
+      .innerJoin(championshipSeasons, eq(rounds.championshipSeasonId, championshipSeasons.id))
+      .where(eq(rounds.heroMediaId, mediaId)),
     db
       .select({ id: videos.id, title: videos.title })
       .from(videos)
@@ -97,6 +109,11 @@ export async function findMediaUsage(mediaId: string): Promise<MediaUsage[]> {
 
   return [
     ...articleRows.map((r) => ({ type: "Article", name: r.title, href: `/news/${r.id}` })),
+    ...championshipRows.map((r) => ({
+      type: "Championship logo",
+      name: r.name,
+      href: `/championships/${r.id}`,
+    })),
     ...teamRows.map((r) => ({ type: "Team logo", name: r.name, href: "/teams" })),
     ...entryRows.map((r) => ({
       type: "Team season entry",
@@ -110,8 +127,8 @@ export async function findMediaUsage(mediaId: string): Promise<MediaUsage[]> {
       href: "/drivers",
     })),
     ...circuitRows.map((r) => ({ type: "Circuit map", name: r.name, href: "/circuits" })),
-    ...gpRows.map((r) => ({
-      type: "Grand Prix hero",
+    ...roundRows.map((r) => ({
+      type: "Round hero",
       name: `${r.name} ${r.year}`,
       href: `/races/${r.id}`,
     })),

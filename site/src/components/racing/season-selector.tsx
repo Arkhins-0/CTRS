@@ -2,7 +2,7 @@ import Link from "next/link";
 
 /**
  * Row of season-year links (server component — `hrefFor` never crosses a
- * client boundary). The selected year is filled F1 red.
+ * client boundary). The selected year is filled with the CTR accent.
  */
 export function SeasonSelector({
   years,
@@ -24,8 +24,8 @@ export function SeasonSelector({
           style={{ ["--chamfer" as string]: "8px" }}
           className={`chamfer-tr px-3 py-1 text-xs font-bold uppercase tracking-wide transition-colors ${
             year === selected
-              ? "bg-f1-red text-white"
-              : "border border-warm-grey bg-white text-f1-grey hover:border-f1-red hover:text-carbon"
+              ? "bg-accent text-accent-fg"
+              : "border border-line bg-surface text-fg-muted hover:border-accent hover:text-white"
           }`}
         >
           {year}

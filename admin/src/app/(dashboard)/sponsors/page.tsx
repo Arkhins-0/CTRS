@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { asc } from "drizzle-orm";
-import { db, PERMISSIONS, sponsors } from "@ctr/db";
+import { db, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
+import { publicUrl } from "@/lib/storage";
+import { variantKey } from "@/components/media/variants";
+import { MediaPickerInput } from "@/components/media/media-picker";
 import { Card, EmptyState, Field, Input, PageHeader, Select, Table } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
 import { createSponsorAction, deleteSponsorAction, toggleSponsorAction } from "./actions";
@@ -17,7 +19,10 @@ const TIER_LABELS: Record<string, string> = {
 export default async function SponsorsPage() {
   await requirePermission(PERMISSIONS.PAGES_MANAGE);
 
-  const rows = await db.select().from(sponsors).orderBy(asc(sponsors.sort), asc(sponsors.name));
+  const rows = await db.query.sponsors.findMany({
+    orderBy: (t, { asc }) => [asc(t.sort), asc(t.name)],
+    with: { logo: { columns: { path: true, alt: true } } },
+  });
 
   return (
     <>
@@ -29,6 +34,7 @@ export default async function SponsorsPage() {
             <Table
               head={
                 <>
+                  <th className="w-16">Logo</th>
                   <th>Name</th>
                   <th>Tier</th>
                   <th>URL</th>
@@ -40,6 +46,20 @@ export default async function SponsorsPage() {
             >
               {rows.map((s) => (
                 <tr key={s.id}>
+                  <td>
+                    {s.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={publicUrl(variantKey(s.logo.path, "thumb"))}
+                        alt={s.logo.alt ?? s.name}
+                        className="h-9 w-12 border border-warm-grey bg-white object-contain p-0.5"
+                      />
+                    ) : (
+                      <span className="flex h-9 w-12 items-center justify-center border border-dashed border-warm-grey text-[9px] font-bold uppercase text-f1-grey-light">
+                        None
+                      </span>
+                    )}
+                  </td>
                   <td>
                     <Link href={`/sponsors/${s.id}`} className="font-bold hover:text-f1-red">
                       {s.name}
@@ -101,6 +121,9 @@ export default async function SponsorsPage() {
             </Field>
             <Field label="Sort" hint="Lower numbers appear first.">
               <Input name="sort" type="number" min={0} defaultValue={0} />
+            </Field>
+            <Field label="Logo">
+              <MediaPickerInput name="logoMediaId" label="Choose logo" />
             </Field>
             <SubmitButton>Add sponsor</SubmitButton>
           </form>

@@ -3,8 +3,9 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { Bookmark, Heart, LogOut, Mail, Trophy } from "lucide-react";
 import { db, newsletterSubscribers } from "@ctr/db";
-import { Badge, ChamferCard, CountryFlag, SectionHeading } from "@ctr/ui";
+import { ChamferCard, CountryFlag, SectionHeading } from "@ctr/ui";
 import { requireFan } from "@/lib/fan-auth";
+import { Chip } from "@/components/fanzone/chip";
 import { DevNote } from "@/components/fanzone/dev-note";
 import { SubmitButton } from "@/components/fanzone/submit-button";
 import { signOut, subscribeNewsletter, unsubscribeNewsletter } from "./actions";
@@ -50,9 +51,9 @@ export default async function AccountPage() {
   return (
     <>
       {/* greeting band */}
-      <div className="border-b-4 border-f1-red bg-carbon-fibre">
+      <div className="border-b-4 border-accent bg-carbon-fibre">
         <div className="mx-auto max-w-7xl px-4 py-10">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-f1-red">Fan zone</p>
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-accent">Fan zone</p>
           <div className="mt-1 flex flex-wrap items-end justify-between gap-4">
             <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
               Hello, {fan.displayName} <CountryFlag code={fan.countryCode} />
@@ -60,13 +61,13 @@ export default async function AccountPage() {
             <form action={signOut}>
               <button
                 type="submit"
-                className="chamfer-tr inline-flex items-center gap-2 border border-carbon-600 bg-carbon-800 px-4 py-2 text-xs font-bold uppercase tracking-wide text-warm-grey transition-colors hover:border-f1-red hover:text-white"
+                className="chamfer-tr inline-flex items-center gap-2 border border-line bg-panel px-4 py-2 text-xs font-bold uppercase tracking-wide text-fg-muted transition-colors hover:border-accent hover:text-white"
               >
                 <LogOut size={14} /> Sign out
               </button>
             </form>
           </div>
-          <p className="mt-1 text-sm font-semibold text-f1-grey-light">{fan.email}</p>
+          <p className="mt-1 text-sm font-semibold text-fg-faint">{fan.email}</p>
         </div>
       </div>
 
@@ -75,12 +76,12 @@ export default async function AccountPage() {
         <div className="grid gap-4 sm:grid-cols-3">
           {CARDS.map(({ href, title, description, Icon }) => (
             <Link key={href} href={href} className="group">
-              <ChamferCard className="h-full border border-warm-grey bg-white p-5 transition-all group-hover:-translate-y-0.5 group-hover:border-f1-red">
-                <Icon size={22} className="text-f1-red" />
-                <h2 className="mt-3 text-base font-black uppercase tracking-tight text-carbon transition-colors group-hover:text-f1-red">
+              <ChamferCard className="h-full border border-line bg-surface p-5 transition-all group-hover:-translate-y-0.5 group-hover:border-accent">
+                <Icon size={22} className="text-accent" />
+                <h2 className="mt-3 text-base font-black uppercase tracking-tight text-white transition-colors group-hover:text-accent">
                   {title}
                 </h2>
-                <p className="mt-1 text-sm text-f1-grey">{description}</p>
+                <p className="mt-1 text-sm text-fg-muted">{description}</p>
               </ChamferCard>
             </Link>
           ))}
@@ -88,7 +89,7 @@ export default async function AccountPage() {
 
         {/* profile */}
         <SectionHeading className="mt-12">Profile</SectionHeading>
-        <ChamferCard className="mt-6 max-w-xl border border-warm-grey bg-white p-6">
+        <ChamferCard className="mt-6 max-w-xl border border-line bg-surface p-6">
           <ProfileForm
             defaultDisplayName={fan.displayName}
             defaultCountryCode={fan.countryCode}
@@ -97,25 +98,25 @@ export default async function AccountPage() {
 
         {/* newsletter */}
         <SectionHeading className="mt-12">Newsletter</SectionHeading>
-        <ChamferCard className="mt-6 max-w-xl border border-warm-grey bg-white p-6">
+        <ChamferCard className="mt-6 max-w-xl border border-line bg-surface p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Mail size={20} className="shrink-0 text-f1-red" />
+              <Mail size={20} className="shrink-0 text-accent" />
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-carbon">
+                <p className="text-sm font-bold uppercase tracking-wide text-white">
                   Race week newsletter
                 </p>
-                <p className="text-sm text-f1-grey">{fan.email}</p>
+                <p className="text-sm text-fg-muted">{fan.email}</p>
               </div>
             </div>
             {subStatus === "confirmed" ? (
-              <Badge tone="green">Confirmed</Badge>
+              <Chip tone="green">Confirmed</Chip>
             ) : subStatus === "pending" ? (
-              <Badge tone="amber">Pending confirmation</Badge>
+              <Chip tone="amber">Pending confirmation</Chip>
             ) : subStatus === "unsubscribed" ? (
-              <Badge tone="grey">Unsubscribed</Badge>
+              <Chip tone="faint">Unsubscribed</Chip>
             ) : (
-              <Badge tone="outline">Not subscribed</Badge>
+              <Chip tone="outline">Not subscribed</Chip>
             )}
           </div>
 

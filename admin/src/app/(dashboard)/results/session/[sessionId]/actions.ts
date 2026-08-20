@@ -7,9 +7,9 @@ import { z } from "zod";
 import {
   computeStandings,
   db,
-  grandsPrix,
   parseTimeToMs,
   raceSessions,
+  rounds,
   sessionResults,
   PERMISSIONS,
   TAGS,
@@ -17,7 +17,13 @@ import {
 import { requirePermission } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { revalidateSite } from "@/lib/revalidate";
-import { isQualiLike, isRaceLike, isRowTouched, type GridRow } from "@/components/results/types";
+import {
+  isQualiLike,
+  isRaceLike,
+  isRowTouched,
+  type GridRow,
+  type SessionKind,
+} from "@/components/results/types";
 
 const rowSchema = z.object({
   entryId: z.string().uuid(),
@@ -58,7 +64,7 @@ function parseGapText(text: string): { gapMs: number | null; lapsBehind: number 
 
 function toInsertValues(
   sessionId: string,
-  sessionType: (typeof raceSessions.$inferSelect)["type"],
+  sessionType: SessionKind,
   row: GridRow,
 ): typeof sessionResults.$inferInsert {
   const base = {
@@ -113,26 +119,28 @@ async function saveResults(formData: FormData, complete: boolean) {
 
   const session = await db.query.raceSessions.findFirst({
     where: eq(raceSessions.id, sessionId),
-    with: { grandPrix: true },
+    with: { round: true },
   });
   if (!session) redirect("/results");
-  const gp = session.grandPrix;
+  const round = session.round;
+  // the retired "race2" enum value can still exist on legacy rows — treat as a race
+  const sessionKind: SessionKind = session.type === "race2" ? "race" : session.type;
 
   // Rows the editor never touched (e.g. a reserve who sat out) are skipped.
-  const values = rows.filter(isRowTouched).map((r) => toInsertValues(sessionId, session.type, r));
+  const values = rows.filter(isRowTouched).map((r) => toInsertValues(sessionId, sessionKind, r));
 
   await db.transaction(async (tx) => {
     await tx.delete(sessionResults).where(eq(sessionResults.sessionId, sessionId));
     if (values.length) await tx.insert(sessionResults).values(values);
     if (complete) {
       await tx.update(raceSessions).set({ status: "completed" }).where(eq(raceSessions.id, sessionId));
-      if (session.type === "race") {
-        await tx.update(grandsPrix).set({ status: "completed" }).where(eq(grandsPrix.id, gp.id));
+      if (sessionKind === "race") {
+        await tx.update(rounds).set({ status: "completed" }).where(eq(rounds.id, round.id));
       }
     }
   });
 
-  if (complete) await computeStandings(db, gp.seasonYear);
+  if (complete) await computeStandings(db, round.championshipSeasonId);
 
   await writeAudit({
     actorId: admin.user.id,
@@ -146,7 +154,7 @@ async function saveResults(formData: FormData, complete: boolean) {
     TAGS.resultsSession(sessionId),
     TAGS.standings,
     TAGS.schedule,
-    TAGS.gp(gp.id),
+    TAGS.gp(round.id),
     TAGS.home,
     TAGS.drivers,
     TAGS.teams,

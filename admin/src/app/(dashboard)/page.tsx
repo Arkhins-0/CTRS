@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { and, count, desc, eq, gte, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull } from "drizzle-orm";
 import {
   articles,
   auditLog,
   adminUsers,
+  championships,
+  championshipSeasons,
   db,
   fans,
-  grandsPrix,
   newsletterSubscribers,
   raceSessions,
+  rounds,
   sessionResults,
 } from "@ctr/db";
 import { requireAdmin } from "@/lib/auth";
@@ -29,12 +31,22 @@ export default async function Dashboard() {
     .from(newsletterSubscribers)
     .where(eq(newsletterSubscribers.status, "confirmed"));
 
-  // next scheduled GP
-  const [nextGp] = await db
-    .select()
-    .from(grandsPrix)
-    .where(eq(grandsPrix.status, "scheduled"))
-    .orderBy(grandsPrix.seasonYear, grandsPrix.round)
+  // next scheduled round
+  const [nextRound] = await db
+    .select({
+      id: rounds.id,
+      name: rounds.name,
+      round: rounds.round,
+      startDate: rounds.startDate,
+      endDate: rounds.endDate,
+      seasonLabel: championships.shortName,
+      seasonYear: championshipSeasons.year,
+    })
+    .from(rounds)
+    .innerJoin(championshipSeasons, eq(rounds.championshipSeasonId, championshipSeasons.id))
+    .innerJoin(championships, eq(championshipSeasons.championshipId, championships.id))
+    .where(eq(rounds.status, "scheduled"))
+    .orderBy(asc(championshipSeasons.year), asc(rounds.round))
     .limit(1);
 
   // completed sessions with no results yet (missing-results checklist)
@@ -42,14 +54,22 @@ export default async function Dashboard() {
     .select({
       sessionId: raceSessions.id,
       type: raceSessions.type,
-      gpName: grandsPrix.name,
-      year: grandsPrix.seasonYear,
+      sequence: raceSessions.sequence,
+      roundName: rounds.name,
+      year: championshipSeasons.year,
     })
     .from(raceSessions)
-    .innerJoin(grandsPrix, eq(raceSessions.grandPrixId, grandsPrix.id))
+    .innerJoin(rounds, eq(raceSessions.roundId, rounds.id))
+    .innerJoin(championshipSeasons, eq(rounds.championshipSeasonId, championshipSeasons.id))
     .leftJoin(sessionResults, eq(sessionResults.sessionId, raceSessions.id))
     .where(and(eq(raceSessions.status, "completed"), isNull(sessionResults.id)))
-    .groupBy(raceSessions.id, raceSessions.type, grandsPrix.name, grandsPrix.seasonYear)
+    .groupBy(
+      raceSessions.id,
+      raceSessions.type,
+      raceSessions.sequence,
+      rounds.name,
+      championshipSeasons.year,
+    )
     .limit(8);
 
   const recentAudit = await db
@@ -100,14 +120,15 @@ export default async function Dashboard() {
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card>
           <h2 className="text-sm font-black uppercase tracking-wide">Next race weekend</h2>
-          {nextGp ? (
+          {nextRound ? (
             <div className="mt-3">
-              <p className="text-2xl font-black uppercase">{nextGp.name}</p>
+              <p className="text-2xl font-black uppercase">{nextRound.name}</p>
               <p className="text-sm text-f1-grey">
-                Round {nextGp.round} · {nextGp.seasonYear} · {nextGp.startDate} → {nextGp.endDate}
+                Round {nextRound.round} · {nextRound.seasonLabel} {nextRound.seasonYear} ·{" "}
+                {nextRound.startDate} → {nextRound.endDate}
               </p>
               <Link
-                href={`/races/${nextGp.id}`}
+                href={`/races/${nextRound.id}`}
                 className="mt-2 inline-block text-xs font-bold uppercase text-f1-red hover:underline"
               >
                 Manage weekend →
@@ -123,7 +144,10 @@ export default async function Dashboard() {
               {resultsSessions.map((m) => (
                 <li key={m.sessionId} className="flex items-center justify-between gap-2 text-sm">
                   <span>
-                    {m.gpName} {m.year} — <span className="font-bold uppercase">{m.type.replace(/_/g, " ")}</span>
+                    {m.roundName} {m.year} —{" "}
+                    <span className="font-bold uppercase">
+                      {m.type === "race" ? `race ${m.sequence}` : m.type.replace(/_/g, " ")}
+                    </span>
                   </span>
                   <Link
                     href={`/results/session/${m.sessionId}`}

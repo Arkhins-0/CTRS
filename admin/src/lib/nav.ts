@@ -5,10 +5,12 @@ import {
   CalendarDays,
   Flag,
   Image as ImageIcon,
+  Layers,
   LayoutDashboard,
   ListChecks,
   Mail,
   MapPin,
+  Medal,
   Newspaper,
   ScrollText,
   Settings,
@@ -51,7 +53,9 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Racing",
     items: [
+      { href: "/championships", label: "Championships", icon: Medal, permission: PERMISSIONS.RACES_MANAGE },
       { href: "/races", label: "Race Weekends", icon: CalendarDays, permission: PERMISSIONS.RACES_MANAGE },
+      { href: "/categories", label: "Categories", icon: Layers, permission: PERMISSIONS.RACES_MANAGE },
       { href: "/circuits", label: "Circuits", icon: MapPin, permission: PERMISSIONS.RACES_MANAGE },
       { href: "/results", label: "Results Entry", icon: ListChecks, permission: PERMISSIONS.RESULTS_MANAGE },
       { href: "/standings", label: "Standings", icon: Trophy, permission: PERMISSIONS.RESULTS_MANAGE },

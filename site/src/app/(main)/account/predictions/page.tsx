@@ -3,8 +3,9 @@ import Link from "next/link";
 import { count, desc, eq, inArray } from "drizzle-orm";
 import { format } from "date-fns";
 import { db, pollVotes } from "@ctr/db";
-import { Badge, ChamferCard, SectionHeading } from "@ctr/ui";
+import { ChamferCard, SectionHeading } from "@ctr/ui";
 import { requireFan } from "@/lib/fan-auth";
+import { Chip } from "@/components/fanzone/chip";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export default async function PredictionsPage() {
 
   const votes = await db.query.pollVotes.findMany({
     where: eq(pollVotes.fanId, fan.id),
-    with: { poll: { with: { grandPrix: true } }, option: true },
+    with: { poll: { with: { round: true } }, option: true },
     orderBy: [desc(pollVotes.createdAt)],
   });
 
@@ -42,7 +43,7 @@ export default async function PredictionsPage() {
     <main className="mx-auto max-w-7xl px-4 py-8">
       <SectionHeading
         right={
-          <Link href="/account" className="uppercase text-f1-red hover:underline">
+          <Link href="/account" className="uppercase text-accent hover:underline">
             ← My account
           </Link>
         }
@@ -51,14 +52,14 @@ export default async function PredictionsPage() {
       </SectionHeading>
 
       {votes.length === 0 ? (
-        <ChamferCard className="mt-6 border border-dashed border-f1-grey-light bg-white p-10 text-center">
-          <p className="text-lg font-black uppercase tracking-tight text-carbon">No votes yet</p>
-          <p className="mt-2 text-sm text-f1-grey">
+        <ChamferCard className="mt-6 border border-dashed border-line bg-surface p-10 text-center">
+          <p className="text-lg font-black uppercase tracking-tight text-white">No votes yet</p>
+          <p className="mt-2 text-sm text-fg-muted">
             Head to the polls and back your picks — your record shows up here.
           </p>
           <Link
             href="/polls"
-            className="chamfer-tr mt-5 inline-block bg-f1-red px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-f1-red-dark"
+            className="chamfer-tr mt-5 inline-block bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
           >
             Open the polls
           </Link>
@@ -80,41 +81,37 @@ export default async function PredictionsPage() {
             return (
               <ChamferCard
                 key={`${vote.pollId}:${vote.fanId}`}
-                className="border border-warm-grey bg-white p-5"
+                className="border border-line bg-surface p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge tone={poll.kind === "prediction" ? "dark" : "red"}>
+                      <Chip tone="accent-outline">
                         {poll.kind === "prediction" ? "Prediction" : "Poll"}
-                      </Badge>
-                      {poll.grandPrix ? <Badge tone="grey">{poll.grandPrix.name}</Badge> : null}
-                      {closed ? (
-                        <Badge tone="outline">Closed</Badge>
-                      ) : (
-                        <Badge tone="green">Open</Badge>
-                      )}
+                      </Chip>
+                      {poll.round ? <Chip tone="outline">{poll.round.name}</Chip> : null}
+                      {closed ? <Chip tone="faint">Closed</Chip> : <Chip tone="green">Open</Chip>}
                     </div>
-                    <h3 className="mt-2 text-lg font-black uppercase tracking-tight text-carbon">
+                    <h3 className="mt-2 text-lg font-black uppercase tracking-tight text-white">
                       {poll.question}
                     </h3>
-                    <p className="mt-1 text-sm text-f1-grey">
+                    <p className="mt-1 text-sm text-fg-muted">
                       Your pick:{" "}
-                      <span className="font-bold text-f1-red">{option.label}</span>
-                      <span className="mx-1.5 text-f1-grey-light">·</span>
+                      <span className="font-bold text-accent">{option.label}</span>
+                      <span className="mx-1.5 text-fg-faint">·</span>
                       voted {format(vote.createdAt, "d MMM yyyy")}
                     </p>
                   </div>
 
                   {closed ? (
                     <div className="shrink-0 text-right">
-                      {won ? <Badge tone="green">Winner</Badge> : <Badge tone="grey">Beaten</Badge>}
-                      <p className="mt-2 text-xs font-semibold text-f1-grey">
+                      {won ? <Chip tone="accent">Winner</Chip> : <Chip tone="outline">Beaten</Chip>}
+                      <p className="mt-2 text-xs font-semibold text-fg-faint">
                         {myVotes} of {total} {total === 1 ? "vote" : "votes"} ({pct}%)
                       </p>
                     </div>
                   ) : (
-                    <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-f1-grey">
+                    <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-fg-faint">
                       Results after close
                     </p>
                   )}

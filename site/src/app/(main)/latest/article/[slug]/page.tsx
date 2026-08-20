@@ -6,7 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { articleRelated, articles, db, TAGS } from "@ctr/db";
-import { Badge, SectionHeading } from "@ctr/ui";
+import { SectionHeading } from "@ctr/ui";
 import { ArticleBody } from "@/components/news/article-body";
 import { ArticleCard } from "@/components/news/article-card";
 import { SaveArticleButton } from "@/components/news/save-article-button";
@@ -120,35 +120,51 @@ export default async function ArticlePage({ params }: Props) {
       {/* header */}
       <header className="mx-auto max-w-4xl">
         <div className="flex flex-wrap items-center gap-2">
-          {article.isBreaking ? <Badge tone="red">Breaking</Badge> : null}
+          {article.isBreaking ? (
+            <span
+              className="chamfer-tr inline-flex items-center bg-white px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-page"
+              style={{ ["--chamfer" as string]: "6px" }}
+            >
+              Breaking
+            </span>
+          ) : null}
           {article.category ? (
-            <Link href={`/latest/${article.category.slug}`}>
-              <Badge tone="dark">{article.category.name}</Badge>
+            <Link
+              href={`/latest/${article.category.slug}`}
+              className="chamfer-tr inline-flex items-center bg-accent px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
+              style={{ ["--chamfer" as string]: "6px" }}
+            >
+              {article.category.name}
             </Link>
           ) : null}
           {tagList.map((t) => (
-            <Link key={t.id} href={`/latest/tags/${t.slug}`}>
-              <Badge tone="outline">{t.name}</Badge>
+            <Link
+              key={t.id}
+              href={`/latest/tags/${t.slug}`}
+              className="chamfer-tr inline-flex items-center border border-line px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-fg-muted transition-colors hover:border-accent hover:text-accent"
+              style={{ ["--chamfer" as string]: "6px" }}
+            >
+              {t.name}
             </Link>
           ))}
         </div>
 
-        <h1 className="mt-4 text-3xl font-black uppercase leading-tight tracking-tight text-carbon sm:text-4xl lg:text-5xl">
+        <h1 className="mt-4 text-3xl font-black uppercase leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
           {article.title}
         </h1>
 
         {article.standfirst ? (
-          <p className="mt-4 text-lg font-semibold leading-relaxed text-f1-grey sm:text-xl">
+          <p className="mt-4 text-lg font-semibold leading-relaxed text-fg-muted sm:text-xl">
             {article.standfirst}
           </p>
         ) : null}
 
-        <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-warm-grey py-3 text-sm">
-          <span className="font-bold uppercase tracking-wide text-carbon">By {byline}</span>
+        <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-line py-3 text-sm">
+          <span className="font-bold uppercase tracking-wide text-white">By {byline}</span>
           {article.publishedAt ? (
             <time
               dateTime={new Date(article.publishedAt).toISOString()}
-              className="font-semibold uppercase tracking-wide text-f1-grey"
+              className="font-semibold uppercase tracking-wide text-fg-faint"
             >
               {format(new Date(article.publishedAt), "d MMMM yyyy")}
             </time>
@@ -159,7 +175,7 @@ export default async function ArticlePage({ params }: Props) {
       {/* hero image */}
       {heroImg ? (
         <figure className="mx-auto mt-8 max-w-5xl">
-          <div className="chamfer-tr-lg relative aspect-video w-full overflow-hidden bg-carbon">
+          <div className="chamfer-tr-lg relative aspect-video w-full overflow-hidden bg-panel">
             <Image
               src={heroImg}
               alt={article.hero?.alt ?? article.title}
@@ -170,10 +186,10 @@ export default async function ArticlePage({ params }: Props) {
             />
           </div>
           {article.hero?.caption || article.hero?.credit ? (
-            <figcaption className="mt-2 flex flex-wrap justify-between gap-2 text-sm text-f1-grey">
+            <figcaption className="mt-2 flex flex-wrap justify-between gap-2 text-sm text-fg-muted">
               <span>{article.hero?.caption}</span>
               {article.hero?.credit ? (
-                <span className="text-xs uppercase tracking-wide text-f1-grey-light">
+                <span className="text-xs uppercase tracking-wide text-fg-faint">
                   {article.hero.credit}
                 </span>
               ) : null}
@@ -187,10 +203,10 @@ export default async function ArticlePage({ params }: Props) {
         <ArticleBody html={article.bodyHtml ?? ""} />
 
         {/* save button — fan-session dependent, deliberately not cached */}
-        <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-warm-grey pt-6">
+        <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-line pt-6">
           <Suspense
             fallback={
-              <span className="chamfer-tr bg-warm-grey px-5 py-2 text-xs font-black uppercase tracking-wide text-f1-grey">
+              <span className="chamfer-tr border border-line bg-panel px-5 py-2 text-xs font-black uppercase tracking-wide text-fg-faint">
                 Save article
               </span>
             }
@@ -198,13 +214,13 @@ export default async function ArticlePage({ params }: Props) {
             <SaveArticleButton articleId={article.id} />
           </Suspense>
           {tagList.length ? (
-            <span className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-f1-grey">
+            <span className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-fg-muted">
               Tagged:
               {tagList.map((t) => (
                 <Link
                   key={t.id}
                   href={`/latest/tags/${t.slug}`}
-                  className="text-f1-red transition-colors hover:text-carbon"
+                  className="text-accent transition-colors hover:text-white"
                 >
                   {t.name}
                 </Link>
@@ -217,7 +233,9 @@ export default async function ArticlePage({ params }: Props) {
       {/* related */}
       {related.length ? (
         <section className="mt-14">
-          <SectionHeading>Related News</SectionHeading>
+          <SectionHeading className="[&_h2]:border-accent [&_h2]:text-white">
+            Related News
+          </SectionHeading>
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {related.map((a) => (
               <ArticleCard key={a.id} article={a} />

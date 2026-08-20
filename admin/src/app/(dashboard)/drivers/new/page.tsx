@@ -1,5 +1,6 @@
 import { PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
+import { MediaPickerInput } from "@/components/media/media-picker";
 import { Card, Field, Input, LinkButton, PageHeader, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/ui-client";
 import { createDriverAction } from "../actions";
@@ -39,6 +40,9 @@ export default async function NewDriverPage() {
           </Field>
           <Field label="Biography" className="sm:col-span-2">
             <Textarea name="biography" rows={6} />
+          </Field>
+          <Field label="Headshot" className="sm:col-span-2">
+            <MediaPickerInput name="headshotMediaId" />
           </Field>
           <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-carbon">
             <input type="checkbox" name="isActive" defaultChecked className="size-4 accent-f1-red" />

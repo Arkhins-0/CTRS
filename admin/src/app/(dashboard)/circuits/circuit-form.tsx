@@ -1,11 +1,20 @@
 import { circuits, formatLapTime } from "@ctr/db";
+import { MediaPickerInput } from "@/components/media/media-picker";
 import { Field, Input, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/ui-client";
 
 type Circuit = typeof circuits.$inferSelect;
 
 /** Shared field set for /circuits/new and /circuits/[id]. */
-export function CircuitFormFields({ circuit }: { circuit?: Circuit }) {
+export function CircuitFormFields({
+  circuit,
+  mapThumbUrl,
+  photoThumbUrl,
+}: {
+  circuit?: Circuit;
+  mapThumbUrl?: string | null;
+  photoThumbUrl?: string | null;
+}) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {circuit ? <input type="hidden" name="id" value={circuit.id} /> : null}
@@ -55,6 +64,20 @@ export function CircuitFormFields({ circuit }: { circuit?: Circuit }) {
       </Field>
       <Field label="Description" className="sm:col-span-2">
         <Textarea name="description" defaultValue={circuit?.description ?? ""} rows={5} />
+      </Field>
+      <Field label="Track map" hint="Circuit layout graphic.">
+        <MediaPickerInput
+          name="mapMediaId"
+          initialId={circuit?.mapMediaId}
+          initialUrl={mapThumbUrl}
+        />
+      </Field>
+      <Field label="Photo" hint="Venue photo for the circuit page.">
+        <MediaPickerInput
+          name="photoMediaId"
+          initialId={circuit?.photoMediaId}
+          initialUrl={photoThumbUrl}
+        />
       </Field>
       <div className="sm:col-span-2">
         <SubmitButton>{circuit ? "Save circuit" : "Create circuit"}</SubmitButton>

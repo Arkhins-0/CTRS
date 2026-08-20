@@ -1,8 +1,8 @@
-import { asc, eq, gte } from "drizzle-orm";
-import { db, grandsPrix, PERMISSIONS, seasons } from "@ctr/db";
+import { PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { Card, Field, Input, LinkButton, PageHeader, Select } from "@/components/ui";
 import { SubmitButton } from "@/components/ui-client";
+import { loadRoundOptions } from "@/components/racing/round-options";
 import { createPollAction } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -10,21 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function NewPoll() {
   await requirePermission(PERMISSIONS.FANZONE_MANAGE);
 
-  const [current] = await db
-    .select({ year: seasons.year })
-    .from(seasons)
-    .where(eq(seasons.isCurrent, true));
-
-  const gps = await db
-    .select({
-      id: grandsPrix.id,
-      name: grandsPrix.name,
-      round: grandsPrix.round,
-      seasonYear: grandsPrix.seasonYear,
-    })
-    .from(grandsPrix)
-    .where(gte(grandsPrix.seasonYear, current?.year ?? 0))
-    .orderBy(asc(grandsPrix.seasonYear), asc(grandsPrix.round));
+  const roundOptions = await loadRoundOptions();
 
   return (
     <>
@@ -49,12 +35,12 @@ export default async function NewPoll() {
                 <option value="prediction">Prediction</option>
               </Select>
             </Field>
-            <Field label="Grand Prix" hint="Optional — links the poll to a race weekend.">
-              <Select name="grandPrixId" defaultValue="">
+            <Field label="Round" hint="Optional — links the poll to a race weekend.">
+              <Select name="roundId" defaultValue="">
                 <option value="">— None —</option>
-                {gps.map((gp) => (
-                  <option key={gp.id} value={gp.id}>
-                    {gp.seasonYear} · R{gp.round} — {gp.name}
+                {roundOptions.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.label}
                   </option>
                 ))}
               </Select>

@@ -34,8 +34,8 @@ export function HeaderNav({
                 href={l.href}
                 className={`block border-b-[3px] px-4 py-4 text-sm font-bold uppercase tracking-wide transition-colors ${
                   isActive(l.href)
-                    ? "border-f1-red text-white"
-                    : "border-transparent text-warm-grey hover:border-f1-red/60 hover:text-white"
+                    ? "border-accent text-white"
+                    : "border-transparent text-fg-muted hover:border-accent/60 hover:text-white"
                 }`}
               >
                 {l.label}
@@ -46,7 +46,7 @@ export function HeaderNav({
         <div className="ml-auto">
           <Link
             href={fanName ? "/account" : "/login"}
-            className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-warm-grey transition-colors hover:text-white"
+            className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-fg-muted transition-colors hover:text-white"
           >
             <UserCircle2 size={18} />
             {fanName ?? "Sign in"}
@@ -65,14 +65,14 @@ export function HeaderNav({
 
       {/* mobile drawer */}
       {open ? (
-        <div className="absolute inset-x-0 top-full z-50 border-t border-carbon-700 bg-carbon shadow-2xl lg:hidden">
+        <div className="absolute inset-x-0 top-full z-50 border-t border-line bg-surface shadow-2xl lg:hidden">
           <ul className="px-4 py-2">
             {links.map((l) => (
               <li key={l.href}>
                 <Link
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  className="block border-b border-carbon-700 py-3 text-sm font-bold uppercase tracking-wide text-warm-grey hover:text-white"
+                  className="block border-b border-line py-3 text-sm font-bold uppercase tracking-wide text-fg-muted hover:text-white"
                 >
                   {l.label}
                 </Link>
@@ -82,7 +82,7 @@ export function HeaderNav({
               <Link
                 href={fanName ? "/account" : "/login"}
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2 py-3 text-sm font-bold uppercase tracking-wide text-f1-red"
+                className="flex items-center gap-2 py-3 text-sm font-bold uppercase tracking-wide text-accent"
               >
                 <UserCircle2 size={18} />
                 {fanName ?? "Sign in"}

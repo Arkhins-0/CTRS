@@ -4,6 +4,6 @@
 
 body {
   font-family: var(--font-body);
-  background-color: var(--color-off-white);
-  color: var(--color-carbon);
+  background-color: var(--color-page);
+  color: #ffffff;
 }

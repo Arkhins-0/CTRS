@@ -14,8 +14,7 @@
     "db:generate": "npm run generate -w @ctr/db",
     "db:migrate": "npm run migrate -w @ctr/db",
     "db:push": "npm run push -w @ctr/db",
-    "db:seed": "npm run seed -w @ctr/db",
-    "db:fetch-data": "npm run fetch-data -w @ctr/db"
+    "db:seed": "npm run seed -w @ctr/db"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

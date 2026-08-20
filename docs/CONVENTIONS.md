@@ -1,5 +1,47 @@
 # CTRSports — Build Conventions (read fully before writing any page)
 
+> ## CHAMPIONSHIPS V2 ADDENDUM (latest — supersedes everything below that conflicts)
+>
+> The racing model is now multi-championship (see docs/CHAMPIONSHIPS-V2.md):
+> - **`championships`** (slug/name/shortName/type/description/logoMediaId/primaryColor/secondaryColor/isActive/sort) — INCRC is the first row (slug "incrc").
+> - **`championshipSeasons`** (championshipId, year, isCurrent, `pointsSystem` jsonb {race:[], sprint:[], fastestLapPoint?}, `standingsTypes` text[] e.g. ["overall","team","rookie","gentlemen"]) — unique (championshipId, year). **`seasons` table is GONE.** Points arrays live here now.
+> - **`rounds`** replaces `grandsPrix` (championshipSeasonId FK instead of seasonYear; uniques (championshipSeasonId, round) and (…, slug)). Everything else same shape.
+> - **`raceSessions`**: `roundId` (was grandPrixId) + **`sequence` int default 1** — Race 1/Race 2 = type "race" sequence 1/2 (the "race2" enum value is retired; never write it). Unique (roundId, categoryId, type, sequence). `label` still wins for display.
+> - **`raceCategories`** + `championshipId`. **`teamSeasonEntries`/`driverSeasonEntries`**: `championshipSeasonId` (seasonYear GONE); driver entries + **`classification`** varchar (e.g. "rookie"/"gentlemen" — Levitas placeholder grid is tagged).
+> - **`driverStandings`/`constructorStandings`**: `championshipSeasonId` + **`standingsType`** ("overall"/"team" plus sub-types from the season's standingsTypes); unique (championshipSeasonId, categoryId, standingsType, driverId|teamSeasonEntryId).
+> - `polls.grandPrixId` → **`polls.roundId`**.
+> - **`computeStandings(db, championshipSeasonId)`** (NOT year) — reads pointsSystem, emits overall + team + sub-classification tables. `findChampionshipSeason(db, slug, year)` resolves a season id.
+> - Site convention: the "home championship" is INCRC — resolve years via `findChampionshipSeason(db, "incrc", year)` (or read the `home_championship` site setting, default "incrc"). URLs keep plain years.
+> - packages/ui exports `ChampionshipTheme` — wraps a subtree and sets `--champ-primary/--champ-secondary` from a championship row; token classes `bg-champ`/`text-champ`/`border-champ` etc. resolve to the championship colour, falling back to the global accent. Use for future per-championship pages; INCRC pages can keep using `accent`.
+>
+> ## CTR PIVOT ADDENDUM (2026-08 — supersedes anything below that conflicts)
+>
+> The site now covers the REAL **CTR–JK Tyre FMSCI Indian National Car Racing Championship 2026**
+> ("INCRC") by CTR (Chennai Turbo Riders / CTR Unified — "One Nation. One Championship."), not F1.
+>
+> **Multi-class model:** new table `raceCategories` (id, slug, name, shortName, description,
+> carSpec, color, imageMediaId, sort, isActive) — 7 seeded categories (ISC, ITC, IJTC, Super
+> Stock, Levitas Cup, Formula LGB F4, Formula 1300). `raceSessions` gained `categoryId` (null =
+> weekend-wide) and `label` ("ISC — Race 1"); unique is now (gp, categoryId, type). Session type
+> enum gained **`race2`** (Race 2 — same points as race). `driverSeasonEntries` gained
+> `categoryId`. `driverStandings`/`constructorStandings` gained `categoryId` — standings are
+> **per category** (unique (season, categoryId, driver/teamEntry)). `computeStandings` already
+> handles all of this. Weekend format per category: Practice (fp1), Qualifying, Race 1 (race),
+> Race 2 (race2) — Fri/Fri/Sat/Sun. `circuits` gained: turns, direction, fiaGrade, owner,
+> website, photoMediaId.
+>
+> **Theme (dark-first, like formula1.com):** use the NEW tokens — `accent` (CTR yellow #F7D619,
+> runtime-editable via the CMS "theme" setting, injected as --ctr-accent on :root), `accent-dark`,
+> `accent-fg` (text color on accent — NEVER hardcode white/black text on accent surfaces),
+> `page` (#000), `surface` (#0C0E11), `panel` (#1B2027), `line` (#39414D borders), white text +
+> `fg-muted`/`fg-faint`. Do NOT use f1-red in new/restyled code — use `accent`. Example:
+> `bg-accent text-accent-fg hover:bg-accent-dark`. Chamfer utilities unchanged.
+>
+> `TAGS.categories` exists for category reads. Current season = 2026; rounds are all `scheduled`
+> (championship starts 11 Sep 2026) so results/standings tables are seeded but empty of points —
+> pages must look good in that state (entry lists, "lights out in…" countdowns, TBA states).
+
+
 Monorepo (npm workspaces): `site/` = public Next.js 15 app (port 3001) · `admin/` = CMS Next.js 15 app (port 3002) · `packages/db` = Drizzle schema + helpers (`@ctr/db`) · `packages/ui` = design tokens + shared components (`@ctr/ui`).
 
 Everything is TypeScript, App Router, React Server Components by default, Tailwind CSS v4.

@@ -1,9 +1,9 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { db, PERMISSIONS, seasons, siteSettings, TAGS } from "@ctr/db";
+import { championships, championshipSeasons, db, PERMISSIONS, siteSettings, TAGS } from "@ctr/db";
 import { requirePermission, type AdminSession } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { revalidateSite } from "@/lib/revalidate";
@@ -55,7 +55,20 @@ const hrefSchema = z
 
 const linkSchema = z.object({ label: z.string().min(1), href: hrefSchema });
 
-/* ── current season ──────────────────────────────────────────────────────── */
+/* ── current season (of the home championship, default "incrc") ──────────── */
+
+export async function homeChampionshipSlug(): Promise<string> {
+  const [row] = await db
+    .select()
+    .from(siteSettings)
+    .where(eq(siteSettings.key, "home_championship"));
+  const v = row?.value;
+  if (typeof v === "string" && v) return v;
+  if (v && typeof v === "object" && typeof (v as { slug?: unknown }).slug === "string") {
+    return (v as { slug: string }).slug;
+  }
+  return "incrc";
+}
 
 export async function updateCurrentSeasonAction(formData: FormData) {
   const session = await requirePermission(PERMISSIONS.SETTINGS_MANAGE);
@@ -63,15 +76,43 @@ export async function updateCurrentSeasonAction(formData: FormData) {
     .object({ year: z.coerce.number().int().min(1950).max(2100) })
     .parse({ year: String(formData.get("year") ?? "") });
 
-  const [target] = await db.select().from(seasons).where(eq(seasons.year, year));
-  if (!target) throw new Error(`Season ${year} does not exist`);
+  const slug = await homeChampionshipSlug();
+  const [target] = await db
+    .select({ id: championshipSeasons.id, championshipId: championshipSeasons.championshipId })
+    .from(championshipSeasons)
+    .innerJoin(championships, eq(championshipSeasons.championshipId, championships.id))
+    .where(and(eq(championships.slug, slug), eq(championshipSeasons.year, year)));
+  if (!target) throw new Error(`Season ${year} does not exist for the home championship (${slug})`);
 
   await db.transaction(async (tx) => {
-    await tx.update(seasons).set({ isCurrent: false }).where(eq(seasons.isCurrent, true));
-    await tx.update(seasons).set({ isCurrent: true }).where(eq(seasons.year, year));
+    await tx
+      .update(championshipSeasons)
+      .set({ isCurrent: false })
+      .where(eq(championshipSeasons.championshipId, target.championshipId));
+    await tx
+      .update(championshipSeasons)
+      .set({ isCurrent: true })
+      .where(eq(championshipSeasons.id, target.id));
   });
 
   await saveSetting(session, "current_season", { year });
+}
+
+/* ── theme (accent colours — read by BOTH the public site and this CMS) ──── */
+
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a #RRGGBB colour");
+
+export async function updateThemeAction(formData: FormData) {
+  const session = await requirePermission(PERMISSIONS.SETTINGS_MANAGE);
+  const value = z
+    .object({ accent: hexColor, accentDark: hexColor, accentFg: hexColor })
+    .parse({
+      accent: String(formData.get("accent") ?? "").trim(),
+      accentDark: String(formData.get("accentDark") ?? "").trim(),
+      accentFg: String(formData.get("accentFg") ?? "").trim(),
+    });
+
+  await saveSetting(session, "theme", value);
 }
 
 /* ── broadcast banner ────────────────────────────────────────────────────── */

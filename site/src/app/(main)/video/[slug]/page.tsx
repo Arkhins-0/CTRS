@@ -59,10 +59,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 function UnavailablePlayer() {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-carbon-fibre px-4 text-center">
-      <span className="text-sm font-black uppercase tracking-[0.25em] text-f1-grey-light">
+      <span className="text-sm font-black uppercase tracking-[0.25em] text-fg-faint">
         Video unavailable
       </span>
-      <span className="text-xs text-f1-grey">
+      <span className="text-xs text-fg-muted">
         This video can&apos;t be played right now — please check back later.
       </span>
     </div>
@@ -82,9 +82,9 @@ export default async function VideoPage({ params }: Props) {
   return (
     <main>
       {/* player band */}
-      <div className="bg-carbon">
+      <div className="border-b border-line bg-surface">
         <div className="mx-auto max-w-5xl sm:px-4 sm:py-8">
-          <div className="relative aspect-video w-full overflow-hidden bg-carbon">
+          <div className="relative aspect-video w-full overflow-hidden bg-panel">
             {video.provider === "youtube" ? (
               video.externalId ? (
                 <iframe
@@ -113,11 +113,11 @@ export default async function VideoPage({ params }: Props) {
 
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="mx-auto max-w-5xl">
-          <h1 className="text-2xl font-black uppercase leading-tight tracking-tight text-carbon sm:text-3xl">
+          <h1 className="text-2xl font-black uppercase leading-tight tracking-tight text-white sm:text-3xl">
             {video.title}
           </h1>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-semibold uppercase tracking-wide text-f1-grey">
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-semibold uppercase tracking-wide text-fg-faint">
             {video.publishedAt ? (
               <time dateTime={new Date(video.publishedAt).toISOString()}>
                 {format(new Date(video.publishedAt), "d MMMM yyyy")}
@@ -127,7 +127,7 @@ export default async function VideoPage({ params }: Props) {
           </div>
 
           {video.description ? (
-            <p className="mt-5 max-w-3xl text-[17px] leading-relaxed text-carbon">
+            <p className="mt-5 max-w-3xl text-[17px] leading-relaxed text-fg-muted">
               {video.description}
             </p>
           ) : null}
@@ -135,7 +135,9 @@ export default async function VideoPage({ params }: Props) {
 
         {related.length ? (
           <section className="mt-14">
-            <SectionHeading>More Videos</SectionHeading>
+            <SectionHeading className="[&_h2]:border-accent [&_h2]:text-white">
+              More Videos
+            </SectionHeading>
             <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {related.map((v) => (
                 <VideoCard key={v.id} video={v} />

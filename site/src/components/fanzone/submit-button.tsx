@@ -2,7 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 
-/** Red primary (or dark/ghost) submit button with a pending state. */
+/** Accent primary (or dark/ghost) submit button with a pending state. */
 export function SubmitButton({
   label,
   pendingLabel = "Please wait…",
@@ -17,10 +17,10 @@ export function SubmitButton({
   const { pending } = useFormStatus();
   const toneClass =
     tone === "dark"
-      ? "bg-carbon text-white hover:bg-carbon-700"
+      ? "border border-line bg-panel text-white hover:border-accent"
       : tone === "ghost"
-        ? "border border-warm-grey bg-white text-f1-grey hover:border-f1-red hover:text-f1-red"
-        : "bg-f1-red text-white hover:bg-f1-red-dark";
+        ? "border border-line bg-transparent text-fg-muted hover:border-accent hover:text-accent"
+        : "bg-accent text-accent-fg hover:bg-accent-dark";
   return (
     <button
       type="submit"

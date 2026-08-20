@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
-import { asc, eq } from "drizzle-orm";
-import { contentBlocks, db, pages, PERMISSIONS } from "@ctr/db";
+import { asc, eq, inArray } from "drizzle-orm";
+import { contentBlocks, db, media, pages, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
+import { publicUrl } from "@/lib/storage";
+import { variantKey } from "@/components/media/variants";
+import { MediaPickerInput } from "@/components/media/media-picker";
 import { Card, Field, Input, PageHeader, Select, StatusPill, Textarea } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
 import {
@@ -31,7 +34,7 @@ const BLOCK_LABELS: Record<Block["type"], string> = {
 
 /* ── type-specific block edit forms (server-rendered) ────────────────────── */
 
-function BlockFields({ block }: { block: Block }) {
+function BlockFields({ block, mediaThumb }: { block: Block; mediaThumb?: string | null }) {
   // jsonb — shape depends on block type
   const data = (block.data ?? {}) as any;
 
@@ -57,10 +60,14 @@ function BlockFields({ block }: { block: Block }) {
       return (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Media ID" hint="UUID from the media library">
-              <Input name="mediaId" defaultValue={data.mediaId ?? ""} placeholder="00000000-0000-…" />
+            <Field label="Image" hint="Picked from the media library.">
+              <MediaPickerInput
+                name="mediaId"
+                initialId={typeof data.mediaId === "string" ? data.mediaId : null}
+                initialUrl={mediaThumb}
+              />
             </Field>
-            <Field label="External URL" hint="Used when no media ID is set">
+            <Field label="External URL" hint="Used when no library image is set">
               <Input name="url" defaultValue={data.url ?? ""} placeholder="https://…" />
             </Field>
           </div>
@@ -126,7 +133,17 @@ function BlockFields({ block }: { block: Block }) {
   }
 }
 
-function BlockCard({ block, index, total }: { block: Block; index: number; total: number }) {
+function BlockCard({
+  block,
+  index,
+  total,
+  mediaThumb,
+}: {
+  block: Block;
+  index: number;
+  total: number;
+  mediaThumb?: string | null;
+}) {
   return (
     <Card>
       <div className="mb-4 flex items-center justify-between gap-3 border-b border-warm-grey pb-3">
@@ -169,7 +186,7 @@ function BlockCard({ block, index, total }: { block: Block; index: number; total
       ) : (
         <form action={updateBlockAction} className="space-y-4">
           <input type="hidden" name="blockId" value={block.id} />
-          <BlockFields block={block} />
+          <BlockFields block={block} mediaThumb={mediaThumb} />
           <SubmitButton variant="secondary">Save block</SubmitButton>
         </form>
       )}
@@ -185,9 +202,31 @@ export default async function PageEditor({ params }: { params: Promise<{ id: str
 
   const page = await db.query.pages.findFirst({
     where: eq(pages.id, id),
-    with: { blocks: { orderBy: [asc(contentBlocks.sort), asc(contentBlocks.id)] } },
+    with: {
+      ogImage: { columns: { path: true } },
+      blocks: { orderBy: [asc(contentBlocks.sort), asc(contentBlocks.id)] },
+    },
   });
   if (!page) notFound();
+
+  // preview thumbs for image blocks (block data stores only the media id)
+  const blockMediaIds = page.blocks
+    .map((b) => (b.type === "image" ? (b.data as { mediaId?: unknown } | null)?.mediaId : null))
+    .filter((v): v is string => typeof v === "string" && v.length > 0);
+  const mediaRows = blockMediaIds.length
+    ? await db
+        .select({ id: media.id, path: media.path })
+        .from(media)
+        .where(inArray(media.id, blockMediaIds))
+    : [];
+  const thumbById = new Map(mediaRows.map((m) => [m.id, publicUrl(variantKey(m.path, "thumb"))]));
+  const blockThumb = (b: (typeof page.blocks)[number]) => {
+    if (b.type !== "image") return null;
+    const mediaId = (b.data as { mediaId?: unknown } | null)?.mediaId;
+    return typeof mediaId === "string" ? (thumbById.get(mediaId) ?? null) : null;
+  };
+
+  const ogThumb = page.ogImage ? publicUrl(variantKey(page.ogImage.path, "thumb")) : null;
 
   return (
     <>
@@ -203,7 +242,13 @@ export default async function PageEditor({ params }: { params: Promise<{ id: str
           <h2 className="text-sm font-black uppercase tracking-wide">Content blocks</h2>
           {page.blocks.length ? (
             page.blocks.map((block, i) => (
-              <BlockCard key={block.id} block={block} index={i} total={page.blocks.length} />
+              <BlockCard
+                key={block.id}
+                block={block}
+                index={i}
+                total={page.blocks.length}
+                mediaThumb={blockThumb(block)}
+              />
             ))
           ) : (
             <p className="text-sm text-f1-grey">No blocks yet — add the first one below.</p>
@@ -243,6 +288,9 @@ export default async function PageEditor({ params }: { params: Promise<{ id: str
               </Field>
               <Field label="Meta description">
                 <Textarea name="metaDescription" rows={3} defaultValue={page.metaDescription ?? ""} />
+              </Field>
+              <Field label="OG image" hint="Social-share preview image.">
+                <MediaPickerInput name="ogMediaId" initialId={page.ogMediaId} initialUrl={ogThumb} />
               </Field>
               <Field label="Status">
                 <Select name="status" defaultValue={page.status === "published" ? "published" : "draft"}>

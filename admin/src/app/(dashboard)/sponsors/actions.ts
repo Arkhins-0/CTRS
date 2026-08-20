@@ -18,6 +18,7 @@ const sponsorSchema = z.object({
   tier: tierSchema,
   url: z.string().max(500),
   sort: z.coerce.number().int().min(0),
+  logoMediaId: z.string().uuid().nullable(),
 });
 
 async function invalidate() {
@@ -32,11 +33,18 @@ export async function createSponsorAction(formData: FormData) {
     tier: str(formData, "tier"),
     url: str(formData, "url"),
     sort: str(formData, "sort") || 0,
+    logoMediaId: str(formData, "logoMediaId") || null,
   });
 
   const [row] = await db
     .insert(sponsors)
-    .values({ name: data.name, tier: data.tier, url: data.url || null, sort: data.sort })
+    .values({
+      name: data.name,
+      tier: data.tier,
+      url: data.url || null,
+      sort: data.sort,
+      logoMediaId: data.logoMediaId,
+    })
     .returning();
 
   await writeAudit({
@@ -59,6 +67,7 @@ export async function updateSponsorAction(formData: FormData) {
       tier: str(formData, "tier"),
       url: str(formData, "url"),
       sort: str(formData, "sort") || 0,
+      logoMediaId: str(formData, "logoMediaId") || null,
       isActive: formData.get("isActive") === "on",
     });
 
@@ -67,7 +76,14 @@ export async function updateSponsorAction(formData: FormData) {
 
   await db
     .update(sponsors)
-    .set({ name: data.name, tier: data.tier, url: data.url || null, sort: data.sort, isActive: data.isActive })
+    .set({
+      name: data.name,
+      tier: data.tier,
+      url: data.url || null,
+      sort: data.sort,
+      logoMediaId: data.logoMediaId,
+      isActive: data.isActive,
+    })
     .where(eq(sponsors.id, data.sponsorId));
 
   await writeAudit({
@@ -76,8 +92,22 @@ export async function updateSponsorAction(formData: FormData) {
     entityType: "sponsor",
     entityId: data.sponsorId,
     diff: {
-      before: { name: before.name, tier: before.tier, url: before.url, sort: before.sort, isActive: before.isActive },
-      after: { name: data.name, tier: data.tier, url: data.url, sort: data.sort, isActive: data.isActive },
+      before: {
+        name: before.name,
+        tier: before.tier,
+        url: before.url,
+        sort: before.sort,
+        logoMediaId: before.logoMediaId,
+        isActive: before.isActive,
+      },
+      after: {
+        name: data.name,
+        tier: data.tier,
+        url: data.url,
+        sort: data.sort,
+        logoMediaId: data.logoMediaId,
+        isActive: data.isActive,
+      },
     },
   });
   await invalidate();

@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, PERMISSIONS, sponsors } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
+import { publicUrl } from "@/lib/storage";
+import { variantKey } from "@/components/media/variants";
+import { MediaPickerInput } from "@/components/media/media-picker";
 import { Card, Field, Input, LinkButton, PageHeader, Select } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
 import { deleteSponsorAction, updateSponsorAction } from "../actions";
@@ -12,8 +15,13 @@ export default async function SponsorEditor({ params }: { params: Promise<{ id: 
   await requirePermission(PERMISSIONS.PAGES_MANAGE);
   const { id } = await params;
 
-  const [sponsor] = await db.select().from(sponsors).where(eq(sponsors.id, id));
+  const sponsor = await db.query.sponsors.findFirst({
+    where: eq(sponsors.id, id),
+    with: { logo: { columns: { path: true } } },
+  });
   if (!sponsor) notFound();
+
+  const logoThumb = sponsor.logo ? publicUrl(variantKey(sponsor.logo.path, "thumb")) : null;
 
   return (
     <>
@@ -44,6 +52,14 @@ export default async function SponsorEditor({ params }: { params: Promise<{ id: 
             </div>
             <Field label="URL">
               <Input name="url" type="url" maxLength={500} defaultValue={sponsor.url ?? ""} placeholder="https://…" />
+            </Field>
+            <Field label="Logo" hint="Shown in the sponsor grids across the public site.">
+              <MediaPickerInput
+                name="logoMediaId"
+                label="Choose logo"
+                initialId={sponsor.logoMediaId}
+                initialUrl={logoThumb}
+              />
             </Field>
             <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-carbon">
               <input type="checkbox" name="isActive" defaultChecked={sponsor.isActive} className="size-4 accent-f1-red" />

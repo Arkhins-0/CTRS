@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { Badge, CountryFlag } from "@ctr/ui";
-import { db, drivers, PERMISSIONS } from "@ctr/db";
+import { db, drivers, raceCategories, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
+import { publicUrl } from "@/lib/storage";
+import { variantKey } from "@/components/media/variants";
+import { MediaPickerInput } from "@/components/media/media-picker";
 import { Card, Field, Input, LinkButton, PageHeader, Select, Textarea } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
 import {
@@ -18,26 +21,58 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
   await requirePermission(PERMISSIONS.DRIVERS_MANAGE);
   const { id } = await params;
 
-  const [driver, allTeamEntries] = await Promise.all([
+  const [driver, teamEntryRows, allCategories] = await Promise.all([
     db.query.drivers.findFirst({
       where: eq(drivers.id, id),
       with: {
+        headshot: { columns: { path: true } },
         seasonEntries: {
-          orderBy: (t, { desc }) => [desc(t.seasonYear)],
           with: {
             teamSeasonEntry: {
-              columns: { id: true, displayName: true, shortName: true, primaryColor: true, seasonYear: true },
+              columns: { id: true, displayName: true, shortName: true, primaryColor: true },
             },
+            championshipSeason: {
+              columns: { year: true },
+              with: { championship: { columns: { shortName: true } } },
+            },
+            category: { columns: { id: true, shortName: true, color: true } },
           },
         },
       },
     }),
     db.query.teamSeasonEntries.findMany({
-      orderBy: (t, { desc }) => [desc(t.seasonYear)],
-      columns: { id: true, displayName: true, seasonYear: true },
+      columns: { id: true, displayName: true },
+      with: {
+        championshipSeason: {
+          columns: { year: true },
+          with: { championship: { columns: { shortName: true } } },
+        },
+      },
     }),
+    db
+      .select()
+      .from(raceCategories)
+      .orderBy(asc(raceCategories.sort), asc(raceCategories.shortName)),
   ]);
   if (!driver) notFound();
+
+  const seasonLabel = (e: {
+    championshipSeason: { year: number; championship: { shortName: string } };
+  }) => `${e.championshipSeason.championship.shortName} ${e.championshipSeason.year}`;
+
+  const seasonEntries = [...driver.seasonEntries].sort(
+    (a, b) => b.championshipSeason.year - a.championshipSeason.year,
+  );
+  const allTeamEntries = [...teamEntryRows].sort(
+    (a, b) =>
+      b.championshipSeason.year - a.championshipSeason.year ||
+      a.displayName.localeCompare(b.displayName),
+  );
+
+  const activeCategories = allCategories.filter((c) => c.isActive);
+  /** Active categories, plus an entry's (possibly inactive) current one. */
+  const categoryOptions = (currentId?: string | null) =>
+    allCategories.filter((c) => c.isActive || c.id === currentId);
 
   return (
     <>
@@ -92,6 +127,13 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
           <Field label="Biography" className="sm:col-span-2">
             <Textarea name="biography" rows={6} defaultValue={driver.biography ?? ""} />
           </Field>
+          <Field label="Headshot" className="sm:col-span-2">
+            <MediaPickerInput
+              name="headshotMediaId"
+              initialId={driver.headshotMediaId}
+              initialUrl={driver.headshot ? publicUrl(variantKey(driver.headshot.path, "thumb")) : null}
+            />
+          </Field>
           <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-carbon">
             <input
               type="checkbox"
@@ -110,8 +152,14 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
       {/* ── Season entries ─────────────────────────────────────────────── */}
       <h2 className="mt-6 text-sm font-black uppercase tracking-wide">Season entries</h2>
 
-      {driver.seasonEntries.length ? (
-        driver.seasonEntries.map((entry) => (
+      {/* classification suggestions shared by every entry form */}
+      <datalist id="classification-suggestions">
+        <option value="rookie" />
+        <option value="gentlemen" />
+      </datalist>
+
+      {seasonEntries.length ? (
+        seasonEntries.map((entry) => (
           <Card key={entry.id} className="mt-3">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span
@@ -119,8 +167,25 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
                 className="inline-block h-5 w-1 rounded-sm"
                 style={{ backgroundColor: entry.teamSeasonEntry.primaryColor }}
               />
-              <span className="text-lg font-black uppercase">{entry.seasonYear}</span>
+              <span className="text-lg font-black uppercase">{seasonLabel(entry)}</span>
               <span className="font-bold">{entry.teamSeasonEntry.displayName}</span>
+              {entry.category ? (
+                <span className="inline-flex items-center gap-1.5 border border-warm-grey bg-white px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-carbon">
+                  <span
+                    aria-hidden
+                    className="inline-block size-2.5 rounded-sm"
+                    style={{ backgroundColor: entry.category.color }}
+                  />
+                  {entry.category.shortName}
+                </span>
+              ) : (
+                <Badge tone="amber">No category</Badge>
+              )}
+              {entry.classification ? (
+                <span className="inline-flex items-center border border-carbon bg-carbon px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                  {entry.classification}
+                </span>
+              ) : null}
               <span className="text-xs text-f1-grey">
                 #{entry.carNumber} · {entry.role}
                 {entry.fromRound || entry.toRound
@@ -142,6 +207,28 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
                     <option value="reserve">Reserve</option>
                   </Select>
                 </Field>
+                <Field label="Category" className="w-40">
+                  <Select name="categoryId" required defaultValue={entry.categoryId ?? ""}>
+                    <option value="" disabled>
+                      Select a category…
+                    </option>
+                    {categoryOptions(entry.categoryId).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.shortName}
+                        {c.isActive ? "" : " (inactive)"}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Classification" className="w-36" hint="blank = none">
+                  <Input
+                    name="classification"
+                    maxLength={30}
+                    list="classification-suggestions"
+                    defaultValue={entry.classification ?? ""}
+                    placeholder="rookie"
+                  />
+                </Field>
                 <Field label="From round" className="w-28" hint="blank = start">
                   <Input name="fromRound" type="number" min={1} max={30} defaultValue={entry.fromRound ?? ""} />
                 </Field>
@@ -158,7 +245,7 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
                 <input type="hidden" name="entryId" value={entry.id} />
                 <input type="hidden" name="driverId" value={driver.id} />
                 <ConfirmSubmit
-                  message={`Remove the ${entry.seasonYear} entry with ${entry.teamSeasonEntry.shortName}? Any results linked to it will be deleted too.`}
+                  message={`Remove the ${seasonLabel(entry)} entry with ${entry.teamSeasonEntry.shortName}? Any results linked to it will be deleted too.`}
                 >
                   Delete
                 </ConfirmSubmit>
@@ -188,7 +275,7 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
                 </option>
                 {allTeamEntries.map((e) => (
                   <option key={e.id} value={e.id}>
-                    {e.seasonYear} — {e.displayName}
+                    {seasonLabel(e)} — {e.displayName}
                   </option>
                 ))}
               </Select>
@@ -201,6 +288,26 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
                 <option value="primary">Primary</option>
                 <option value="reserve">Reserve</option>
               </Select>
+            </Field>
+            <Field label="Category" className="w-40" hint="The class this entry races in.">
+              <Select name="categoryId" required defaultValue="">
+                <option value="" disabled>
+                  Select a category…
+                </option>
+                {activeCategories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.shortName}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Classification" className="w-36" hint="optional — rookie / gentlemen">
+              <Input
+                name="classification"
+                maxLength={30}
+                list="classification-suggestions"
+                placeholder="rookie"
+              />
             </Field>
             <Field label="From round" className="w-28" hint="optional">
               <Input name="fromRound" type="number" min={1} max={30} />

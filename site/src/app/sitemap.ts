@@ -1,6 +1,15 @@
 import type { MetadataRoute } from "next";
 import { desc, eq } from "drizzle-orm";
-import { articles, db, drivers, grandsPrix, pages, teams, videos } from "@ctr/db";
+import {
+  articles,
+  championshipSeasons,
+  db,
+  drivers,
+  pages,
+  rounds,
+  teams,
+  videos,
+} from "@ctr/db";
 
 export const revalidate = 3600;
 
@@ -25,7 +34,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .orderBy(desc(articles.publishedAt))
       .limit(500),
     db.select({ slug: videos.slug }).from(videos).where(eq(videos.status, "published")).limit(200),
-    db.select({ slug: grandsPrix.slug, seasonYear: grandsPrix.seasonYear }).from(grandsPrix),
+    db
+      .select({ slug: rounds.slug, seasonYear: championshipSeasons.year })
+      .from(rounds)
+      .innerJoin(championshipSeasons, eq(rounds.championshipSeasonId, championshipSeasons.id)),
     db.select({ slug: drivers.slug }).from(drivers),
     db.select({ slug: teams.slug }).from(teams),
     db.select({ slug: pages.slug }).from(pages).where(eq(pages.status, "published")),

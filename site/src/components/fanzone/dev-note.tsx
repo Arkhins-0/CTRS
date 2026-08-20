@@ -6,11 +6,11 @@ import Link from "next/link";
  */
 export function DevNote({ confirmHref }: { confirmHref: string }) {
   return (
-    <div className="border border-amber-500/60 bg-amber-500/10 p-3 text-sm text-carbon">
-      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-700">Dev note</p>
+    <div className="border border-accent bg-accent/10 p-3 text-sm text-white">
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent">Dev note</p>
       <p className="mt-1">
         Email sending isn&apos;t configured —{" "}
-        <Link href={confirmHref} className="font-bold text-f1-red underline hover:no-underline">
+        <Link href={confirmHref} className="font-bold text-accent underline hover:no-underline">
           confirm here
         </Link>
         .

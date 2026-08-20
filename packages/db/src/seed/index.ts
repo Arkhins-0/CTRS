@@ -1,14 +1,15 @@
 import "./load-env";
 import { db, pool } from "../client";
-import { seedContent } from "./content";
-import { seedRacing } from "./racing";
 import { seedRbac } from "./rbac";
+import { seedAssets, seedContentCtr, seedRacingCtr, wipeOldData } from "./seed-ctr";
 
 async function main() {
-  console.log("CTR Sports seed — 2025 + 2026 real data\n");
+  console.log("CTR Sports seed — CTR–JK Tyre FMSCI INCRC 2026\n");
   await seedRbac(db);
-  await seedRacing(db, [2025, 2026]);
-  await seedContent(db);
+  await wipeOldData(db);
+  const assets = await seedAssets(db);
+  await seedRacingCtr(db, assets);
+  await seedContentCtr(db, assets);
   await pool.end();
   console.log("\nSeed complete ✓");
 }

@@ -56,6 +56,7 @@ const driverSchema = z.object({
     .max(20_000)
     .transform((v) => (v === "" ? null : v)),
   isActive: z.boolean(),
+  headshotMediaId: z.string().uuid().nullable(),
 });
 
 function driverFromForm(formData: FormData) {
@@ -68,6 +69,7 @@ function driverFromForm(formData: FormData) {
     placeOfBirth: str(formData, "placeOfBirth"),
     biography: str(formData, "biography"),
     isActive: formData.get("isActive") === "on",
+    headshotMediaId: str(formData, "headshotMediaId") || null,
   });
 }
 
@@ -126,6 +128,14 @@ const entryFieldsSchema = z
   .object({
     carNumber: z.number().int().min(0).max(999),
     role: z.enum(["primary", "reserve"]),
+    // the racing class this entry competes in — required in the UI for this
+    // multi-class championship, nullable in the schema (single-class seasons)
+    categoryId: z.string().uuid().nullable(),
+    // sub-classification tag (e.g. "rookie" | "gentlemen") — drives extra standings tables
+    classification: z
+      .string()
+      .max(30)
+      .transform((v) => (v === "" ? null : v.toLowerCase())),
     fromRound: z.number().int().min(1).max(30).nullable(),
     toRound: z.number().int().min(1).max(30).nullable(),
   })
@@ -137,6 +147,8 @@ function entryFieldsFromForm(formData: FormData) {
   return entryFieldsSchema.parse({
     carNumber: numOrNull(formData, "carNumber"),
     role: str(formData, "role"),
+    categoryId: str(formData, "categoryId") || null,
+    classification: str(formData, "classification"),
     fromRound: numOrNull(formData, "fromRound"),
     toRound: numOrNull(formData, "toRound"),
   });
@@ -156,7 +168,7 @@ export async function addDriverEntryAction(formData: FormData) {
   const teamSeasonEntryId = z.string().uuid().parse(str(formData, "teamSeasonEntryId"));
   const data = entryFieldsFromForm(formData);
 
-  // seasonYear is denormalised from the chosen team season entry
+  // the championship season is denormalised from the chosen team season entry
   const teamEntry = await db.query.teamSeasonEntries.findFirst({
     where: eq(teamSeasonEntries.id, teamSeasonEntryId),
   });
@@ -164,7 +176,12 @@ export async function addDriverEntryAction(formData: FormData) {
 
   const [row] = await db
     .insert(driverSeasonEntries)
-    .values({ ...data, driverId, teamSeasonEntryId, seasonYear: teamEntry.seasonYear })
+    .values({
+      ...data,
+      driverId,
+      teamSeasonEntryId,
+      championshipSeasonId: teamEntry.championshipSeasonId,
+    })
     .returning();
 
   await writeAudit({
@@ -172,7 +189,9 @@ export async function addDriverEntryAction(formData: FormData) {
     action: "driver.entry.create",
     entityType: "driver_season_entry",
     entityId: row.id,
-    diff: { after: { ...data, teamSeasonEntryId, seasonYear: teamEntry.seasonYear } },
+    diff: {
+      after: { ...data, teamSeasonEntryId, championshipSeasonId: teamEntry.championshipSeasonId },
+    },
   });
   await revalidateSite([...driverTags(await driverSlugById(driverId)), TAGS.teams]);
   revalidatePath(`/drivers/${driverId}`);
@@ -212,7 +231,11 @@ export async function deleteDriverEntryAction(formData: FormData) {
     action: "driver.entry.delete",
     entityType: "driver_season_entry",
     entityId: entryId,
-    diff: { before: gone ? { seasonYear: gone.seasonYear, carNumber: gone.carNumber } : null },
+    diff: {
+      before: gone
+        ? { championshipSeasonId: gone.championshipSeasonId, carNumber: gone.carNumber }
+        : null,
+    },
   });
   await revalidateSite([...driverTags(await driverSlugById(driverId)), TAGS.teams, TAGS.results]);
   revalidatePath(`/drivers/${driverId}`);

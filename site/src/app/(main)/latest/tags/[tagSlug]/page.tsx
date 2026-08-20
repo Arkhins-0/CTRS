@@ -52,11 +52,11 @@ export default async function TagArchivePage({ params }: Props) {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
-      <p className="text-xs font-black uppercase tracking-[0.3em] text-f1-red">Tagged</p>
-      <h1 className="mt-1 border-l-4 border-f1-red pl-3 text-3xl font-black uppercase tracking-tight text-carbon sm:text-4xl">
+      <p className="text-xs font-black uppercase tracking-[0.3em] text-accent">Tagged</p>
+      <h1 className="mt-1 border-l-4 border-accent pl-3 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
         {tag.name}
       </h1>
-      <p className="mt-3 text-sm font-semibold uppercase tracking-wide text-f1-grey">
+      <p className="mt-3 text-sm font-semibold uppercase tracking-wide text-fg-muted">
         {rows.length} {rows.length === 1 ? "story" : "stories"}
       </p>
 
@@ -67,7 +67,7 @@ export default async function TagArchivePage({ params }: Props) {
           ))}
         </div>
       ) : (
-        <p className="mt-12 text-center text-sm font-semibold uppercase tracking-wide text-f1-grey">
+        <p className="mt-12 text-center text-sm font-semibold uppercase tracking-wide text-fg-faint">
           No published stories carry this tag yet.
         </p>
       )}

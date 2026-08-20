@@ -28,8 +28,8 @@ export async function SaveArticleButton({ articleId }: { articleId: string }) {
         type="submit"
         className={`chamfer-tr px-5 py-2 text-xs font-black uppercase tracking-wide transition-colors ${
           saved
-            ? "bg-carbon text-white hover:bg-carbon-700"
-            : "bg-f1-red text-white hover:bg-f1-red-dark"
+            ? "border border-line bg-panel text-white hover:bg-surface"
+            : "bg-accent text-accent-fg hover:bg-accent-dark"
         }`}
       >
         {saved ? "Saved ✓" : "Save article"}

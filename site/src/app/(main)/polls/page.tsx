@@ -21,7 +21,7 @@ export default async function PollsPage() {
       where: eq(polls.status, "open"),
       with: {
         options: { orderBy: (o, { asc }) => [asc(o.sort)] },
-        grandPrix: { columns: { name: true } },
+        round: { columns: { name: true } },
       },
       orderBy: [desc(polls.createdAt)],
     }),
@@ -29,7 +29,7 @@ export default async function PollsPage() {
       where: eq(polls.status, "closed"),
       with: {
         options: { orderBy: (o, { asc }) => [asc(o.sort)] },
-        grandPrix: { columns: { name: true } },
+        round: { columns: { name: true } },
       },
       orderBy: [desc(polls.createdAt)],
       limit: 5,
@@ -66,13 +66,13 @@ export default async function PollsPage() {
   return (
     <>
       {/* fan zone band */}
-      <div className="border-b-4 border-f1-red bg-carbon-fibre">
+      <div className="border-b-4 border-accent bg-carbon-fibre">
         <div className="mx-auto max-w-7xl px-4 py-10">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-f1-red">Fan zone</p>
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-accent">Fan zone</p>
           <h1 className="mt-1 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
             Polls &amp; Predictions
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-f1-grey-light">
+          <p className="mt-2 max-w-2xl text-sm text-fg-muted">
             Have your say and call the weekend before lights out — one vote per poll, and you can
             change your pick until it closes.
           </p>
@@ -83,7 +83,7 @@ export default async function PollsPage() {
         <SectionHeading
           right={
             !session ? (
-              <Link href="/login" className="uppercase text-f1-red hover:underline">
+              <Link href="/login" className="uppercase text-accent hover:underline">
                 Sign in to vote
               </Link>
             ) : undefined
@@ -93,11 +93,11 @@ export default async function PollsPage() {
         </SectionHeading>
 
         {openPolls.length === 0 ? (
-          <ChamferCard className="mt-6 border border-dashed border-f1-grey-light bg-white p-10 text-center">
-            <p className="text-lg font-black uppercase tracking-tight text-carbon">
+          <ChamferCard className="mt-6 border border-dashed border-line bg-surface p-10 text-center">
+            <p className="text-lg font-black uppercase tracking-tight text-white">
               No open polls right now
             </p>
-            <p className="mt-2 text-sm text-f1-grey">Check back on race week.</p>
+            <p className="mt-2 text-sm text-fg-muted">Check back on race week.</p>
           </ChamferCard>
         ) : (
           <div className="mt-6 grid gap-4 md:grid-cols-2">

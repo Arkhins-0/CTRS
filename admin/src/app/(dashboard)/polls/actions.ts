@@ -29,7 +29,7 @@ const pollSchema = z.object({
   question: z.string().min(1).max(500),
   slug: z.string().min(1).max(200).regex(/^[a-z0-9-]+$/),
   kind: z.enum(["poll", "prediction"]),
-  grandPrixId: z.string().uuid().nullable(),
+  roundId: z.string().uuid().nullable(),
   opensAt: dateTimeLocal,
   closesAt: dateTimeLocal,
 });
@@ -49,7 +49,7 @@ export async function createPollAction(formData: FormData) {
     question,
     slug: str(formData, "slug") || slugify(question),
     kind: str(formData, "kind"),
-    grandPrixId: str(formData, "grandPrixId") || null,
+    roundId: str(formData, "roundId") || null,
     opensAt: str(formData, "opensAt"),
     closesAt: str(formData, "closesAt"),
   });
@@ -60,7 +60,7 @@ export async function createPollAction(formData: FormData) {
       question: data.question,
       slug: data.slug,
       kind: data.kind,
-      grandPrixId: data.grandPrixId,
+      roundId: data.roundId,
       opensAt: data.opensAt,
       closesAt: data.closesAt,
       status: "draft",
@@ -86,7 +86,7 @@ export async function updatePollAction(formData: FormData) {
     question: str(formData, "question"),
     slug: str(formData, "slug"),
     kind: str(formData, "kind"),
-    grandPrixId: str(formData, "grandPrixId") || null,
+    roundId: str(formData, "roundId") || null,
     opensAt: str(formData, "opensAt"),
     closesAt: str(formData, "closesAt"),
   });
@@ -100,7 +100,7 @@ export async function updatePollAction(formData: FormData) {
       question: data.question,
       slug: data.slug,
       kind: data.kind,
-      grandPrixId: data.grandPrixId,
+      roundId: data.roundId,
       opensAt: data.opensAt,
       closesAt: data.closesAt,
     })
@@ -116,7 +116,7 @@ export async function updatePollAction(formData: FormData) {
         question: before.question,
         slug: before.slug,
         kind: before.kind,
-        grandPrixId: before.grandPrixId,
+        roundId: before.roundId,
         opensAt: before.opensAt,
         closesAt: before.closesAt,
       },

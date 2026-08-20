@@ -3,3 +3,4 @@ export { TeamColorBar } from "./components/TeamColorBar";
 export { Badge } from "./components/Badge";
 export { CountryFlag } from "./components/CountryFlag";
 export { SectionHeading } from "./components/SectionHeading";
+export { ChampionshipTheme } from "./components/ChampionshipTheme";

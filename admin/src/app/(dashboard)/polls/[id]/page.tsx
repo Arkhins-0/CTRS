@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
-import { asc, count, eq, gte } from "drizzle-orm";
-import { db, drivers, grandsPrix, PERMISSIONS, pollOptions, polls, pollVotes, seasons } from "@ctr/db";
+import { asc, count, eq } from "drizzle-orm";
+import { db, drivers, PERMISSIONS, pollOptions, polls, pollVotes } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { Card, Field, Input, LinkButton, PageHeader, Select, StatusPill } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
+import { loadRoundOptions } from "@/components/racing/round-options";
 import {
   addPollOptionAction,
   deletePollAction,
@@ -28,22 +29,8 @@ export default async function PollEditor({ params }: { params: Promise<{ id: str
   });
   if (!poll) notFound();
 
-  const [current] = await db
-    .select({ year: seasons.year })
-    .from(seasons)
-    .where(eq(seasons.isCurrent, true));
-
-  const [gps, activeDrivers, voteRows] = await Promise.all([
-    db
-      .select({
-        id: grandsPrix.id,
-        name: grandsPrix.name,
-        round: grandsPrix.round,
-        seasonYear: grandsPrix.seasonYear,
-      })
-      .from(grandsPrix)
-      .where(gte(grandsPrix.seasonYear, current?.year ?? 0))
-      .orderBy(asc(grandsPrix.seasonYear), asc(grandsPrix.round)),
+  const [roundOptions, activeDrivers, voteRows] = await Promise.all([
+    loadRoundOptions(),
     db
       .select({ id: drivers.id, firstName: drivers.firstName, lastName: drivers.lastName, code: drivers.code })
       .from(drivers)
@@ -103,12 +90,12 @@ export default async function PollEditor({ params }: { params: Promise<{ id: str
                     <option value="prediction">Prediction</option>
                   </Select>
                 </Field>
-                <Field label="Grand Prix">
-                  <Select name="grandPrixId" defaultValue={poll.grandPrixId ?? ""}>
+                <Field label="Round">
+                  <Select name="roundId" defaultValue={poll.roundId ?? ""}>
                     <option value="">— None —</option>
-                    {gps.map((gp) => (
-                      <option key={gp.id} value={gp.id}>
-                        {gp.seasonYear} · R{gp.round} — {gp.name}
+                    {roundOptions.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.label}
                       </option>
                     ))}
                   </Select>

@@ -7,7 +7,7 @@ import { COUNTRIES } from "./countries";
  */
 
 export const inputClass =
-  "w-full border border-warm-grey bg-white px-3 py-2 text-sm text-carbon outline-none transition-colors placeholder:text-f1-grey-light focus:border-f1-red";
+  "w-full border border-line bg-panel px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-fg-faint focus:border-accent";
 
 export function Field({
   label,
@@ -24,12 +24,12 @@ export function Field({
     <div>
       <label
         htmlFor={htmlFor}
-        className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey"
+        className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-faint"
       >
         {label}
       </label>
       {children}
-      {hint ? <p className="mt-1 text-xs text-f1-grey-light">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-xs text-fg-faint">{hint}</p> : null}
     </div>
   );
 }
@@ -74,7 +74,7 @@ export function FormError({ children }: { children?: ReactNode }) {
   return (
     <div
       role="alert"
-      className="border-l-4 border-f1-red bg-f1-red/5 px-3 py-2 text-sm font-semibold text-f1-red"
+      className="border-l-4 border-red-500 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-400"
     >
       {children}
     </div>
@@ -86,7 +86,7 @@ export function FormSuccess({ children }: { children?: ReactNode }) {
   return (
     <div
       role="status"
-      className="border-l-4 border-emerald-600 bg-emerald-600/5 px-3 py-2 text-sm font-semibold text-emerald-700"
+      className="border-l-4 border-emerald-500 bg-emerald-500/10 px-3 py-2 text-sm font-semibold text-emerald-400"
     >
       {children}
     </div>

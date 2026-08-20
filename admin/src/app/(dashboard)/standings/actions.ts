@@ -9,15 +9,15 @@ import { revalidateSite } from "@/lib/revalidate";
 
 export async function recalcStandingsAction(formData: FormData) {
   const session = await requirePermission(PERMISSIONS.RESULTS_MANAGE);
-  const year = z.coerce.number().int().min(1950).max(2100).parse(formData.get("year"));
+  const championshipSeasonId = z.string().uuid().parse(formData.get("championshipSeasonId"));
 
-  const summary = await computeStandings(db, year);
+  const summary = await computeStandings(db, championshipSeasonId);
 
   await writeAudit({
     actorId: session.user.id,
     action: "standings.recalc",
-    entityType: "season",
-    entityId: String(year),
+    entityType: "championship_season",
+    entityId: championshipSeasonId,
     diff: summary,
   });
   await revalidateSite([TAGS.standings, TAGS.home]);

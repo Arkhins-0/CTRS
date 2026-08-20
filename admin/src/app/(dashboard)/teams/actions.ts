@@ -33,6 +33,9 @@ const optionalText = (max: number) =>
 
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a #RRGGBB colour");
 
+const mediaIdSchema = z.string().uuid().nullable();
+const mediaIdFromForm = (fd: FormData, key: string) => str(fd, key) || null;
+
 const teamTags = (slug: string) => [TAGS.teams, TAGS.team(slug), TAGS.standings, TAGS.home];
 
 async function teamSlugForEntry(entryId: string): Promise<{ teamId: string; slug: string } | null> {
@@ -60,6 +63,7 @@ const teamSchema = z.object({
     .string()
     .max(10_000)
     .transform((v) => (v === "" ? null : v)),
+  logoMediaId: mediaIdSchema,
 });
 
 function teamFromForm(formData: FormData) {
@@ -71,6 +75,7 @@ function teamFromForm(formData: FormData) {
     firstEntryYear: numOrNull(formData, "firstEntryYear"),
     worldChampionships: numOrNull(formData, "worldChampionships") ?? 0,
     description: str(formData, "description"),
+    logoMediaId: mediaIdFromForm(formData, "logoMediaId"),
   });
 }
 
@@ -153,6 +158,8 @@ const entrySchema = z.object({
     .refine((v) => v === null || /^#[0-9a-fA-F]{6}$/.test(v), "Use a #RRGGBB colour"),
   teamPrincipal: optionalText(120),
   powerUnitSupplier: optionalText(120),
+  logoMediaId: mediaIdSchema,
+  carImageMediaId: mediaIdSchema,
 });
 
 function entryFromForm(formData: FormData) {
@@ -163,13 +170,15 @@ function entryFromForm(formData: FormData) {
     secondaryColor: str(formData, "secondaryColor"),
     teamPrincipal: str(formData, "teamPrincipal"),
     powerUnitSupplier: str(formData, "powerUnitSupplier"),
+    logoMediaId: mediaIdFromForm(formData, "logoMediaId"),
+    carImageMediaId: mediaIdFromForm(formData, "carImageMediaId"),
   });
 }
 
 export async function createTeamEntryAction(formData: FormData) {
   const session = await requirePermission(PERMISSIONS.TEAMS_MANAGE);
   const teamId = z.string().uuid().parse(str(formData, "teamId"));
-  const seasonYear = z.coerce.number().int().min(1950).max(2100).parse(str(formData, "seasonYear"));
+  const championshipSeasonId = z.string().uuid().parse(str(formData, "championshipSeasonId"));
   const data = entryFromForm(formData);
 
   const team = await db.query.teams.findFirst({ where: eq(teams.id, teamId) });
@@ -177,7 +186,7 @@ export async function createTeamEntryAction(formData: FormData) {
 
   const [row] = await db
     .insert(teamSeasonEntries)
-    .values({ ...data, teamId, seasonYear })
+    .values({ ...data, teamId, championshipSeasonId })
     .returning();
 
   await writeAudit({
@@ -185,7 +194,7 @@ export async function createTeamEntryAction(formData: FormData) {
     action: "team.entry.create",
     entityType: "team_season_entry",
     entityId: row.id,
-    diff: { after: { ...data, seasonYear } },
+    diff: { after: { ...data, championshipSeasonId } },
   });
   await revalidateSite(teamTags(team.slug));
   revalidatePath(`/teams/${teamId}`);
@@ -224,6 +233,7 @@ const carSchema = z.object({
   gearbox: optionalText(120),
   fuel: optionalText(120),
   note: optionalText(500),
+  imageMediaId: mediaIdSchema,
 });
 
 export async function saveCarAction(formData: FormData) {
@@ -239,6 +249,7 @@ export async function saveCarAction(formData: FormData) {
     gearbox: str(formData, "gearbox"),
     fuel: str(formData, "fuel"),
     note: str(formData, "note"),
+    imageMediaId: mediaIdFromForm(formData, "imageMediaId"),
   });
 
   const owner = await teamSlugForEntry(entryId);
@@ -255,6 +266,7 @@ export async function saveCarAction(formData: FormData) {
     chassis: data.chassis,
     powerUnit: data.powerUnit,
     specs,
+    imageMediaId: data.imageMediaId,
   };
 
   await db
@@ -262,7 +274,13 @@ export async function saveCarAction(formData: FormData) {
     .values(values)
     .onConflictDoUpdate({
       target: cars.teamSeasonEntryId,
-      set: { modelName: values.modelName, chassis: values.chassis, powerUnit: values.powerUnit, specs },
+      set: {
+        modelName: values.modelName,
+        chassis: values.chassis,
+        powerUnit: values.powerUnit,
+        specs,
+        imageMediaId: values.imageMediaId,
+      },
     });
 
   await writeAudit({

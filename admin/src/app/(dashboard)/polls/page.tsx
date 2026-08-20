@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { count, desc, eq } from "drizzle-orm";
-import { db, grandsPrix, PERMISSIONS, polls, pollVotes } from "@ctr/db";
+import {
+  championships,
+  championshipSeasons,
+  db,
+  PERMISSIONS,
+  polls,
+  pollVotes,
+  rounds,
+} from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { EmptyState, LinkButton, PageHeader, StatusPill, Table } from "@/components/ui";
 
@@ -18,14 +26,24 @@ export default async function PollsIndex() {
       status: polls.status,
       closesAt: polls.closesAt,
       createdAt: polls.createdAt,
-      gpName: grandsPrix.name,
-      gpYear: grandsPrix.seasonYear,
+      roundName: rounds.name,
+      roundNumber: rounds.round,
+      seasonYear: championshipSeasons.year,
+      championshipShort: championships.shortName,
       votes: count(pollVotes.optionId),
     })
     .from(polls)
-    .leftJoin(grandsPrix, eq(polls.grandPrixId, grandsPrix.id))
+    .leftJoin(rounds, eq(polls.roundId, rounds.id))
+    .leftJoin(championshipSeasons, eq(rounds.championshipSeasonId, championshipSeasons.id))
+    .leftJoin(championships, eq(championshipSeasons.championshipId, championships.id))
     .leftJoin(pollVotes, eq(pollVotes.pollId, polls.id))
-    .groupBy(polls.id, grandsPrix.name, grandsPrix.seasonYear)
+    .groupBy(
+      polls.id,
+      rounds.name,
+      rounds.round,
+      championshipSeasons.year,
+      championships.shortName,
+    )
     .orderBy(desc(polls.createdAt));
 
   return (
@@ -43,7 +61,7 @@ export default async function PollsIndex() {
               <th>Question</th>
               <th>Kind</th>
               <th>Status</th>
-              <th>Grand Prix</th>
+              <th>Round</th>
               <th>Votes</th>
               <th>Closes</th>
             </>
@@ -61,7 +79,9 @@ export default async function PollsIndex() {
                 <StatusPill status={p.status} />
               </td>
               <td className="whitespace-nowrap text-f1-grey">
-                {p.gpName ? `${p.gpName} ${p.gpYear}` : "—"}
+                {p.roundName
+                  ? `R${p.roundNumber} — ${p.roundName} (${p.championshipShort} ${p.seasonYear})`
+                  : "—"}
               </td>
               <td className="font-bold">{p.votes}</td>
               <td className="whitespace-nowrap text-f1-grey">

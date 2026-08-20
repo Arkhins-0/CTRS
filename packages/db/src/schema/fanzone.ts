@@ -13,7 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { adminUsers } from "./auth";
 import { articles } from "./content";
-import { drivers, grandsPrix } from "./racing";
+import { drivers, rounds } from "./racing";
 
 /* ── Enums ───────────────────────────────────────────────────────────────── */
 
@@ -86,7 +86,7 @@ export const polls = pgTable("polls", {
   slug: varchar("slug", { length: 200 }).notNull().unique(),
   question: varchar("question", { length: 500 }).notNull(),
   kind: pollKindEnum("kind").notNull().default("poll"),
-  grandPrixId: uuid("grand_prix_id").references(() => grandsPrix.id, { onDelete: "set null" }),
+  roundId: uuid("round_id").references(() => rounds.id, { onDelete: "set null" }),
   status: pollStatusEnum("status").notNull().default("draft"),
   opensAt: timestamp("opens_at", { withTimezone: true }),
   closesAt: timestamp("closes_at", { withTimezone: true }),
@@ -158,7 +158,7 @@ export const savedArticlesRelations = relations(savedArticles, ({ one }) => ({
 export const pollsRelations = relations(polls, ({ one, many }) => ({
   options: many(pollOptions),
   votes: many(pollVotes),
-  grandPrix: one(grandsPrix, { fields: [polls.grandPrixId], references: [grandsPrix.id] }),
+  round: one(rounds, { fields: [polls.roundId], references: [rounds.id] }),
 }));
 
 export const pollOptionsRelations = relations(pollOptions, ({ one, many }) => ({

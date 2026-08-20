@@ -34,15 +34,15 @@ export function formatDuration(seconds: number | null | undefined): string | nul
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/** F1.com-style video tile: thumbnail, play overlay, duration chip, title. */
+/** Dark video tile: thumbnail, accent play overlay, duration chip, title. */
 export function VideoCard({ video }: { video: VideoCardData }) {
   const thumb = videoThumbUrl(video);
   const duration = formatDuration(video.durationSeconds);
 
   return (
     <Link href={`/video/${video.slug}`} className="group block h-full">
-      <article className="chamfer-tr flex h-full flex-col overflow-hidden border border-warm-grey bg-white transition-transform duration-200 group-hover:-translate-y-1">
-        <div className="relative aspect-video w-full overflow-hidden bg-carbon">
+      <article className="chamfer-tr flex h-full flex-col overflow-hidden border border-line bg-surface transition-transform duration-200 group-hover:-translate-y-1">
+        <div className="relative aspect-video w-full overflow-hidden bg-panel">
           {thumb ? (
             <Image
               src={thumb}
@@ -57,24 +57,24 @@ export function VideoCard({ video }: { video: VideoCardData }) {
 
           {/* play icon overlay */}
           <span className="absolute inset-0 flex items-center justify-center">
-            <span className="chamfer-tr flex h-11 w-11 items-center justify-center bg-f1-red/90 text-white transition-transform duration-200 group-hover:scale-110">
+            <span className="chamfer-tr flex h-11 w-11 items-center justify-center bg-accent/90 text-accent-fg transition-transform duration-200 group-hover:scale-110">
               <Play size={20} fill="currentColor" aria-hidden />
             </span>
           </span>
 
           {duration ? (
-            <span className="absolute bottom-2 right-2 bg-carbon/90 px-1.5 py-0.5 text-xs font-bold tabular-nums text-white">
+            <span className="absolute bottom-2 right-2 bg-page/90 px-1.5 py-0.5 text-xs font-bold tabular-nums text-white">
               {duration}
             </span>
           ) : null}
         </div>
 
         <div className="flex flex-1 flex-col gap-1.5 p-4">
-          <h3 className="line-clamp-2 text-sm font-black uppercase leading-snug tracking-tight text-carbon transition-colors group-hover:text-f1-red">
+          <h3 className="line-clamp-2 text-sm font-black uppercase leading-snug tracking-tight text-white transition-colors group-hover:text-accent">
             {video.title}
           </h3>
           {video.publishedAt ? (
-            <p className="mt-auto pt-1 text-xs font-semibold uppercase tracking-wide text-f1-grey-light">
+            <p className="mt-auto pt-1 text-xs font-semibold uppercase tracking-wide text-fg-faint">
               {format(new Date(video.publishedAt), "d MMM yyyy")}
             </p>
           ) : null}

@@ -94,12 +94,12 @@ export default async function CmsPage({ params }: Props) {
   return (
     <main className="pb-16">
       {!hasHeroBlock ? (
-        <header className="bg-carbon">
+        <header className="border-b border-line bg-surface">
           <div className="mx-auto max-w-7xl px-4 py-10">
             <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
               {page.title}
             </h1>
-            <div className="mt-4 h-1 w-16 bg-f1-red" aria-hidden />
+            <div className="mt-4 h-1 w-16 bg-accent" aria-hidden />
           </div>
         </header>
       ) : null}

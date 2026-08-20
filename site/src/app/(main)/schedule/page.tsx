@@ -4,8 +4,9 @@ import { ScheduleSeasonView } from "@/components/racing/schedule-season-view";
 import { getCurrentSeasonYear } from "@/lib/settings";
 
 export const metadata: Metadata = {
-  title: "Schedule",
-  description: "Every race weekend of the current Formula Racing season.",
+  title: "Race Calendar",
+  description:
+    "Every round of the CTR–JK Tyre FMSCI Indian National Car Racing Championship — dates, circuits and the countdown to lights out.",
 };
 
 export default async function SchedulePage() {

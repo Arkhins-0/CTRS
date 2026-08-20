@@ -41,12 +41,12 @@ export function Countdown({ targetIso, className = "" }: { targetIso: string; cl
     <div className={`flex items-start gap-2 ${className}`} role="timer" aria-live="off">
       {cells.map((c, i) => (
         <div key={c.label} className="flex items-start gap-2">
-          {i > 0 ? <span className="pt-1.5 text-lg font-black text-f1-grey-light">:</span> : null}
+          {i > 0 ? <span className="pt-1.5 text-lg font-black text-fg-faint">:</span> : null}
           <div className="flex flex-col items-center">
-            <span className="chamfer-tr min-w-[3rem] bg-carbon-800 px-2 py-1.5 text-center text-2xl font-black tabular-nums text-white">
+            <span className="chamfer-tr min-w-[3rem] border border-line bg-panel px-2 py-1.5 text-center text-2xl font-black tabular-nums text-white">
               {c.value === null ? "--" : String(c.value).padStart(2, "0")}
             </span>
-            <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-f1-grey-light">
+            <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-fg-faint">
               {c.label}
             </span>
           </div>

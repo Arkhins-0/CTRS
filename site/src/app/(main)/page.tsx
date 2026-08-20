@@ -1,37 +1,65 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { format, isSameMonth } from "date-fns";
+import { and, asc, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import {
   articles,
-  constructorStandings,
+  championships,
+  championshipSeasons,
+  circuits,
   db,
-  driverSeasonEntries,
-  driverStandings,
-  grandsPrix,
+  raceCategories,
+  rounds,
+  sponsors,
   TAGS,
-  videos,
 } from "@ctr/db";
-import { ChamferCard, CountryFlag, SectionHeading, TeamColorBar } from "@ctr/ui";
+import { ChamferCard, CountryFlag, SectionHeading } from "@ctr/ui";
 import { ArticleCard } from "@/components/news/article-card";
 import { Countdown } from "@/components/news/countdown";
 import { HeroArticle } from "@/components/news/hero-article";
-import { LocalTime } from "@/components/news/local-time";
-import { VideoCard } from "@/components/news/video-card";
+import { HOME_CHAMPIONSHIP } from "@/components/racing/data";
 import { cached } from "@/lib/cache";
+import { mediaUrl } from "@/lib/media";
 import { getCurrentSeasonYear } from "@/lib/settings";
 
-const SESSION_LABELS: Record<string, string> = {
-  fp1: "Practice 1",
-  fp2: "Practice 2",
-  fp3: "Practice 3",
-  sprint_qualifying: "Sprint Qualifying",
-  sprint: "Sprint",
-  qualifying: "Qualifying",
-  race: "Race",
-};
+/* ── Home data bundles ───────────────────────────────────────────────────── */
 
-/* ── Home data bundle (one cached() call) ────────────────────────────────── */
+/** Next scheduled round of the home championship (earliest year, then round). */
+async function loadNextRound() {
+  const [next] = await db
+    .select({
+      id: rounds.id,
+      round: rounds.round,
+      slug: rounds.slug,
+      name: rounds.name,
+      startDate: rounds.startDate,
+      endDate: rounds.endDate,
+      seasonYear: championshipSeasons.year,
+      circuit: {
+        name: circuits.name,
+        locality: circuits.locality,
+        country: circuits.country,
+        countryCode: circuits.countryCode,
+      },
+    })
+    .from(rounds)
+    .innerJoin(championshipSeasons, eq(rounds.championshipSeasonId, championshipSeasons.id))
+    .innerJoin(championships, eq(championshipSeasons.championshipId, championships.id))
+    .innerJoin(circuits, eq(rounds.circuitId, circuits.id))
+    .where(and(eq(championships.slug, HOME_CHAMPIONSHIP), eq(rounds.status, "scheduled")))
+    .orderBy(asc(championshipSeasons.year), asc(rounds.round))
+    .limit(1);
+  if (!next) return null;
 
-async function loadHome(year: number) {
+  const sessions = await db.query.raceSessions.findMany({
+    columns: { id: true, startsAt: true },
+    where: (s, { eq: whereEq }) => whereEq(s.roundId, next.id),
+    orderBy: (s, { asc: sortAsc }) => [sortAsc(s.startsAt)],
+  });
+
+  return { ...next, sessions };
+}
+
+async function loadHome() {
   // Hero: latest breaking story, else newest published article.
   const breaking = await db.query.articles.findFirst({
     where: and(eq(articles.status, "published"), eq(articles.isBreaking, true)),
@@ -46,132 +74,76 @@ async function loadHome(year: number) {
       with: { hero: true, category: true },
     }));
 
-  const [latestRaw, nextGp, driverTop, constructorTop, latestVideos] = await Promise.all([
+  const [latestRaw, nextGp, titlePartners] = await Promise.all([
     db.query.articles.findMany({
       where: eq(articles.status, "published"),
       orderBy: [desc(articles.publishedAt)],
       limit: 9, // one spare so the grid stays at 8 after removing the hero story
       with: { hero: true, category: true },
     }),
-    db.query.grandsPrix.findFirst({
-      where: eq(grandsPrix.status, "scheduled"),
-      orderBy: [asc(grandsPrix.seasonYear), asc(grandsPrix.round)],
-      with: {
-        circuit: true,
-        sessions: { orderBy: (s, { asc: sortAsc }) => [sortAsc(s.startsAt)] },
-      },
-    }),
-    db.query.driverStandings.findMany({
-      where: eq(driverStandings.seasonYear, year),
-      orderBy: [asc(driverStandings.position)],
-      limit: 3,
-      with: { driver: true },
-    }),
-    db.query.constructorStandings.findMany({
-      where: eq(constructorStandings.seasonYear, year),
-      orderBy: [asc(constructorStandings.position)],
-      limit: 3,
-      with: { teamSeasonEntry: true },
-    }),
-    db.query.videos.findMany({
-      where: eq(videos.status, "published"),
-      orderBy: [desc(videos.publishedAt)],
-      limit: 4,
-      with: { thumbnail: true },
+    loadNextRound(),
+    db.query.sponsors.findMany({
+      where: and(eq(sponsors.isActive, true), eq(sponsors.tier, "global_partner")),
+      orderBy: [asc(sponsors.sort)],
+      with: { logo: true },
     }),
   ]);
 
   const latest = latestRaw.filter((a) => a.id !== hero?.id).slice(0, 8);
 
-  // Team colour per top-3 driver: their latest driver entry of the season.
-  const driverIds = driverTop.map((r) => r.driverId);
-  const entries = driverIds.length
-    ? await db.query.driverSeasonEntries.findMany({
-        where: and(
-          eq(driverSeasonEntries.seasonYear, year),
-          inArray(driverSeasonEntries.driverId, driverIds),
-        ),
-        with: { teamSeasonEntry: true },
-      })
-    : [];
-  const teamColorByDriver: Record<string, string> = {};
-  for (const e of [...entries].sort((a, b) => (a.fromRound ?? 0) - (b.fromRound ?? 0))) {
-    teamColorByDriver[e.driverId] = e.teamSeasonEntry.primaryColor; // latest entry wins
-  }
-
-  return { hero, latest, nextGp, driverTop, constructorTop, teamColorByDriver, latestVideos };
+  return { hero, latest, nextGp, titlePartners };
 }
 
-function getHomeData(year: number) {
+function getHomeData() {
   return cached(
-    () => loadHome(year),
-    ["home", String(year)],
-    [TAGS.home, TAGS.articles, TAGS.standings, TAGS.schedule, TAGS.videos],
+    () => loadHome(),
+    ["home"],
+    [TAGS.home, TAGS.articles, TAGS.schedule, TAGS.sponsors],
     60,
   );
 }
 
-/* ── Widgets ─────────────────────────────────────────────────────────────── */
-
-function StandingsCard({
-  title,
-  year,
-  href,
-  rows,
-}: {
-  title: string;
-  year: number;
-  href: string;
-  rows: { key: string; position: number; color: string | null; name: string; points: number }[];
-}) {
-  return (
-    <ChamferCard className="flex flex-col bg-carbon p-5 text-white">
-      <div className="flex items-baseline justify-between gap-4">
-        <h3 className="text-lg font-black uppercase tracking-tight">{title}</h3>
-        <span className="text-xs font-bold uppercase tracking-widest text-f1-grey-light">
-          {year}
-        </span>
-      </div>
-
-      {rows.length ? (
-        <ol className="mt-4 divide-y divide-carbon-700">
-          {rows.map((r) => (
-            <li key={r.key} className="flex items-center gap-3 py-2.5">
-              <span className="w-6 shrink-0 text-lg font-black italic">{r.position}</span>
-              <TeamColorBar color={r.color} />
-              <span className="flex-1 truncate font-bold">{r.name}</span>
-              <span className="chamfer-tr shrink-0 bg-carbon-700 px-2 py-0.5 text-sm font-black tabular-nums">
-                {r.points} <span className="text-[10px] font-bold text-f1-grey-light">PTS</span>
-              </span>
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <p className="mt-4 flex-1 text-sm text-f1-grey-light">
-          Standings will appear after the first race of the season.
-        </p>
-      )}
-
-      <Link
-        href={href}
-        className="mt-4 inline-block text-xs font-black uppercase tracking-wide text-f1-red-bright transition-colors hover:text-white"
-      >
-        Full standings →
-      </Link>
-    </ChamferCard>
+function getHomeCategories() {
+  return cached(
+    () =>
+      db.query.raceCategories.findMany({
+        where: eq(raceCategories.isActive, true),
+        orderBy: [asc(raceCategories.sort)],
+      }),
+    ["home-race-categories"],
+    [TAGS.categories],
   );
 }
+
+/* ── Small pieces ────────────────────────────────────────────────────────── */
+
+function roundDates(start: Date | string, end: Date | string): string {
+  const s = new Date(start);
+  const e = new Date(end);
+  return isSameMonth(s, e)
+    ? `${format(s, "d")}–${format(e, "d MMM yyyy")}`
+    : `${format(s, "d MMM")} – ${format(e, "d MMM yyyy")}`;
+}
+
+const STATS = [
+  { value: "7", label: "Racing categories" },
+  { value: "4", label: "Championship rounds" },
+  { value: "3", label: "Iconic circuits" },
+  { value: "2026", label: "Inaugural season" },
+];
 
 /* ── Page ────────────────────────────────────────────────────────────────── */
 
 export default async function HomePage() {
   const year = await getCurrentSeasonYear();
-  const { hero, latest, nextGp, driverTop, constructorTop, teamColorByDriver, latestVideos } =
-    await getHomeData(year);
+  const [{ hero, latest, nextGp, titlePartners }, categories] = await Promise.all([
+    getHomeData(),
+    getHomeCategories(),
+  ]);
 
-  const raceSession = nextGp?.sessions.find((s) => s.type === "race");
-  const countdownIso = raceSession?.startsAt
-    ? new Date(raceSession.startsAt).toISOString()
+  const firstSession = nextGp?.sessions.find((s) => s.startsAt);
+  const countdownIso = firstSession?.startsAt
+    ? new Date(firstSession.startsAt).toISOString()
     : nextGp?.startDate
       ? new Date(nextGp.startDate).toISOString()
       : null;
@@ -181,19 +153,22 @@ export default async function HomePage() {
       {/* a. Hero story */}
       {hero ? <HeroArticle article={hero} /> : null}
 
-      {/* b. Next race strip */}
+      {/* b. Next race band */}
       {nextGp ? (
-        <section className="bg-carbon-fibre text-white">
-          <div className="mx-auto max-w-7xl px-4 py-8">
+        <section className="border-y border-line bg-carbon-fibre text-white">
+          <div className="mx-auto max-w-7xl px-4 py-10">
             <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.3em] text-f1-red-bright">
+                <p
+                  className="chamfer-tr inline-flex bg-accent px-2.5 py-1 text-xs font-black uppercase tracking-[0.3em] text-accent-fg"
+                  style={{ ["--chamfer" as string]: "6px" }}
+                >
                   Up Next · Round {nextGp.round}
                 </p>
-                <h2 className="mt-2 text-3xl font-black uppercase tracking-tight sm:text-4xl">
+                <h2 className="mt-3 text-3xl font-black uppercase tracking-tight sm:text-4xl">
                   {nextGp.name}
                 </h2>
-                <p className="mt-2 flex flex-wrap items-center gap-2 text-sm font-semibold text-warm-grey">
+                <p className="mt-2 flex flex-wrap items-center gap-2 text-sm font-semibold text-fg-muted">
                   <CountryFlag code={nextGp.circuit.countryCode} className="text-lg" />
                   <span>
                     {nextGp.circuit.name}
@@ -201,56 +176,79 @@ export default async function HomePage() {
                     {nextGp.circuit.country}
                   </span>
                 </p>
-                {raceSession?.startsAt ? (
-                  <p className="mt-1 text-sm text-f1-grey-light">
-                    Race starts{" "}
-                    <LocalTime
-                      iso={new Date(raceSession.startsAt).toISOString()}
-                      className="font-bold text-white"
-                    />
+                {nextGp.startDate && nextGp.endDate ? (
+                  <p className="mt-1 text-sm font-bold uppercase tracking-wide text-fg-faint">
+                    {roundDates(nextGp.startDate, nextGp.endDate)}
                   </p>
                 ) : null}
               </div>
 
               <div className="flex flex-col items-start gap-4 lg:items-end">
                 {countdownIso ? <Countdown targetIso={countdownIso} /> : null}
-                <Link
-                  href={`/schedule/${nextGp.seasonYear}/${nextGp.slug}`}
-                  className="chamfer-tr bg-f1-red px-5 py-2.5 text-xs font-black uppercase tracking-wide text-white transition-colors hover:bg-f1-red-dark"
-                >
-                  Race weekend info →
-                </Link>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href={`/schedule/${nextGp.seasonYear}/${nextGp.slug}`}
+                    className="chamfer-tr border border-line bg-panel px-5 py-2.5 text-xs font-black uppercase tracking-wide text-white transition-colors hover:border-accent hover:text-accent"
+                  >
+                    Race weekend info →
+                  </Link>
+                  <Link
+                    href="/tickets"
+                    className="chamfer-tr bg-accent px-5 py-2.5 text-xs font-black uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
+                  >
+                    Get tickets
+                  </Link>
+                </div>
               </div>
             </div>
+          </div>
+        </section>
+      ) : null}
 
-            {nextGp.sessions.length ? (
-              <ul className="mt-8 grid grid-cols-2 gap-3 border-t border-carbon-700 pt-6 sm:grid-cols-3 lg:grid-cols-6">
-                {nextGp.sessions.map((s) => (
-                  <li key={s.id} className="chamfer-tr bg-carbon-800/80 px-3 py-2">
-                    <p className="text-[11px] font-black uppercase tracking-wide text-f1-grey-light">
-                      {SESSION_LABELS[s.type] ?? s.type}
+      {/* c. Categories showcase — the signature CTR block */}
+      {categories.length ? (
+        <section className="bg-surface">
+          <div className="mx-auto max-w-7xl px-4 py-14">
+            <SectionHeading className="[&_h2]:border-accent [&_h2]:text-white">
+              Seven racing categories
+            </SectionHeading>
+            <p className="mt-4 max-w-3xl text-base text-fg-muted">
+              A single grid for the whole country — from Formula 4 to saloons, hatchbacks and
+              touring cars, under one national banner.
+            </p>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {categories.map((c) => (
+                <Link key={c.id} href="/drivers" className="group block h-full">
+                  <div
+                    className="flex h-full flex-col border border-line border-t-4 bg-panel p-4 transition-transform duration-200 group-hover:-translate-y-1"
+                    style={{ borderTopColor: c.color }}
+                  >
+                    <p className="text-2xl font-black uppercase italic tracking-tight text-white">
+                      {c.shortName}
                     </p>
-                    <p className="mt-0.5 text-sm font-bold">
-                      {s.startsAt ? (
-                        <LocalTime iso={new Date(s.startsAt).toISOString()} />
-                      ) : (
-                        "Time TBC"
-                      )}
+                    <p className="mt-1 text-sm font-bold uppercase tracking-wide text-fg-muted transition-colors group-hover:text-accent">
+                      {c.name}
                     </p>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+                    {c.carSpec ? (
+                      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-fg-faint">
+                        {c.carSpec}
+                      </p>
+                    ) : null}
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       ) : null}
 
       <div className="mx-auto max-w-7xl space-y-14 px-4 py-10">
-        {/* c. Latest news */}
+        {/* d. Latest news */}
         <section>
           <SectionHeading
+            className="[&_h2]:border-accent [&_h2]:text-white"
             right={
-              <Link href="/latest" className="text-f1-red transition-colors hover:text-carbon">
+              <Link href="/latest" className="text-accent transition-colors hover:text-white">
                 View all →
               </Link>
             }
@@ -264,84 +262,107 @@ export default async function HomePage() {
               ))}
             </div>
           ) : (
-            <p className="mt-6 text-sm font-semibold uppercase tracking-wide text-f1-grey">
+            <p className="mt-6 text-sm font-semibold uppercase tracking-wide text-fg-faint">
               No stories published yet — the season is just warming up.
             </p>
           )}
         </section>
 
-        {/* d. Standings widgets */}
-        <section className="grid gap-6 md:grid-cols-2">
-          <StandingsCard
-            title="Drivers' Standings"
-            year={year}
-            href={`/standings/${year}/drivers`}
-            rows={driverTop.map((r) => ({
-              key: r.driverId,
-              position: r.position,
-              color: teamColorByDriver[r.driverId] ?? null,
-              name: `${r.driver.firstName} ${r.driver.lastName}`,
-              points: r.points,
-            }))}
-          />
-          <StandingsCard
-            title="Constructors' Standings"
-            year={year}
-            href={`/standings/${year}/constructors`}
-            rows={constructorTop.map((r) => ({
-              key: r.teamSeasonEntryId,
-              position: r.position,
-              color: r.teamSeasonEntry.primaryColor,
-              name: r.teamSeasonEntry.shortName,
-              points: r.points,
-            }))}
-          />
+        {/* e. Championship stats strip */}
+        <section>
+          <div className="grid grid-cols-2 gap-px border border-line bg-line lg:grid-cols-4">
+            {STATS.map((s) => (
+              <div key={s.label} className="bg-surface px-6 py-8 text-center">
+                <p className="text-4xl font-black italic tabular-nums text-accent sm:text-5xl">
+                  {s.value}
+                </p>
+                <p className="mt-2 text-xs font-bold uppercase tracking-[0.2em] text-fg-muted">
+                  {s.label}
+                </p>
+              </div>
+            ))}
+          </div>
         </section>
 
-        {/* e. Video row */}
-        {latestVideos.length ? (
-          <section>
-            <SectionHeading
-              right={
-                <Link href="/video" className="text-f1-red transition-colors hover:text-carbon">
-                  More videos →
-                </Link>
-              }
-            >
-              Latest Videos
-            </SectionHeading>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {latestVideos.map((v) => (
-                <VideoCard key={v.id} video={v} />
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {/* f. Fan zone teaser */}
+        {/* f. Partners row */}
         <section>
-          <ChamferCard corner="tr-lg" className="bg-carbon-fibre px-6 py-8 text-white sm:px-10">
-            <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+          <SectionHeading
+            className="[&_h2]:border-accent [&_h2]:text-white"
+            right={
+              <Link href="/partners" className="text-accent transition-colors hover:text-white">
+                All partners →
+              </Link>
+            }
+          >
+            Behind the grid — a landmark partnership
+          </SectionHeading>
+          <ul className="mt-6 flex flex-wrap items-stretch gap-4">
+            <li>
+              <Link
+                href="/partners"
+                className="chamfer-tr flex h-full min-w-[160px] items-center justify-center gap-2 border border-line bg-surface px-8 py-6 transition-colors hover:border-accent"
+              >
+                <span className="chamfer-tr bg-accent px-2 py-0.5 text-base font-black uppercase italic leading-none text-accent-fg">
+                  CTR
+                </span>
+                <span className="text-base font-black uppercase tracking-wider text-white">
+                  Unified
+                </span>
+              </Link>
+            </li>
+            {titlePartners.map((p) => {
+              const logo = mediaUrl(p.logo?.path);
+              return (
+                <li key={p.id}>
+                  <Link
+                    href="/partners"
+                    className="chamfer-tr flex h-full min-w-[160px] items-center justify-center border border-line bg-surface px-8 py-6 transition-colors hover:border-accent"
+                  >
+                    {logo ? (
+                      // Partner logos have unknown dimensions — plain <img> by design
+                      <img src={logo} alt={p.name} className="h-12 w-auto object-contain" />
+                    ) : (
+                      <span className="text-lg font-black uppercase tracking-wider text-white">
+                        {p.name}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        {/* g. Register band */}
+        <section>
+          <ChamferCard corner="tr-lg" className="border border-line bg-carbon-fibre px-6 py-10 text-white sm:px-10">
+            <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.3em] text-f1-red-bright">
-                  Fan Zone
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-accent">
+                  {year} season · registration open
                 </p>
-                <h2 className="mt-1 text-2xl font-black uppercase tracking-tight">
-                  Get closer to the action
+                <h2 className="mt-2 text-3xl font-black uppercase tracking-tight sm:text-4xl">
+                  Race with CTR
                 </h2>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-fg-muted sm:text-base">
+                  Seven categories. Four national rounds on India&apos;s best circuits. Whether it
+                  is your first race or your next championship, there is a grid here for you.
+                </p>
               </div>
               <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/polls"
-                  className="chamfer-tr bg-f1-red px-5 py-2.5 text-xs font-black uppercase tracking-wide transition-colors hover:bg-f1-red-dark"
+                <a
+                  href="https://chennaiturboriders.in/IndianNationalCarRacingChampionship/registration"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="chamfer-tr bg-accent px-6 py-3 text-xs font-black uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
                 >
-                  Vote in this week&apos;s poll
-                </Link>
+                  Register now
+                </a>
                 <Link
                   href="/register"
-                  className="chamfer-tr border border-white/40 px-5 py-2.5 text-xs font-black uppercase tracking-wide transition-colors hover:border-white hover:bg-white hover:text-carbon"
+                  className="chamfer-tr border border-line px-6 py-3 text-xs font-black uppercase tracking-wide text-white transition-colors hover:border-accent hover:text-accent"
                 >
-                  Create your free fan account
+                  Fan zone
                 </Link>
               </div>
             </div>

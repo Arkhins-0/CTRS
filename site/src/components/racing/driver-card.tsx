@@ -1,66 +1,62 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CountryFlag } from "@ctr/ui";
-import { mediaUrl, placeholderStyle } from "@/lib/media";
+import { mediaUrl } from "@/lib/media";
+import { teamGradient } from "./colors";
 import type { DriverIndexCard } from "./data";
 
-/** Driver card for the /drivers grid — team-coloured top border, big car
- *  number, headshot (or gradient placeholder with the driver code). */
+/**
+ * F1.com-style driver card: tall tile on a team-coloured diagonal gradient —
+ * first name over LAST NAME top-left, big italic car number bottom-left,
+ * headshot (or bold initials watermark) bottom-right.
+ */
 export function DriverCard({ driver }: { driver: DriverIndexCard }) {
   const headshot = mediaUrl(driver.headshotPath);
   const fullName = `${driver.firstName} ${driver.lastName}`;
+  const initials = `${driver.firstName[0] ?? ""}${driver.lastName[0] ?? ""}`.toUpperCase();
 
   return (
-    <Link href={`/drivers/${driver.slug}`} className="group block">
+    <Link href={`/drivers/${driver.slug}`} className="group block h-full">
       <article
-        className="chamfer-tr flex h-full flex-col border border-warm-grey border-t-4 bg-white transition-transform duration-150 group-hover:-translate-y-1"
-        style={{ borderTopColor: driver.teamColor }}
+        className="chamfer-tr relative flex aspect-[3/4] flex-col overflow-hidden border border-line p-4 transition-all duration-150 group-hover:-translate-y-1 group-hover:border-accent"
+        style={teamGradient(driver.teamColor)}
       >
-        <div className="flex items-start justify-between px-4 pt-3">
-          <div>
-            <p className="text-2xl font-black leading-none text-carbon">
-              {driver.position ?? "—"}
-            </p>
-            <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-f1-grey">
-              {driver.points} pts
-            </p>
-          </div>
-          <p className="pr-3 text-4xl font-black italic leading-none text-warm-grey">
-            {driver.carNumber}
+        {/* Name block */}
+        <div className="relative z-10">
+          <p className="text-sm font-semibold text-white/80">{driver.firstName}</p>
+          <p className="text-xl font-black uppercase leading-tight tracking-tight text-white sm:text-2xl">
+            {driver.lastName}
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-white/65">
+            {driver.teamName}
+            <CountryFlag code={driver.countryCode} className="text-xs" />
           </p>
         </div>
 
-        <div className="relative mt-3 aspect-square overflow-hidden">
-          {headshot ? (
+        {/* Headshot / initials watermark */}
+        {headshot ? (
+          <div className="absolute right-0 bottom-0 h-3/5 w-3/4">
             <Image
               src={headshot}
               alt={fullName}
               fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
-              className="object-cover object-top"
+              sizes="(max-width: 768px) 50vw, 25vw"
+              className="object-contain object-bottom-right"
             />
-          ) : (
-            <div
-              className="flex h-full w-full items-center justify-center"
-              style={placeholderStyle(fullName)}
-            >
-              <span className="text-4xl font-black uppercase tracking-widest text-white/70">
-                {driver.code}
-              </span>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -right-2 bottom-0 select-none text-[7rem] font-black leading-none tracking-tighter text-white/10"
+          >
+            {initials}
+          </span>
+        )}
 
-        <div className="border-t border-warm-grey px-4 py-3">
-          <p className="text-sm font-medium text-f1-grey">{driver.firstName}</p>
-          <p className="flex items-center gap-2 text-lg font-black uppercase tracking-tight text-carbon">
-            {driver.lastName}
-            <CountryFlag code={driver.countryCode} className="text-base" />
-          </p>
-          <p className="mt-1 text-xs font-bold uppercase tracking-wider text-f1-grey">
-            {driver.teamName}
-          </p>
-        </div>
+        {/* Car number */}
+        <p className="relative z-10 mt-auto text-5xl font-black italic leading-none text-white/90">
+          {driver.carNumber}
+        </p>
       </article>
     </Link>
   );

@@ -20,6 +20,8 @@ export const TAGS = {
   driver: (slug: string) => `driver:${slug}`,
   teams: "teams",
   team: (slug: string) => `team:${slug}`,
+  categories: "categories",
+  championships: "championships",
   pages: "pages",
   page: (slug: string) => `page:${slug}`,
   sponsors: "sponsors",

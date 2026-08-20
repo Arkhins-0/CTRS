@@ -1,14 +1,16 @@
-import { desc } from "drizzle-orm";
-import { db, PERMISSIONS, seasons, siteSettings } from "@ctr/db";
+import { desc, eq } from "drizzle-orm";
+import { championships, championshipSeasons, db, PERMISSIONS, siteSettings } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { Card, Field, Input, PageHeader, Select, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/ui-client";
 import {
+  homeChampionshipSlug,
   updateBroadcastBannerAction,
   updateCurrentSeasonAction,
   updateFooterLinksAction,
   updateNavLinksAction,
   updateSocialLinksAction,
+  updateThemeAction,
 } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -20,14 +22,30 @@ type FooterGroup = { group?: string; links?: LinkItem[] };
 export default async function SettingsPage() {
   await requirePermission(PERMISSIONS.SETTINGS_MANAGE);
 
+  const homeSlug = await homeChampionshipSlug();
   const [rows, seasonRows] = await Promise.all([
     db.select().from(siteSettings),
-    db.select({ year: seasons.year, isCurrent: seasons.isCurrent }).from(seasons).orderBy(desc(seasons.year)),
+    // years of the home championship (default "incrc") drive the public site
+    db
+      .select({
+        year: championshipSeasons.year,
+        isCurrent: championshipSeasons.isCurrent,
+        championshipShort: championships.shortName,
+      })
+      .from(championshipSeasons)
+      .innerJoin(championships, eq(championshipSeasons.championshipId, championships.id))
+      .where(eq(championships.slug, homeSlug))
+      .orderBy(desc(championshipSeasons.year)),
   ]);
   const byKey = new Map(rows.map((r) => [r.key, r.value]));
 
   // jsonb values — shapes documented in packages/db/src/schema/settings.ts
   const currentSeason = (byKey.get("current_season") ?? {}) as { year?: number };
+  const theme = (byKey.get("theme") ?? {}) as {
+    accent?: string;
+    accentDark?: string;
+    accentFg?: string;
+  };
   const banner = (byKey.get("broadcast_banner") ?? {}) as { enabled?: boolean; text?: string; href?: string };
   const navLinks = (byKey.get("nav_links") ?? []) as LinkItem[];
   const socialLinks = (byKey.get("social_links") ?? []) as SocialItem[];
@@ -61,7 +79,7 @@ export default async function SettingsPage() {
                 <Select name="year" defaultValue={selectedYear != null ? String(selectedYear) : ""}>
                   {seasonRows.map((s) => (
                     <option key={s.year} value={s.year}>
-                      {s.year}
+                      {s.championshipShort} {s.year}
                       {s.isCurrent ? " (current)" : ""}
                     </option>
                   ))}
@@ -70,8 +88,53 @@ export default async function SettingsPage() {
               <SubmitButton>Save season</SubmitButton>
             </form>
           ) : (
-            <p className="text-sm text-f1-grey">No seasons exist yet — create one under Races first.</p>
+            <p className="text-sm text-f1-grey">
+              The home championship (&ldquo;{homeSlug}&rdquo;) has no seasons yet — add one under
+              Championships first.
+            </p>
           )}
+        </Card>
+
+        {/* Theme */}
+        <Card>
+          <h2 className="mb-4 text-sm font-black uppercase tracking-wide">Theme</h2>
+          <form action={updateThemeAction} className="space-y-4">
+            <div className="flex flex-wrap gap-4">
+              <Field label="Accent" hint="Primary brand colour.">
+                <input
+                  type="color"
+                  name="accent"
+                  defaultValue={theme.accent ?? "#F7D619"}
+                  className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+                />
+              </Field>
+              <Field label="Accent dark" hint="Hover / pressed shade.">
+                <input
+                  type="color"
+                  name="accentDark"
+                  defaultValue={theme.accentDark ?? "#E0BF06"}
+                  className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+                />
+              </Field>
+              <Field label="Accent foreground" hint="Text colour on accent surfaces.">
+                <input
+                  type="color"
+                  name="accentFg"
+                  defaultValue={theme.accentFg ?? "#0A0A0A"}
+                  className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+                />
+              </Field>
+            </div>
+            <p className="text-xs text-f1-grey">
+              Presets — CTR Yellow: #F7D619 · #E0BF06 · #0A0A0A &nbsp;·&nbsp; Racing Red: #E10600 ·
+              #B30500 · #FFFFFF
+            </p>
+            <p className="text-xs text-f1-grey">
+              The public site AND this admin CMS both read this setting — saving changes the accent
+              colour in both apps.
+            </p>
+            <SubmitButton>Save theme</SubmitButton>
+          </form>
         </Card>
 
         {/* Broadcast banner */}

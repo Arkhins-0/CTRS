@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { format } from "date-fns";
-import { Badge, ChamferCard } from "@ctr/ui";
+import { ChamferCard } from "@ctr/ui";
 import { votePoll } from "@/app/(main)/polls/actions";
+import { Chip } from "./chip";
 import { PollResults } from "./poll-results";
 import { SubmitButton } from "./submit-button";
 
@@ -11,7 +12,7 @@ export type PollCardPoll = {
   kind: "poll" | "prediction";
   status: "draft" | "open" | "closed";
   closesAt: Date | null;
-  grandPrix: { name: string } | null;
+  round: { name: string } | null;
   options: { id: string; label: string; sort: number }[];
 };
 
@@ -31,20 +32,18 @@ export function PollCard({
   const voted = myOptionId !== null;
 
   return (
-    <ChamferCard className="flex h-full flex-col border border-warm-grey bg-white p-5">
+    <ChamferCard className="flex h-full flex-col border border-line bg-surface p-5">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={poll.kind === "prediction" ? "dark" : "red"}>
-          {poll.kind === "prediction" ? "Prediction" : "Poll"}
-        </Badge>
-        {poll.grandPrix ? <Badge tone="grey">{poll.grandPrix.name}</Badge> : null}
-        {closed ? <Badge tone="outline">Closed</Badge> : null}
+        <Chip tone="accent-outline">{poll.kind === "prediction" ? "Prediction" : "Poll"}</Chip>
+        {poll.round ? <Chip tone="outline">{poll.round.name}</Chip> : null}
+        {closed ? <Chip tone="faint">Closed</Chip> : null}
       </div>
 
-      <h3 className="mt-3 text-lg font-black uppercase tracking-tight text-carbon">
+      <h3 className="mt-3 text-lg font-black uppercase tracking-tight text-white">
         {poll.question}
       </h3>
       {!closed && poll.closesAt ? (
-        <p className="mt-1 text-xs font-semibold text-f1-grey">
+        <p className="mt-1 text-xs font-semibold text-fg-faint">
           Closes {format(poll.closesAt, "d MMM yyyy")}
         </p>
       ) : null}
@@ -63,7 +62,7 @@ export function PollCard({
               {poll.options.map((o) => (
                 <li
                   key={o.id}
-                  className="border border-warm-grey bg-off-white px-3 py-2 text-sm font-semibold text-f1-grey-light"
+                  className="border border-line bg-panel px-3 py-2 text-sm font-semibold text-fg-faint"
                 >
                   {o.label}
                 </li>
@@ -71,7 +70,7 @@ export function PollCard({
             </ul>
             <Link
               href="/login"
-              className="mt-4 inline-block text-sm font-bold uppercase tracking-wide text-f1-red hover:underline"
+              className="mt-4 inline-block text-sm font-bold uppercase tracking-wide text-accent hover:underline"
             >
               Sign in to vote →
             </Link>
@@ -80,7 +79,7 @@ export function PollCard({
           <>
             <PollResults options={poll.options} counts={counts} highlightOptionId={myOptionId} />
             <details className="mt-3">
-              <summary className="cursor-pointer text-xs font-bold uppercase tracking-wide text-f1-grey hover:text-f1-red">
+              <summary className="cursor-pointer text-xs font-bold uppercase tracking-wide text-fg-faint hover:text-accent">
                 Change your vote
               </summary>
               <VoteForm poll={poll} defaultOptionId={myOptionId} />
@@ -107,7 +106,7 @@ function VoteForm({
       {poll.options.map((o) => (
         <label
           key={o.id}
-          className="flex cursor-pointer items-center gap-3 border border-warm-grey px-3 py-2 text-sm font-semibold text-carbon transition-colors hover:border-f1-red"
+          className="flex cursor-pointer items-center gap-3 border border-line bg-panel px-3 py-2 text-sm font-semibold text-white transition-colors hover:border-accent"
         >
           <input
             type="radio"
@@ -115,7 +114,7 @@ function VoteForm({
             value={o.id}
             required
             defaultChecked={o.id === defaultOptionId}
-            className="accent-f1-red"
+            className="accent-accent"
           />
           {o.label}
         </label>

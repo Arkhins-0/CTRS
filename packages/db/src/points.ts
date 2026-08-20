@@ -1,13 +1,14 @@
 import { and, eq } from "drizzle-orm";
 import type { Db, Tx } from "./client";
 import {
+  championships,
+  championshipSeasons,
   constructorStandings,
   driverSeasonEntries,
   driverStandings,
-  grandsPrix,
   raceSessions,
+  rounds,
   sessionResults,
-  teamSeasonEntries,
 } from "./schema";
 
 type DbOrTx = Db | Tx;
@@ -26,96 +27,125 @@ type Tally = {
   wins: number;
   podiums: number;
   poles: number;
-  /** count of race finishes per position (index 1..N) — official countback tie-break */
-  raceCounts: number[];
+  raceCounts: number[]; // finishes per position — countback tie-break
   sprintCounts: number[];
 };
 
-function newTally(): Tally {
-  return { points: 0, wins: 0, podiums: 0, poles: 0, raceCounts: [], sprintCounts: [] };
-}
+const newTally = (): Tally => ({
+  points: 0,
+  wins: 0,
+  podiums: 0,
+  poles: 0,
+  raceCounts: [],
+  sprintCounts: [],
+});
 
 function compareCountback(a: Tally, b: Tally): number {
   if (b.points !== a.points) return b.points - a.points;
-  for (let pos = 1; pos <= 30; pos++) {
-    const ra = a.raceCounts[pos] ?? 0;
-    const rb = b.raceCounts[pos] ?? 0;
-    if (rb !== ra) return rb - ra;
+  for (let pos = 1; pos <= 40; pos++) {
+    if ((b.raceCounts[pos] ?? 0) !== (a.raceCounts[pos] ?? 0))
+      return (b.raceCounts[pos] ?? 0) - (a.raceCounts[pos] ?? 0);
   }
-  for (let pos = 1; pos <= 30; pos++) {
-    const sa = a.sprintCounts[pos] ?? 0;
-    const sb = b.sprintCounts[pos] ?? 0;
-    if (sb !== sa) return sb - sa;
+  for (let pos = 1; pos <= 40; pos++) {
+    if ((b.sprintCounts[pos] ?? 0) !== (a.sprintCounts[pos] ?? 0))
+      return (b.sprintCounts[pos] ?? 0) - (a.sprintCounts[pos] ?? 0);
   }
   return 0;
 }
 
+const NO_CATEGORY = "__none__";
+const RESERVED_TYPES = new Set(["overall", "team"]);
+
 /**
- * Recomputes driver + constructor standings snapshots for a season from
- * published session results. Deterministic and re-runnable: points are read
- * from `session_results.points` (auto-filled at entry time, editable for
- * penalties), so this is a pure aggregation.
+ * Recomputes every standings table for one championship season:
+ * per category, the "overall" driver table and "team" constructor table, plus
+ * one sub-table per extra standingsType enabled on the season (e.g. "rookie",
+ * "gentlemen") built from entries carrying that `classification` tag.
+ * Race 1/2/3 (type "race", any sequence) all score with the race scheme;
+ * "sprint" scores with the sprint scheme. Deterministic and re-runnable.
  */
-export async function computeStandings(db: DbOrTx, seasonYear: number) {
+export async function computeStandings(db: DbOrTx, championshipSeasonId: string) {
+  const [season] = await db
+    .select()
+    .from(championshipSeasons)
+    .where(eq(championshipSeasons.id, championshipSeasonId));
+  if (!season) throw new Error(`championship season ${championshipSeasonId} not found`);
+
   const rows = await db
     .select({
       sessionType: raceSessions.type,
-      round: grandsPrix.round,
+      roundNumber: rounds.round,
       driverId: driverSeasonEntries.driverId,
       teamSeasonEntryId: driverSeasonEntries.teamSeasonEntryId,
+      categoryId: driverSeasonEntries.categoryId,
       position: sessionResults.position,
       status: sessionResults.status,
       points: sessionResults.points,
     })
     .from(sessionResults)
     .innerJoin(raceSessions, eq(sessionResults.sessionId, raceSessions.id))
-    .innerJoin(grandsPrix, eq(raceSessions.grandPrixId, grandsPrix.id))
+    .innerJoin(rounds, eq(raceSessions.roundId, rounds.id))
     .innerJoin(driverSeasonEntries, eq(sessionResults.driverSeasonEntryId, driverSeasonEntries.id))
-    .where(and(eq(grandsPrix.seasonYear, seasonYear), eq(raceSessions.status, "completed")));
+    .where(
+      and(
+        eq(rounds.championshipSeasonId, championshipSeasonId),
+        eq(raceSessions.status, "completed"),
+      ),
+    );
 
-  // Every entered driver/team appears in standings even with zero results yet.
-  const seasonDriverEntries = await db
+  const seasonEntries = await db
     .select({
       driverId: driverSeasonEntries.driverId,
       teamSeasonEntryId: driverSeasonEntries.teamSeasonEntryId,
+      categoryId: driverSeasonEntries.categoryId,
+      classification: driverSeasonEntries.classification,
       role: driverSeasonEntries.role,
     })
     .from(driverSeasonEntries)
-    .where(eq(driverSeasonEntries.seasonYear, seasonYear));
+    .where(eq(driverSeasonEntries.championshipSeasonId, championshipSeasonId));
 
-  const seasonTeamEntries = await db
-    .select({ id: teamSeasonEntries.id })
-    .from(teamSeasonEntries)
-    .where(eq(teamSeasonEntries.seasonYear, seasonYear));
-
+  const key = (cat: string | null, id: string) => `${cat ?? NO_CATEGORY}|${id}`;
   const driverTallies = new Map<string, Tally>();
   const teamTallies = new Map<string, Tally>();
+  // (categoryKey|driverId) -> classification tag(s)
+  const driverClassification = new Map<string, Set<string>>();
 
-  for (const e of seasonDriverEntries) {
-    if (e.role === "primary" && !driverTallies.has(e.driverId)) {
-      driverTallies.set(e.driverId, newTally());
+  for (const e of seasonEntries) {
+    if (e.role !== "primary") continue;
+    const dk = key(e.categoryId, e.driverId);
+    if (!driverTallies.has(dk)) driverTallies.set(dk, newTally());
+    const tk = key(e.categoryId, e.teamSeasonEntryId);
+    if (!teamTallies.has(tk)) teamTallies.set(tk, newTally());
+    if (e.classification) {
+      const set = driverClassification.get(dk) ?? new Set<string>();
+      set.add(e.classification.toLowerCase());
+      driverClassification.set(dk, set);
     }
   }
-  for (const t of seasonTeamEntries) teamTallies.set(t.id, newTally());
 
   let maxRound = 0;
 
   for (const r of rows) {
-    const dt = driverTallies.get(r.driverId) ?? newTally();
-    driverTallies.set(r.driverId, dt);
-    const tt = teamTallies.get(r.teamSeasonEntryId) ?? newTally();
-    teamTallies.set(r.teamSeasonEntryId, tt);
+    const dk = key(r.categoryId, r.driverId);
+    const tk = key(r.categoryId, r.teamSeasonEntryId);
+    const dt = driverTallies.get(dk) ?? newTally();
+    driverTallies.set(dk, dt);
+    const tt = teamTallies.get(tk) ?? newTally();
+    teamTallies.set(tk, tt);
 
-    if (r.sessionType === "race" || r.sessionType === "sprint") {
+    const isRace = r.sessionType === "race" || r.sessionType === "race2";
+    const isSprint = r.sessionType === "sprint";
+
+    if (isRace || isSprint) {
       dt.points += r.points;
       tt.points += r.points;
-      if (r.sessionType === "race") maxRound = Math.max(maxRound, r.round);
+      if (isRace) maxRound = Math.max(maxRound, r.roundNumber);
 
       if (r.status === "finished" && r.position) {
-        const counts = r.sessionType === "race" ? "raceCounts" : "sprintCounts";
+        const counts = isRace ? "raceCounts" : "sprintCounts";
         dt[counts][r.position] = (dt[counts][r.position] ?? 0) + 1;
         tt[counts][r.position] = (tt[counts][r.position] ?? 0) + 1;
-        if (r.sessionType === "race") {
+        if (isRace) {
           if (r.position === 1) {
             dt.wins++;
             tt.wins++;
@@ -128,48 +158,106 @@ export async function computeStandings(db: DbOrTx, seasonYear: number) {
     }
   }
 
-  const driverOrder = [...driverTallies.entries()].sort((a, b) => compareCountback(a[1], b[1]));
-  const teamOrder = [...teamTallies.entries()].sort((a, b) => compareCountback(a[1], b[1]));
+  const groupByCategory = (tallies: Map<string, Tally>) => {
+    const byCat = new Map<string, [string, Tally][]>();
+    for (const [k, tally] of tallies) {
+      const [cat, id] = k.split("|");
+      const list = byCat.get(cat) ?? [];
+      list.push([id, tally]);
+      byCat.set(cat, list);
+    }
+    for (const list of byCat.values()) list.sort((a, b) => compareCountback(a[1], b[1]));
+    return byCat;
+  };
 
-  const run = async (tx: DbOrTx) => {
-    await tx.delete(driverStandings).where(eq(driverStandings.seasonYear, seasonYear));
-    await tx.delete(constructorStandings).where(eq(constructorStandings.seasonYear, seasonYear));
+  const driversByCat = groupByCategory(driverTallies);
+  const teamsByCat = groupByCategory(teamTallies);
+  const subTypes = (season.standingsTypes ?? [])
+    .map((t) => t.toLowerCase())
+    .filter((t) => !RESERVED_TYPES.has(t));
 
-    if (driverOrder.length) {
-      await tx.insert(driverStandings).values(
-        driverOrder.map(([driverId, t], i) => ({
-          seasonYear,
+  const catId = (cat: string) => (cat === NO_CATEGORY ? null : cat);
+  const now = new Date();
+
+  const driverValues = [...driversByCat.entries()].flatMap(([cat, list]) => {
+    const overall = list.map(([driverId, t], i) => ({
+      championshipSeasonId,
+      driverId,
+      categoryId: catId(cat),
+      standingsType: "overall",
+      position: i + 1,
+      points: t.points,
+      wins: t.wins,
+      podiums: t.podiums,
+      poles: t.poles,
+      computedThroughRound: maxRound,
+      updatedAt: now,
+    }));
+    // sub-classifications: same tallies, filtered + re-ranked
+    const subs = subTypes.flatMap((type) =>
+      list
+        .filter(([driverId]) => driverClassification.get(key(catId(cat), driverId))?.has(type))
+        .map(([driverId, t], i) => ({
+          championshipSeasonId,
           driverId,
+          categoryId: catId(cat),
+          standingsType: type,
           position: i + 1,
           points: t.points,
           wins: t.wins,
           podiums: t.podiums,
           poles: t.poles,
           computedThroughRound: maxRound,
-          updatedAt: new Date(),
+          updatedAt: now,
         })),
-      );
-    }
-    if (teamOrder.length) {
-      await tx.insert(constructorStandings).values(
-        teamOrder.map(([teamSeasonEntryId, t], i) => ({
-          seasonYear,
-          teamSeasonEntryId,
-          position: i + 1,
-          points: t.points,
-          wins: t.wins,
-          computedThroughRound: maxRound,
-          updatedAt: new Date(),
-        })),
-      );
-    }
-  };
+    );
+    return [...overall, ...subs];
+  });
 
-  await db.transaction(async (tx) => run(tx));
+  const teamValues = [...teamsByCat.entries()].flatMap(([cat, list]) =>
+    list.map(([teamSeasonEntryId, t], i) => ({
+      championshipSeasonId,
+      teamSeasonEntryId,
+      categoryId: catId(cat),
+      standingsType: "team",
+      position: i + 1,
+      points: t.points,
+      wins: t.wins,
+      computedThroughRound: maxRound,
+      updatedAt: now,
+    })),
+  );
+
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(driverStandings)
+      .where(eq(driverStandings.championshipSeasonId, championshipSeasonId));
+    await tx
+      .delete(constructorStandings)
+      .where(eq(constructorStandings.championshipSeasonId, championshipSeasonId));
+    if (driverValues.length) await tx.insert(driverStandings).values(driverValues);
+    if (teamValues.length) await tx.insert(constructorStandings).values(teamValues);
+  });
 
   return {
-    drivers: driverOrder.length,
-    teams: teamOrder.length,
+    drivers: driverTallies.size,
+    teams: teamTallies.size,
+    categories: driversByCat.size,
+    subTypes: subTypes.length,
     computedThroughRound: maxRound,
   };
+}
+
+/** Convenience: resolve a championship season by championship slug + year. */
+export async function findChampionshipSeason(
+  db: DbOrTx,
+  championshipSlug: string,
+  year: number,
+): Promise<string | null> {
+  const [row] = await db
+    .select({ id: championshipSeasons.id })
+    .from(championshipSeasons)
+    .innerJoin(championships, eq(championshipSeasons.championshipId, championships.id))
+    .where(and(eq(championships.slug, championshipSlug), eq(championshipSeasons.year, year)));
+  return row?.id ?? null;
 }

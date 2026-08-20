@@ -29,15 +29,15 @@ export async function SiteHeader() {
       {banner.enabled && banner.text ? (
         <Link
           href={banner.href || "#"}
-          className="block bg-f1-red px-4 py-1.5 text-center text-xs font-bold uppercase tracking-wide text-white"
+          className="block bg-accent px-4 py-1.5 text-center text-xs font-bold uppercase tracking-wide text-accent-fg"
         >
           {banner.text}
         </Link>
       ) : null}
-      <div className="relative border-b-[3px] border-f1-red bg-carbon">
+      <div className="relative border-b-[3px] border-accent bg-page">
         <div className="mx-auto flex max-w-7xl items-center gap-6 px-4">
           <Link href="/" className="flex shrink-0 items-center gap-2 py-3">
-            <span className="chamfer-tr bg-f1-red px-2.5 py-1 text-lg font-black uppercase italic leading-none text-white">
+            <span className="chamfer-tr bg-accent px-2.5 py-1 text-lg font-black uppercase italic leading-none text-accent-fg">
               CTR
             </span>
             <span className="text-lg font-black uppercase tracking-wider text-white">Sports</span>

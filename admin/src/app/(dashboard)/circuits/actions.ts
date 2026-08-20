@@ -53,6 +53,8 @@ const circuitSchema = z.object({
     .string()
     .max(10_000)
     .transform((v) => (v === "" ? null : v)),
+  mapMediaId: z.string().uuid().nullable(),
+  photoMediaId: z.string().uuid().nullable(),
 });
 
 function circuitFromForm(formData: FormData) {
@@ -69,6 +71,8 @@ function circuitFromForm(formData: FormData) {
     lapRecordYear: numOrNull(formData, "lapRecordYear"),
     firstGpYear: numOrNull(formData, "firstGpYear"),
     description: str(formData, "description"),
+    mapMediaId: str(formData, "mapMediaId") || null,
+    photoMediaId: str(formData, "photoMediaId") || null,
   });
   const { lapRecordTime, ...rest } = data;
   return { ...rest, lapRecordTimeMs: lapRecordTime === "" ? null : parseTimeToMs(lapRecordTime) };

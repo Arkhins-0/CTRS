@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { CategoryTabBar, type CategoryRef } from "./category-ui";
 import { SeasonSelector } from "./season-selector";
 
 const TABS = [
@@ -9,56 +10,87 @@ const TABS = [
 
 export type StandingsTab = (typeof TABS)[number]["key"];
 
-/** Shared frame for the standings pages: heading, drivers/constructors
- *  toggle, season selector and the "after round N" note. */
+/**
+ * Dark frame for the per-category standings pages: heading, category tab bar,
+ * drivers/constructors toggle, season selector and the pre-season note.
+ */
 export function StandingsShell({
   year,
   years,
   active,
-  computedThroughRound,
+  categories,
+  activeCategorySlug,
+  note,
   children,
 }: {
   year: number;
   years: number[];
   active: StandingsTab;
-  computedThroughRound: number;
+  categories: CategoryRef[];
+  activeCategorySlug: string;
+  note?: string | null;
   children: ReactNode;
 }) {
-  return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="border-l-4 border-f1-red pl-3 text-3xl font-black uppercase tracking-tight text-carbon sm:text-4xl">
-          {year} Standings
-        </h1>
-        <SeasonSelector years={years} selected={year} hrefFor={(y) => `/standings/${y}/${active}`} />
-      </div>
+  const withCategory = (base: string) => `${base}?category=${activeCategorySlug}`;
+  const activeCategory = categories.find((c) => c.slug === activeCategorySlug) ?? null;
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-        <nav aria-label="Championship" className="flex gap-1.5">
+  return (
+    <div className="bg-page">
+      <main className="mx-auto max-w-7xl px-4 py-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h1 className="border-l-4 border-accent pl-3 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
+            {year} Standings
+          </h1>
+          <SeasonSelector
+            years={years}
+            selected={year}
+            hrefFor={(y) => withCategory(`/standings/${y}/${active}`)}
+          />
+        </div>
+
+        {/* Drivers / Constructors toggle */}
+        <nav aria-label="Championship" className="mt-6 flex gap-1.5">
           {TABS.map((tab) => (
             <Link
               key={tab.key}
-              href={`/standings/${year}/${tab.key}`}
+              href={withCategory(`/standings/${year}/${tab.key}`)}
               aria-current={tab.key === active ? "page" : undefined}
               style={{ ["--chamfer" as string]: "8px" }}
               className={`chamfer-tr px-4 py-1.5 text-sm font-bold uppercase tracking-wide transition-colors ${
                 tab.key === active
-                  ? "bg-carbon text-white"
-                  : "border border-warm-grey bg-white text-f1-grey hover:border-f1-red hover:text-carbon"
+                  ? "bg-accent text-accent-fg"
+                  : "border border-line bg-surface text-fg-muted hover:border-accent hover:text-white"
               }`}
             >
               {tab.label}
             </Link>
           ))}
         </nav>
-        {computedThroughRound > 0 ? (
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-f1-grey">
-            After Round {computedThroughRound}
+
+        {/* Category tabs */}
+        <div className="mt-5">
+          <CategoryTabBar
+            categories={categories}
+            activeSlug={activeCategorySlug}
+            hrefFor={(slug) => `/standings/${year}/${active}?category=${slug}`}
+          />
+        </div>
+
+        {activeCategory ? (
+          <p className="mt-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-fg-muted">
+            <span
+              aria-hidden
+              className="inline-block h-4 w-1 rounded-sm"
+              style={{ backgroundColor: activeCategory.color }}
+            />
+            {activeCategory.name}
           </p>
         ) : null}
-      </div>
 
-      <div className="mt-4">{children}</div>
-    </main>
+        {note ? <p className="mt-2 text-xs font-semibold text-fg-faint">{note}</p> : null}
+
+        <div className="mt-4">{children}</div>
+      </main>
+    </div>
   );
 }

@@ -31,7 +31,7 @@ export default async function SavedArticlesPage() {
     <main className="mx-auto max-w-7xl px-4 py-8">
       <SectionHeading
         right={
-          <Link href="/account" className="uppercase text-f1-red hover:underline">
+          <Link href="/account" className="uppercase text-accent hover:underline">
             ← My account
           </Link>
         }
@@ -40,16 +40,16 @@ export default async function SavedArticlesPage() {
       </SectionHeading>
 
       {saved.length === 0 ? (
-        <ChamferCard className="mt-6 border border-dashed border-f1-grey-light bg-white p-10 text-center">
-          <p className="text-lg font-black uppercase tracking-tight text-carbon">
+        <ChamferCard className="mt-6 border border-dashed border-line bg-surface p-10 text-center">
+          <p className="text-lg font-black uppercase tracking-tight text-white">
             Nothing saved yet
           </p>
-          <p className="mt-2 text-sm text-f1-grey">
+          <p className="mt-2 text-sm text-fg-muted">
             Tap the bookmark on any story to keep it here for later.
           </p>
           <Link
             href="/latest"
-            className="chamfer-tr mt-5 inline-block bg-f1-red px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-f1-red-dark"
+            className="chamfer-tr mt-5 inline-block bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
           >
             Browse the latest news
           </Link>
@@ -61,7 +61,7 @@ export default async function SavedArticlesPage() {
             return (
               <ChamferCard
                 key={article.id}
-                className="group flex h-full flex-col border border-warm-grey bg-white transition-all hover:-translate-y-0.5 hover:border-f1-red"
+                className="group flex h-full flex-col border border-line bg-surface transition-all hover:-translate-y-0.5 hover:border-accent"
               >
                 <Link href={`/latest/${article.slug}`} className="block">
                   <div className="relative aspect-video w-full overflow-hidden">
@@ -87,26 +87,26 @@ export default async function SavedArticlesPage() {
                 </Link>
                 <div className="flex flex-1 flex-col p-4">
                   {article.category ? (
-                    <p className="text-xs font-bold uppercase tracking-wide text-f1-red">
+                    <p className="text-xs font-bold uppercase tracking-wide text-accent">
                       {article.category.name}
                     </p>
                   ) : null}
                   <Link href={`/latest/${article.slug}`}>
-                    <h3 className="mt-1 line-clamp-2 text-base font-bold leading-snug text-carbon transition-colors group-hover:text-f1-red">
+                    <h3 className="mt-1 line-clamp-2 text-base font-bold leading-snug text-white transition-colors group-hover:text-accent">
                       {article.title}
                     </h3>
                   </Link>
-                  <div className="mt-auto flex items-center justify-between pt-3 text-xs text-f1-grey">
+                  <div className="mt-auto flex items-center justify-between pt-3 text-xs text-fg-faint">
                     <span className="font-semibold">
                       {article.publishedAt ? format(article.publishedAt, "d MMM yyyy") : ""}
-                      <span className="mx-1.5 text-f1-grey-light">·</span>
+                      <span className="mx-1.5 text-fg-faint">·</span>
                       Saved {format(createdAt, "d MMM yyyy")}
                     </span>
                     <form action={removeSavedArticle}>
                       <input type="hidden" name="articleId" value={article.id} />
                       <button
                         type="submit"
-                        className="inline-flex items-center gap-1 font-bold uppercase tracking-wide text-f1-grey transition-colors hover:text-f1-red"
+                        className="inline-flex items-center gap-1 font-bold uppercase tracking-wide text-fg-faint transition-colors hover:text-accent"
                         aria-label={`Remove ${article.title} from saved articles`}
                       >
                         <X size={13} /> Remove

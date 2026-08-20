@@ -28,7 +28,7 @@ export async function ArticleHub({
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="border-l-4 border-f1-red pl-3 text-3xl font-black uppercase tracking-tight text-carbon sm:text-4xl">
+      <h1 className="border-l-4 border-accent pl-3 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
         {title}
       </h1>
 
@@ -43,7 +43,7 @@ export async function ArticleHub({
           ))}
         </div>
       ) : (
-        <p className="mt-12 text-center text-sm font-semibold uppercase tracking-wide text-f1-grey">
+        <p className="mt-12 text-center text-sm font-semibold uppercase tracking-wide text-fg-faint">
           No articles here yet — check back soon.
         </p>
       )}
