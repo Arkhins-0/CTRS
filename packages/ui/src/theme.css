@@ -44,9 +44,10 @@
   --color-f1-grey: #67676d;
   --color-f1-grey-light: #949498;
 
-  /* Typography — Titillium Web is the free stand-in for the licensed F1 face */
-  --font-display: var(--font-titillium), "Segoe UI", system-ui, sans-serif;
-  --font-body: var(--font-titillium), "Segoe UI", system-ui, sans-serif;
+  /* Typography — Exo 2 for text, JetBrains Mono for numbers */
+  --font-display: var(--font-exo2), "Segoe UI", system-ui, sans-serif;
+  --font-body: var(--font-exo2), "Segoe UI", system-ui, sans-serif;
+  --font-numeric: var(--font-jetbrains), "Courier New", monospace;
 
   /* Chamfer size used across cards */
   --chamfer: 14px;
