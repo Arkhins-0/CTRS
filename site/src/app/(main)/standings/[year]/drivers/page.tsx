@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getCategories,
@@ -9,15 +8,18 @@ import {
   getStandingsSubTypes,
 } from "@/components/racing/data";
 import { formatDateRange } from "@/components/racing/meta";
-import { StandingsShell } from "@/components/racing/standings-shell";
-import { DriverStandingsTable } from "@/components/racing/standings-tables";
+import { ResultsHub } from "@/components/racing/results-hub";
+import {
+  CategoryDropdown,
+  DriverStandingsTable,
+  StandingsEmpty,
+  SubTypePills,
+} from "@/components/racing/standings-tables";
 
 type Props = {
   params: Promise<{ year: string }>;
   searchParams: Promise<{ category?: string; type?: string }>;
 };
-
-const capitalise = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { year } = await params;
@@ -61,43 +63,40 @@ export default async function DriverStandingsPage({ params, searchParams }: Prop
         : null;
 
   return (
-    <StandingsShell
+    <ResultsHub
       year={year}
       years={years}
       active="drivers"
-      categories={categories}
-      activeCategorySlug={activeCategory.slug}
+      title={`${year} Drivers' Standings`}
       note={note}
+      filters={
+        <>
+          <CategoryDropdown
+            categories={categories}
+            activeSlug={activeCategory.slug}
+            hrefFor={(slug) => `/standings/${year}/drivers?category=${slug}`}
+          />
+          {subTypes.length > 0 ? (
+            <SubTypePills
+              types={["overall", ...subTypes]}
+              activeType={activeType}
+              hrefFor={(t) =>
+                `/standings/${year}/drivers?category=${activeCategory.slug}${
+                  t === "overall" ? "" : `&type=${t}`
+                }`
+              }
+            />
+          ) : null}
+        </>
+      }
     >
-      {subTypes.length > 0 ? (
-        <nav aria-label="Classification" className="mb-4 flex flex-wrap gap-1.5">
-          {["overall", ...subTypes].map((t) => (
-            <Link
-              key={t}
-              href={`/standings/${year}/drivers?category=${activeCategory.slug}${
-                t === "overall" ? "" : `&type=${t}`
-              }`}
-              aria-current={t === activeType ? "page" : undefined}
-              style={{ ["--chamfer" as string]: "6px" }}
-              className={`chamfer-tr px-3 py-1 text-xs font-bold uppercase tracking-wide transition-colors ${
-                t === activeType
-                  ? "bg-accent text-accent-fg"
-                  : "border border-line bg-surface text-fg-muted hover:border-accent hover:text-white"
-              }`}
-            >
-              {capitalise(t)}
-            </Link>
-          ))}
-        </nav>
-      ) : null}
-
       {standings.rows.length === 0 ? (
-        <p className="chamfer-tr border border-line bg-surface p-6 text-fg-muted">
+        <StandingsEmpty>
           The {activeCategory.name} entry list has not been announced yet.
-        </p>
+        </StandingsEmpty>
       ) : (
         <DriverStandingsTable rows={standings.rows} />
       )}
-    </StandingsShell>
+    </ResultsHub>
   );
 }

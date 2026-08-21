@@ -5,7 +5,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <div className="flex-1">{children}</div>
+      <div id="maincontent" className="relative z-0 flex-1">
+        {children}
+      </div>
       <SiteFooter />
     </div>
   );

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { db, polls, pollVotes } from "@ctr/db";
-import { ChamferCard, SectionHeading } from "@ctr/ui";
 import { getFanSession } from "@/lib/fan-auth";
 import { PollCard } from "@/components/fanzone/poll-card";
 
@@ -64,43 +63,38 @@ export default async function PollsPage() {
   for (const row of myVoteRows) myVoteByPoll[row.pollId] = row.optionId;
 
   return (
-    <>
+    <main className="bg-surface-3 pb-16">
       {/* fan zone band */}
-      <div className="border-b-4 border-accent bg-carbon-fibre">
-        <div className="mx-auto max-w-7xl px-4 py-10">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-accent">Fan zone</p>
-          <h1 className="mt-1 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
-            Polls &amp; Predictions
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm text-fg-muted">
-            Have your say and call the weekend before lights out — one vote per poll, and you can
-            change your pick until it closes.
-          </p>
-        </div>
+      <div className="f1-inner pt-8">
+        <p className="display-s font-medium uppercase text-brand">Fan zone</p>
+        <h1 className="display-xl lg:display-2xl mt-1 font-black uppercase text-text-5">
+          Polls &amp; Predictions
+        </h1>
+        <p className="body-s mt-2 max-w-[680px] text-text-3">
+          Have your say and call the weekend before lights out — one vote per poll, and you can
+          change your pick until it closes.
+        </p>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <SectionHeading
-          right={
-            !session ? (
-              <Link href="/login" className="uppercase text-accent hover:underline">
-                Sign in to vote
-              </Link>
-            ) : undefined
-          }
-        >
-          Open votes
-        </SectionHeading>
+      <div className="f1-inner pt-8">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="display-l font-black uppercase text-text-5">Open votes</h2>
+          {!session ? (
+            <Link href="/login" className="body-s font-semibold text-brand hover:underline">
+              Sign in to vote
+            </Link>
+          ) : null}
+        </div>
 
         {openPolls.length === 0 ? (
-          <ChamferCard className="mt-6 border border-dashed border-line bg-surface p-10 text-center">
-            <p className="text-lg font-black uppercase tracking-tight text-white">
+          <div className="mt-4 rounded-md bg-surface-1 px-6 py-12 text-center md:px-8">
+            <p className="display-l font-black uppercase text-text-5">
               No open polls right now
             </p>
-            <p className="mt-2 text-sm text-fg-muted">Check back on race week.</p>
-          </ChamferCard>
+            <p className="body-s mt-2 text-text-3">Check back on race week.</p>
+          </div>
         ) : (
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
             {openPolls.map((poll) => (
               <PollCard
                 key={poll.id}
@@ -115,8 +109,8 @@ export default async function PollsPage() {
 
         {closedPolls.length > 0 ? (
           <>
-            <SectionHeading className="mt-12">Recent results</SectionHeading>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <h2 className="display-l mt-12 font-black uppercase text-text-5">Recent results</h2>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               {closedPolls.map((poll) => (
                 <PollCard
                   key={poll.id}
@@ -129,7 +123,7 @@ export default async function PollsPage() {
             </div>
           </>
         ) : null}
-      </main>
-    </>
+      </div>
+    </main>
   );
 }

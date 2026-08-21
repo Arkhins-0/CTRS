@@ -27,8 +27,8 @@ const pad = (n: number) => String(n).padStart(2, "0");
 /**
  * Inline live countdown — "Lights out in 23d 04:12". SSR-safe: the server and
  * first client render show a placeholder, the clock starts after mount so
- * there is never a hydration mismatch. Text colour is inherited, so it works
- * on accent surfaces (accent-fg) and dark surfaces alike.
+ * there is never a hydration mismatch. Colour is always inherited, so the same
+ * component works on white cards and on the blue "up next" card.
  */
 export function InlineCountdown({
   targetIso,
@@ -43,14 +43,19 @@ export function InlineCountdown({
   const parts = now === null ? null : split(new Date(targetIso).getTime(), now);
 
   return (
-    <span role="timer" aria-live="off" className={`whitespace-nowrap tabular-nums ${className}`}>
-      {prefix ? `${prefix} ` : ""}
-      {parts === null ? "--d --:--" : `${parts.days}d ${pad(parts.hours)}:${pad(parts.mins)}`}
+    <span role="timer" aria-live="off" className={`whitespace-nowrap ${className}`}>
+      {prefix ? <span>{prefix} </span> : null}
+      <span className="font-digits">
+        {parts === null ? "--d --:--" : `${parts.days}d ${pad(parts.hours)}:${pad(parts.mins)}`}
+      </span>
     </span>
   );
 }
 
-/** Boxed countdown (days/hrs/mins/secs) for empty states and heroes. */
+/**
+ * Digits countdown (days / hrs / mins / secs) for results empty states and
+ * hero modules: big technical numerals over small muted unit labels.
+ */
 export function CountdownBoxes({
   targetIso,
   className = "",
@@ -69,21 +74,13 @@ export function CountdownBoxes({
   ];
 
   return (
-    <div className={`flex items-start gap-2 ${className}`} role="timer" aria-live="off">
-      {cells.map((c, i) => (
-        <div key={c.label} className="flex items-start gap-2">
-          {i > 0 ? <span className="pt-1.5 text-lg font-black text-fg-faint">:</span> : null}
-          <div className="flex flex-col items-center">
-            <span
-              className="chamfer-tr min-w-[3rem] bg-panel px-2 py-1.5 text-center text-2xl font-black tabular-nums text-white"
-              style={{ ["--chamfer" as string]: "8px" }}
-            >
-              {c.value === null ? "--" : pad(c.value)}
-            </span>
-            <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-fg-faint">
-              {c.label}
-            </span>
-          </div>
+    <div className={`flex items-start gap-6 ${className}`} role="timer" aria-live="off">
+      {cells.map((c) => (
+        <div key={c.label} className="flex min-w-12 flex-col items-center gap-2">
+          <span className="technical-2xl font-bold text-text-5">
+            {c.value === null ? "--" : pad(c.value)}
+          </span>
+          <span className="technical-xs uppercase text-text-3">{c.label}</span>
         </div>
       ))}
     </div>

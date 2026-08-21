@@ -1,16 +1,58 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CountryFlag } from "@ctr/ui";
-import { mediaUrl, placeholderStyle } from "@/lib/media";
+import { mediaUrl } from "@/lib/media";
+import { StatusChip } from "./category-ui";
 import { InlineCountdown } from "./countdown";
 import type { ScheduleGp } from "./data";
 import { formatDateRange } from "./meta";
 
-/**
- * One round card on the calendar grid. `next` renders the fully
- * accent-coloured "NEXT RACE" variant with a live lights-out countdown.
- * Completed rounds show the flagship-category podium instead of the photo.
- */
+/* ── Season-calendar card (F1 schedule grid, variants B/C/D) ───────────────
+   One flat card per round on the warm band. Completed rounds show the
+   flagship-category podium, the next round fills solid live-blue with a
+   countdown, upcoming rounds show the date plus the circuit map (or a photo
+   strip). The whole card is one link: hovering underlines the GP name and
+   zooms the photo. ───────────────────────────────────────────────────────── */
+
+const ORDINALS = ["th", "st", "nd", "rd"] as const;
+
+/** 1 → "1st", 2 → "2nd", 11 → "11th". */
+function ordinalSuffix(n: number): string {
+  const v = n % 100;
+  return ORDINALS[(v - 20) % 10] ?? ORDINALS[v] ?? ORDINALS[0];
+}
+
+/** Podium chip — position numeral, category disc, driver code and gap. */
+function PodiumChip({
+  position,
+  code,
+  gap,
+  color,
+}: {
+  position: number;
+  code: string;
+  gap: string;
+  color: string;
+}) {
+  return (
+    <li className="flex min-h-12 items-center gap-2 rounded-md bg-surface-3 p-2 md:grow md:basis-0">
+      <span className="font-display min-w-5 shrink-0 font-medium uppercase leading-none text-text-4">
+        <span className="text-[0.625rem]">{position}</span>
+        <span className="text-[0.375rem] align-super">{ordinalSuffix(position)}</span>
+      </span>
+      <span
+        aria-hidden
+        className="h-5 w-5 shrink-0 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <span className="flex min-w-0 flex-col gap-1">
+        <span className="display-s font-medium uppercase text-text-5">{code}</span>
+        <span className="technical-2xs truncate text-text-3">{gap}</span>
+      </span>
+    </li>
+  );
+}
+
 export function RoundCard({
   gp,
   year,
@@ -18,151 +60,151 @@ export function RoundCard({
 }: {
   gp: ScheduleGp;
   year: number;
+  /** Renders the highlighted "up next" variant (solid live blue). */
   next?: boolean;
 }) {
   const dates = formatDateRange(gp.startDate, gp.endDate);
-  const photo = mediaUrl(gp.circuit.photoPath ?? gp.circuit.mapPath);
-  const city = gp.circuit.locality ?? gp.circuit.name;
+  const cancelled = gp.status === "cancelled";
+  const completed = gp.status === "completed";
+  const highlight = next && !cancelled && !completed;
 
-  const chip = next
-    ? "bg-accent-fg/10 text-accent-fg"
-    : "bg-panel text-fg-muted";
+  const podium = completed && gp.podium?.lines.length ? gp.podium : null;
+  const mapUrl = !completed && !highlight ? mediaUrl(gp.circuit.mapPath) : null;
+  const photoUrl = !completed && !highlight && !mapUrl ? mediaUrl(gp.circuit.photoPath) : null;
+
+  const subtitle =
+    gp.officialName ??
+    [gp.circuit.name, gp.circuit.locality].filter(Boolean).join(", ");
+
+  const eyebrow = highlight
+    ? gp.status === "live"
+      ? "Live now"
+      : "Up next"
+    : `Round ${gp.round}`;
+
+  const dateLine = dates ? (
+    <span
+      className={`font-digits text-base font-bold lg:text-xl ${
+        cancelled ? "text-text-3 line-through" : ""
+      }`}
+    >
+      {dates}
+    </span>
+  ) : null;
 
   return (
     <Link href={`/schedule/${year}/${gp.slug}`} className="group block h-full">
       <article
-        className={`chamfer-tr flex h-full flex-col overflow-hidden transition-all duration-150 group-hover:-translate-y-1 ${
-          next
-            ? "bg-accent text-accent-fg"
-            : "border border-line bg-surface group-hover:border-accent"
+        className={`relative z-0 flex h-full min-h-75 flex-col overflow-hidden rounded-md p-3 md:min-h-57.5 md:p-4 ${
+          highlight ? "bg-live-blue text-white" : "bg-surface-1 text-text-5"
         }`}
       >
-        {/* Chips row */}
-        <div className="flex items-center justify-between gap-2 p-4 pb-0">
+        {/* Decorative chequer wash behind the highlight card */}
+        {highlight ? (
           <span
-            className={`chamfer-tr px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${chip}`}
-            style={{ ["--chamfer" as string]: "6px" }}
-          >
-            Round {gp.round}
-          </span>
-          <span className="flex items-center gap-1.5 pr-3">
-            {gp.status === "live" ? (
-              <span className="bg-emerald-600 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white">
-                Live
-              </span>
-            ) : null}
-            {gp.status === "cancelled" ? (
-              <span
-                className={`text-[10px] font-black uppercase tracking-wider line-through ${next ? "text-accent-fg/70" : "text-fg-faint"}`}
-              >
-                Cancelled
-              </span>
-            ) : null}
-            {dates ? (
-              <span
-                className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                  next ? "text-accent-fg/80" : "border border-line text-fg-muted"
-                }`}
-              >
+            aria-hidden
+            className="chequer absolute inset-y-0 left-1/2 right-0 z-0 text-black opacity-15 transition-opacity duration-300 group-hover:opacity-30"
+          />
+        ) : null}
+
+        <div className="relative z-10 flex h-full flex-col">
+          {/* Eyebrow row: round number + date pill / status */}
+          <div className="flex min-h-6 items-start justify-between gap-2">
+            <span
+              className={`body-2xs font-bold uppercase ${
+                highlight ? "text-white" : "text-text-3"
+              }`}
+            >
+              {eyebrow}
+            </span>
+            {completed && dates ? (
+              <span className="technical-xs inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-surface-3 px-2.5 py-1 text-text-4">
+                <span aria-hidden>&#127937;</span>
                 {dates}
               </span>
+            ) : cancelled ? (
+              <StatusChip status="cancelled" />
+            ) : !highlight && gp.status === "live" ? (
+              <StatusChip status="live" />
             ) : null}
-          </span>
-        </div>
+          </div>
 
-        {/* Identity */}
-        <div className="p-4 pt-3">
-          {next ? (
-            <p className="mb-1 text-[11px] font-black uppercase tracking-[0.25em]">
-              Next Race <span aria-hidden>→</span>
-            </p>
-          ) : null}
-          <h3
-            className={`flex items-center gap-2 text-2xl font-black uppercase tracking-tight ${
-              next ? "" : "text-white group-hover:text-accent"
-            }`}
-          >
-            {city}
-            <CountryFlag code={gp.circuit.countryCode} className="text-lg" />
+          {/* Flag + GP name */}
+          <h3 className="mt-1 flex items-center gap-3">
+            <CountryFlag code={gp.circuit.countryCode} className="text-xl leading-none" />
+            <span
+              className={`display-xl font-medium group-hover:underline ${
+                cancelled ? "text-text-3 line-through" : ""
+              }`}
+            >
+              {gp.name}
+            </span>
           </h3>
-          {gp.officialName ? (
-            <p
-              className={`mt-1 line-clamp-2 text-[11px] font-semibold leading-snug ${
-                next ? "text-accent-fg/75" : "text-fg-faint"
-              }`}
-            >
-              {gp.officialName}
-            </p>
-          ) : null}
+
+          {/* Long official title — grows so the footer sits on the baseline */}
           <p
-            className={`mt-1.5 text-xs font-bold uppercase tracking-wider ${
-              next ? "text-accent-fg/85" : "text-fg-muted"
+            className={`body-xs mt-1.5 grow font-semibold ${
+              highlight ? "text-white/85" : "text-text-3"
             }`}
           >
-            {gp.circuit.name}
+            {subtitle}
           </p>
-          {next && gp.firstRaceStartsAt ? (
-            <InlineCountdown
-              targetIso={gp.firstRaceStartsAt}
-              className="mt-3 block text-sm font-black uppercase tracking-wider"
-            />
-          ) : null}
-        </div>
 
-        {/* Podium (completed) or circuit photo */}
-        {gp.podium && gp.podium.lines.length ? (
-          <div
-            className={`mt-auto border-t p-4 ${next ? "border-accent-fg/15" : "border-line bg-panel/60"}`}
-          >
-            <p
-              className={`text-[10px] font-black uppercase tracking-[0.2em] ${
-                next ? "text-accent-fg/70" : "text-fg-faint"
-              }`}
-              style={next ? undefined : { color: gp.podium.categoryColor }}
-            >
-              Podium · {gp.podium.categoryShortName}
-            </p>
-            <ul className="mt-2 space-y-1">
-              {gp.podium.lines.map((line) => (
-                <li
-                  key={line.position}
-                  className={`flex items-baseline gap-2 text-sm font-bold ${next ? "" : "text-white"}`}
-                >
-                  <span className="w-5 font-black">{line.position}</span>
-                  <span>{line.code}</span>
-                  <span
-                    className={`ml-auto text-xs font-semibold tabular-nums ${
-                      next ? "text-accent-fg/75" : "text-fg-muted"
-                    }`}
-                  >
-                    {line.gap}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <div className="relative mt-auto h-32 w-full overflow-hidden">
-            {photo ? (
+          {podium ? (
+            <div className="mt-3">
+              <p className="body-2xs mb-1 font-bold uppercase text-text-3">
+                {podium.categoryShortName ? `${podium.categoryShortName} podium` : "Podium"}
+              </p>
+              <ul className="flex flex-col gap-0.5 md:flex-row">
+                {podium.lines.map((line) => (
+                  <PodiumChip
+                    key={line.position}
+                    position={line.position}
+                    code={line.code}
+                    gap={line.gap}
+                    color={podium.categoryColor}
+                  />
+                ))}
+              </ul>
+            </div>
+          ) : highlight ? (
+            <div className="mt-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+              {dateLine}
+              {gp.firstRaceStartsAt ? (
+                <InlineCountdown
+                  targetIso={gp.firstRaceStartsAt}
+                  className="body-xs font-bold text-white"
+                />
+              ) : null}
+            </div>
+          ) : mapUrl ? (
+            <div className="mt-3 flex items-end justify-between gap-3">
+              {dateLine}
               <Image
-                src={photo}
-                alt={gp.circuit.name}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                src={mapUrl}
+                alt={`${gp.circuit.name} track map`}
+                width={240}
+                height={100}
+                className="h-25 w-auto max-w-[50%] object-contain"
               />
-            ) : (
-              <div
-                className="flex h-full w-full items-end p-3"
-                style={placeholderStyle(gp.circuit.name)}
-              >
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/50">
-                  {gp.circuit.name}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
+            </div>
+          ) : photoUrl ? (
+            <div className="mt-3 flex flex-col gap-3">
+              {dateLine}
+              <span className="block overflow-hidden rounded-sm">
+                <Image
+                  src={photoUrl}
+                  alt={gp.circuit.name}
+                  width={600}
+                  height={200}
+                  className="card-img max-h-28 w-full object-cover"
+                />
+              </span>
+            </div>
+          ) : (
+            <div className="mt-3">{dateLine}</div>
+          )}
+        </div>
       </article>
     </Link>
   );

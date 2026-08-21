@@ -23,7 +23,7 @@ export default async function LoginPage() {
       footer={
         <>
           New to the fan zone?{" "}
-          <Link href="/register" className="font-bold uppercase text-accent hover:underline">
+          <Link href="/register" className="font-bold uppercase text-brand hover:underline">
             Create an account
           </Link>
         </>

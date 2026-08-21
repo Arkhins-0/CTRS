@@ -15,9 +15,10 @@ function partsUntil(target: number, now: number): Parts {
 }
 
 /**
- * Live countdown to an ISO timestamp. SSR-safe: renders "--" placeholders on
- * the server and on the first client render, then starts ticking after mount
- * so there is never a hydration mismatch.
+ * Live countdown to an ISO timestamp, drawn in the timing face (technical-*
+ * roles) with static-3 unit labels — the event-tracker treatment. SSR-safe:
+ * renders "--" placeholders on the server and on the first client render, then
+ * starts ticking after mount so there is never a hydration mismatch.
  */
 export function Countdown({ targetIso, className = "" }: { targetIso: string; className?: string }) {
   const [now, setNow] = useState<number | null>(null);
@@ -31,25 +32,20 @@ export function Countdown({ targetIso, className = "" }: { targetIso: string; cl
   const parts = now === null ? null : partsUntil(new Date(targetIso).getTime(), now);
 
   const cells: { value: number | null; label: string }[] = [
-    { value: parts?.days ?? null, label: "days" },
-    { value: parts?.hours ?? null, label: "hrs" },
-    { value: parts?.mins ?? null, label: "mins" },
-    { value: parts?.secs ?? null, label: "secs" },
+    { value: parts?.days ?? null, label: "Days" },
+    { value: parts?.hours ?? null, label: "Hrs" },
+    { value: parts?.mins ?? null, label: "Mins" },
+    { value: parts?.secs ?? null, label: "Secs" },
   ];
 
   return (
-    <div className={`flex items-start gap-2 ${className}`} role="timer" aria-live="off">
-      {cells.map((c, i) => (
-        <div key={c.label} className="flex items-start gap-2">
-          {i > 0 ? <span className="pt-1.5 text-lg font-black text-fg-faint">:</span> : null}
-          <div className="flex flex-col items-center">
-            <span className="chamfer-tr min-w-[3rem] border border-line bg-panel px-2 py-1.5 text-center text-2xl font-black tabular-nums text-white">
-              {c.value === null ? "--" : String(c.value).padStart(2, "0")}
-            </span>
-            <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-fg-faint">
-              {c.label}
-            </span>
-          </div>
+    <div className={`flex items-end gap-4 ${className}`} role="timer" aria-live="off">
+      {cells.map((c) => (
+        <div key={c.label} className="flex flex-col items-start gap-2">
+          <span className="technical-3xl font-bold tabular-nums">
+            {c.value === null ? "--" : String(c.value).padStart(2, "0")}
+          </span>
+          <span className="display-s font-normal uppercase text-text-3">{c.label}</span>
         </div>
       ))}
     </div>

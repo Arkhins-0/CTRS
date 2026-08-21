@@ -1,20 +1,20 @@
 import type { ReactNode } from "react";
 
 /**
- * Dark-theme chip for the fan zone (same shape as @ctr/ui Badge, but with
- * CTR dark-token tones so no class overriding is needed).
+ * Fan-zone tag chip — small rounded rectangle, uppercase, per the f1rd tag
+ * primitive (filled brand, tonal, or fixed accent tones).
  */
 const styles = {
-  /** filled accent — winner chips */
-  accent: "bg-accent text-accent-fg",
-  /** accent outline — poll/prediction "kind" badges */
-  "accent-outline": "border border-accent text-accent",
-  /** neutral outline on dark surfaces */
-  outline: "border border-line text-fg-muted",
-  /** dimmer outline — closed/unsubscribed states */
-  faint: "border border-line text-fg-faint",
-  green: "bg-emerald-600 text-white",
-  amber: "bg-amber-500 text-carbon",
+  /** filled brand — winner chips */
+  accent: "bg-brand text-brand-fg",
+  /** brand tonal — poll/prediction "kind" badges */
+  "accent-outline": "bg-brand/10 text-brand",
+  /** neutral tonal */
+  outline: "bg-black/10 text-text-5",
+  /** dimmer tonal — closed/unsubscribed states */
+  faint: "bg-black/5 text-text-3",
+  green: "bg-positive text-white",
+  amber: "bg-breaking-yellow text-static-11",
 } as const;
 
 export function Chip({
@@ -28,8 +28,7 @@ export function Chip({
 }) {
   return (
     <span
-      className={`chamfer-tr inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${styles[tone]} ${className}`}
-      style={{ ["--chamfer" as string]: "6px" }}
+      className={`inline-flex items-center gap-1 rounded-sm px-2 py-1 text-[11px] font-bold uppercase leading-4 ${styles[tone]} ${className}`}
     >
       {children}
     </span>

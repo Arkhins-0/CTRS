@@ -1,63 +1,94 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CountryFlag } from "@ctr/ui";
 import { mediaUrl } from "@/lib/media";
-import { teamGradient } from "./colors";
+import { shadeHex } from "./colors";
 import type { DriverIndexCard } from "./data";
 
 /**
- * F1.com-style driver card: tall tile on a team-coloured diagonal gradient —
- * first name over LAST NAME top-left, big italic car number bottom-left,
- * headshot (or bold initials watermark) bottom-right.
+ * F1 driver card: flat tile on the team's darkened "accessible" colour, with a
+ * DRS chevron strip in the bright team colour behind a legibility gradient.
+ * Text lives in the left column (first name regular over last name bold, team,
+ * car number), the flag sits bottom-left and the headshot fills the right half.
+ * The whole card is the link; only the name underlines on hover.
  */
-export function DriverCard({ driver }: { driver: DriverIndexCard }) {
+export function DriverCard({
+  driver,
+  className = "",
+}: {
+  driver: DriverIndexCard;
+  className?: string;
+}) {
   const headshot = mediaUrl(driver.headshotPath);
   const fullName = `${driver.firstName} ${driver.lastName}`;
-  const initials = `${driver.firstName[0] ?? ""}${driver.lastName[0] ?? ""}`.toUpperCase();
+  const initials =
+    `${driver.firstName[0] ?? ""}${driver.lastName[0] ?? ""}`.toUpperCase();
 
   return (
-    <Link href={`/drivers/${driver.slug}`} className="group block h-full">
-      <article
-        className="chamfer-tr relative flex aspect-[3/4] flex-col overflow-hidden border border-line p-4 transition-all duration-150 group-hover:-translate-y-1 group-hover:border-accent"
-        style={teamGradient(driver.teamColor)}
-      >
-        {/* Name block */}
-        <div className="relative z-10">
-          <p className="text-sm font-semibold text-white/80">{driver.firstName}</p>
-          <p className="text-xl font-black uppercase leading-tight tracking-tight text-white sm:text-2xl">
-            {driver.lastName}
-          </p>
-          <p className="mt-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-white/65">
-            {driver.teamName}
-            <CountryFlag code={driver.countryCode} className="text-xs" />
-          </p>
-        </div>
+    <Link
+      href={`/drivers/${driver.slug}`}
+      className={`group relative z-0 grid min-h-[256px] grid-cols-2 grid-rows-[1fr_112px] overflow-clip rounded-md p-4 text-white ${className}`}
+      style={
+        {
+          "--team": driver.teamColor,
+          backgroundColor: shadeHex(driver.teamColor, -0.45),
+        } as CSSProperties
+      }
+    >
+      {/* DRS chevron strip in the bright team colour — kept faint so it reads
+          as texture behind the headshot rather than as banding */}
+      <span
+        aria-hidden
+        className="drs pointer-events-none absolute inset-y-0 -right-8 z-0 w-3/4 opacity-30"
+      />
+      {/* legibility gradient: solid team-dark on the left, clearing to the right */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-0 z-0 w-3/4"
+        style={{
+          background: `linear-gradient(269.74deg, transparent 20%, ${shadeHex(driver.teamColor, -0.45)} 90%)`,
+        }}
+      />
 
-        {/* Headshot / initials watermark */}
+      {/* r1c1 — identity block */}
+      <div className="relative z-10 min-h-[112px]">
+        <p className="display-l font-normal group-hover:underline">{driver.firstName}</p>
+        <p className="display-l font-medium group-hover:underline">{driver.lastName}</p>
+        <p className="body-xs pb-4 pt-1 font-semibold">{driver.teamName}</p>
+        <p className="font-digits text-2xl font-bold leading-none">{driver.carNumber}</p>
+      </div>
+      <div aria-hidden />
+
+      {/* r2c1 — nationality flag in a white ring */}
+      <div className="relative z-10 flex items-end justify-start">
+        {driver.countryCode ? (
+          <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border-2 border-white text-[13px] leading-none">
+            <CountryFlag code={driver.countryCode} />
+          </span>
+        ) : null}
+      </div>
+
+      {/* r2c2 — headshot bleeding out of the bottom-right cell */}
+      <div className="relative">
         {headshot ? (
-          <div className="absolute right-0 bottom-0 h-3/5 w-3/4">
-            <Image
-              src={headshot}
-              alt={fullName}
-              fill
-              sizes="(max-width: 768px) 50vw, 25vw"
-              className="object-contain object-bottom-right"
-            />
-          </div>
+          <Image
+            src={headshot}
+            alt={fullName}
+            width={220}
+            height={224}
+            sizes="(max-width: 735px) 50vw, 220px"
+            className="absolute -top-28 right-0 h-56 w-[150px] rounded-md object-cover object-top"
+          />
         ) : (
           <span
             aria-hidden
-            className="pointer-events-none absolute -right-2 bottom-0 select-none text-[7rem] font-black leading-none tracking-tighter text-white/10"
+            className="absolute -top-24 right-0 select-none font-display text-8xl font-black leading-none text-white/10"
           >
             {initials}
           </span>
         )}
-
-        {/* Car number */}
-        <p className="relative z-10 mt-auto text-5xl font-black italic leading-none text-white/90">
-          {driver.carNumber}
-        </p>
-      </article>
+      </div>
     </Link>
   );
 }

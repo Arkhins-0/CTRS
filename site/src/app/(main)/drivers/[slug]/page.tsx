@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { differenceInYears, parseISO } from "date-fns";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -5,9 +6,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CountryFlag } from "@ctr/ui";
 import { CategoryBadge } from "@/components/racing/category-ui";
-import { teamGradient } from "@/components/racing/colors";
+import { shadeHex } from "@/components/racing/colors";
 import { getDriverDetail } from "@/components/racing/data";
 import { formatDate } from "@/components/racing/meta";
+import { RacingLine } from "@/components/racing/racing-line";
 import { mediaUrl } from "@/lib/media";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -24,20 +26,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/** Label-over-value row used in the season data grid. */
 function SeasonStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="chamfer-tr border border-line bg-panel/60 p-3">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-fg-faint">{label}</p>
-      <p className="mt-1 text-2xl font-black tracking-tight text-white">{value}</p>
+    <div className="flex items-baseline justify-between gap-4 border-b border-white/10 py-3">
+      <dt className="body-xs font-semibold text-text-3">{label}</dt>
+      <dd className="display-l lg:display-xl font-medium text-text-5">{value}</dd>
     </div>
   );
 }
 
 function CareerRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 py-2.5">
-      <dt className="text-xs font-bold uppercase tracking-wider text-fg-faint">{label}</dt>
-      <dd className="text-lg font-black tabular-nums text-white">{value}</dd>
+    <div className="flex items-baseline justify-between gap-4 border-b border-surface-6 py-3 last:border-0">
+      <dt className="body-xs font-semibold text-static-5">{label}</dt>
+      <dd className="display-l font-medium text-white">{value}</dd>
     </div>
   );
 }
@@ -50,6 +53,7 @@ export default async function DriverPage({ params }: Props) {
   const fullName = `${driver.firstName} ${driver.lastName}`;
   const headshot = mediaUrl(driver.headshotPath);
   const teamColor = driver.current?.teamColor ?? "#67676d";
+  const teamDark = shadeHex(teamColor, -0.45);
   const initials =
     `${driver.firstName[0] ?? ""}${driver.lastName[0] ?? ""}`.toUpperCase();
   const age = driver.dateOfBirth
@@ -58,92 +62,105 @@ export default async function DriverPage({ params }: Props) {
   const seasonStarted = (driver.season?.computedThroughRound ?? 0) > 0;
 
   return (
-    <div className="bg-page">
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        {/* Hero band in the team colour */}
-        <section
-          className="chamfer-tr-lg relative overflow-hidden border border-line"
-          style={teamGradient(teamColor)}
-        >
-          <div className="relative z-10 flex flex-col gap-6 p-6 sm:p-10 lg:flex-row lg:items-end lg:justify-between">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                {driver.current?.category ? (
-                  <CategoryBadge category={driver.current.category} className="bg-page/40" />
-                ) : null}
-                <CountryFlag code={driver.countryCode} className="text-xl" />
-                <span className="text-xs font-black uppercase tracking-[0.25em] text-white/70">
-                  {driver.code}
-                </span>
-              </div>
-              <p
-                className="mt-4 text-3xl font-light italic text-white/85 sm:text-4xl"
-                style={{ fontFamily: "Georgia, 'Palatino Linotype', 'Times New Roman', serif" }}
-              >
-                {driver.firstName}
-              </p>
-              <h1 className="text-5xl font-black uppercase leading-none tracking-tight text-white sm:text-7xl">
-                {driver.lastName}
-              </h1>
+    <main>
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      <section
+        className="relative overflow-clip"
+        style={{ "--team": teamColor, backgroundColor: teamColor } as CSSProperties}
+      >
+        <div className="text-white/70">
+          <RacingLine />
+        </div>
+        <div className="f1-inner grid items-end gap-8 py-8 lg:grid-cols-2 lg:py-12">
+          {/* identity */}
+          <div className="relative z-10 min-w-0 text-white">
+            <div className="flex flex-wrap items-center gap-2">
+              {driver.current?.category ? (
+                <CategoryBadge
+                  category={driver.current.category}
+                  className="border-white/70 text-white"
+                />
+              ) : null}
+              <CountryFlag code={driver.countryCode} className="text-xl" />
+              <span className="body-xs font-bold uppercase text-white/80">{driver.code}</span>
+            </div>
+            <p className="font-script mt-4 text-5xl leading-none lg:text-7xl">
+              {driver.firstName}
+            </p>
+            <h1 className="display-3xl lg:display-4xl -mt-1 font-black uppercase">
+              {driver.lastName}
+            </h1>
+            <div className="body-s mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold">
               {driver.current ? (
-                <p className="mt-4 text-sm font-bold uppercase tracking-wider text-white/80">
+                <>
                   <Link
                     href={`/teams/${driver.current.teamSlug}`}
-                    className="hover:text-white hover:underline"
+                    className="hover:underline"
                   >
                     {driver.current.teamName}
                   </Link>
-                  {driver.current.category ? ` · ${driver.current.category.name}` : ""}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="flex shrink-0 items-end gap-6">
-              {driver.current ? (
-                <span
-                  aria-label={`Car number ${driver.current.carNumber}`}
-                  className="text-8xl font-black italic leading-none sm:text-9xl"
-                  style={{
-                    WebkitTextStroke: "3px rgba(255,255,255,0.9)",
-                    color: "transparent",
-                  }}
-                >
-                  {driver.current.carNumber}
-                </span>
-              ) : null}
-              <div className="chamfer-tr relative h-40 w-36 overflow-hidden bg-page/30 sm:h-48 sm:w-44">
-                {headshot ? (
-                  <Image
-                    src={headshot}
-                    alt={fullName}
-                    fill
-                    sizes="176px"
-                    className="object-cover object-top"
-                  />
-                ) : (
-                  <span className="flex h-full w-full items-center justify-center text-6xl font-black tracking-tighter text-white/25">
-                    {initials}
+                  <span aria-hidden className="text-white/50">
+                    ·
                   </span>
-                )}
-              </div>
+                  <span className="font-digits text-xl font-bold leading-none">
+                    {driver.current.carNumber}
+                  </span>
+                </>
+              ) : null}
             </div>
           </div>
-        </section>
 
-        {/* Statistics */}
-        <section className="mt-10">
-          <h2 className="border-l-4 border-accent pl-3 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
+          {/* number + headshot */}
+          <div className="relative flex min-h-[220px] items-end justify-center lg:justify-end">
+            {driver.current ? (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute bottom-0 right-0 select-none font-display text-[9rem] font-black leading-none lg:text-[13rem]"
+                style={{ color: teamDark }}
+              >
+                {driver.current.carNumber}
+              </span>
+            ) : null}
+            <div className="relative h-56 w-48 overflow-hidden rounded-md lg:h-72 lg:w-64">
+              {headshot ? (
+                <Image
+                  src={headshot}
+                  alt={fullName}
+                  fill
+                  sizes="256px"
+                  className="object-cover object-top"
+                  priority
+                />
+              ) : (
+                <span
+                  className="flex h-full w-full items-center justify-center font-display text-6xl font-black text-white/25"
+                  style={{ backgroundColor: teamDark }}
+                >
+                  {initials}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="text-white/70">
+          <RacingLine />
+        </div>
+      </section>
+
+      {/* ── Statistics (dark band) ───────────────────────────────────────── */}
+      <section className="dark-section bg-surface-3">
+        <div className="f1-inner py-12 lg:py-16">
+          <h2 className="display-xl lg:display-2xl font-black uppercase text-text-5">
             Statistics
           </h2>
-          <div className="mt-5 grid gap-4 lg:grid-cols-2">
-            {/* Season panel */}
-            <div className="chamfer-tr border border-line bg-surface p-5">
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-fg-faint">
+          <div className="mt-8 grid gap-8 lg:grid-cols-2 lg:gap-12">
+            <div>
+              <p className="display-s font-medium uppercase text-text-3">
                 {driver.season?.year ?? driver.current?.seasonYear ?? ""} Season
                 {driver.current?.category ? ` · ${driver.current.category.shortName}` : ""}
               </p>
               {driver.season ? (
-                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <dl className="mt-4">
                   <SeasonStat
                     label="Position"
                     value={
@@ -157,30 +174,33 @@ export default async function DriverPage({ params }: Props) {
                   <SeasonStat label="Wins" value={String(driver.season.wins)} />
                   <SeasonStat label="Podiums" value={String(driver.season.podiums)} />
                   <SeasonStat label="Poles" value={String(driver.season.poles)} />
-                </div>
+                </dl>
               ) : (
-                <p className="mt-4 text-sm text-fg-muted">No season entry on record yet.</p>
+                <p className="body-s mt-4 text-text-3">No season entry on record yet.</p>
               )}
               {driver.season && !seasonStarted ? (
-                <p className="mt-4 text-xs font-semibold text-fg-faint">
+                <p className="body-xs mt-4 font-semibold text-text-3">
                   The season hasn&apos;t started yet — numbers update after every race.
                 </p>
               ) : null}
             </div>
 
-            {/* Career card */}
-            <div className="chamfer-tr bg-panel p-5">
-              <p className="text-xs font-black uppercase tracking-[0.25em] text-fg-faint">
-                Career Stats
-              </p>
-              <dl className="mt-2 divide-y divide-line">
+            <div className="rounded-lg bg-static-8 p-6">
+              <p className="display-s font-medium uppercase text-static-5">Career Stats</p>
+              <dl className="mt-4">
                 <CareerRow
                   label="Grands Prix Entered"
-                  value={driver.career.grandsPrixEntered > 0 ? String(driver.career.grandsPrixEntered) : "—"}
+                  value={
+                    driver.career.grandsPrixEntered > 0
+                      ? String(driver.career.grandsPrixEntered)
+                      : "—"
+                  }
                 />
                 <CareerRow
                   label="Career Points"
-                  value={driver.career.careerPoints > 0 ? String(driver.career.careerPoints) : "—"}
+                  value={
+                    driver.career.careerPoints > 0 ? String(driver.career.careerPoints) : "—"
+                  }
                 />
                 <CareerRow label="Wins" value={String(driver.career.wins)} />
                 <CareerRow label="Podiums" value={String(driver.career.podiums)} />
@@ -192,31 +212,32 @@ export default async function DriverPage({ params }: Props) {
               </dl>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Biography */}
-        <section className="mt-10">
-          <h2 className="border-l-4 border-accent pl-3 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
+      {/* ── Biography (warm band) ────────────────────────────────────────── */}
+      <section className="bg-surface-3">
+        <div className="f1-inner py-12 lg:py-16">
+          <div className="text-brand">
+            <RacingLine className="max-w-40" />
+          </div>
+          <h2 className="display-xl lg:display-2xl mt-2 font-black uppercase text-text-5">
             Biography
           </h2>
-          <div className="mt-5 grid gap-4 lg:grid-cols-3">
-            <div className="space-y-3">
-              <div className="chamfer-tr border border-line bg-surface p-4">
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-fg-faint">
-                  Date of Birth
-                </p>
-                <p className="mt-1 text-lg font-black text-white">
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            <div className="flex flex-col gap-4">
+              <div className="rounded-md bg-surface-1 p-4">
+                <p className="body-xs font-semibold uppercase text-text-3">Date of Birth</p>
+                <p className="display-l mt-1 font-medium text-text-5">
                   {formatDate(driver.dateOfBirth)}
                   {age != null ? (
-                    <span className="ml-2 text-sm font-bold text-fg-muted">({age})</span>
+                    <span className="body-s ml-2 font-semibold text-text-3">({age})</span>
                   ) : null}
                 </p>
               </div>
-              <div className="chamfer-tr border border-line bg-surface p-4">
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-fg-faint">
-                  Place of Birth
-                </p>
-                <p className="mt-1 flex items-center gap-2 text-lg font-black text-white">
+              <div className="rounded-md bg-surface-1 p-4">
+                <p className="body-xs font-semibold uppercase text-text-3">Place of Birth</p>
+                <p className="display-l mt-1 flex items-center gap-2 font-medium text-text-5">
                   {driver.placeOfBirth ?? "—"}
                   <CountryFlag code={driver.countryCode} className="text-base" />
                 </p>
@@ -224,7 +245,7 @@ export default async function DriverPage({ params }: Props) {
             </div>
             <div className="lg:col-span-2">
               {driver.biography ? (
-                <div className="space-y-4 text-sm leading-relaxed text-fg-muted">
+                <div className="body-m flex max-w-[680px] flex-col gap-4 text-text-4">
                   {driver.biography
                     .split(/\n+/)
                     .filter(Boolean)
@@ -233,46 +254,52 @@ export default async function DriverPage({ params }: Props) {
                     ))}
                 </div>
               ) : (
-                <p className="text-sm text-fg-faint">Biography coming soon.</p>
+                <p className="body-s text-text-3">Biography coming soon.</p>
               )}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Teammates */}
-        {driver.teammates.length ? (
-          <section className="mt-10">
-            <h2 className="border-l-4 border-accent pl-3 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
+      {/* ── Teammates ────────────────────────────────────────────────────── */}
+      {driver.teammates.length ? (
+        <section className="bg-surface-1">
+          <div className="f1-inner py-12 lg:py-16">
+            <h2 className="display-xl lg:display-2xl font-black uppercase text-text-5">
               Teammates
             </h2>
-            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {driver.teammates.map((mate) => (
-                <Link key={mate.slug} href={`/drivers/${mate.slug}`} className="group block">
-                  <div
-                    className="chamfer-tr flex items-center gap-4 border border-line border-t-4 bg-surface p-4 transition-all duration-150 group-hover:-translate-y-0.5 group-hover:border-accent"
-                    style={{ borderTopColor: teamColor }}
-                  >
-                    <span className="text-3xl font-black italic leading-none text-fg-faint">
-                      {mate.carNumber}
+                <Link
+                  key={mate.slug}
+                  href={`/drivers/${mate.slug}`}
+                  className="group flex items-center gap-4 rounded-md bg-surface-3 p-4"
+                >
+                  <span
+                    aria-hidden
+                    className="h-10 w-1 shrink-0 rounded-full"
+                    style={{ backgroundColor: teamColor }}
+                  />
+                  <span className="font-digits text-2xl font-bold leading-none text-text-3">
+                    {mate.carNumber}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="display-s block font-normal text-text-3">
+                      {mate.firstName}
                     </span>
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium text-fg-muted">
-                        {mate.firstName}
-                      </span>
-                      <span className="block text-lg font-black uppercase tracking-tight text-white group-hover:text-accent">
-                        {mate.lastName}
-                      </span>
+                    <span className="display-m block font-medium uppercase text-text-5 group-hover:underline">
+                      {mate.lastName}
                     </span>
-                    <span className="ml-auto text-sm font-bold uppercase text-fg-faint">
-                      {mate.code}
-                    </span>
-                  </div>
+                  </span>
+                  <span className="body-xs ml-auto font-bold uppercase text-text-3">
+                    {mate.code}
+                  </span>
                 </Link>
               ))}
             </div>
-          </section>
-        ) : null}
-      </main>
-    </div>
+          </div>
+        </section>
+      ) : null}
+    </main>
   );
 }

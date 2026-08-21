@@ -1,5 +1,3 @@
-import { format } from "date-fns";
-import { Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { mediaUrl, placeholderStyle } from "@/lib/media";
@@ -34,52 +32,79 @@ export function formatDuration(seconds: number | null | undefined): string | nul
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/** Dark video tile: thumbnail, accent play overlay, duration chip, title. */
-export function VideoCard({ video }: { video: VideoCardData }) {
+/** Circular play chip: 2px white ring over a blurred dark disc. */
+function PlayChip() {
+  return (
+    <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-black/30 text-white backdrop-blur-[5px]">
+      <svg aria-hidden viewBox="0 0 16 16" className="h-3 w-3 translate-x-px fill-current">
+        <path d="M4 2.5v11l9-5.5z" />
+      </svg>
+    </span>
+  );
+}
+
+/**
+ * F1.com 2026 video card: 16:9 rounded thumbnail with a bottom gradient,
+ * play chip + duration pill inside the image, Titillium title below.
+ * Width is set by the parent (rail item or grid cell).
+ */
+export function VideoCard({
+  video,
+  sizes = "(max-width: 735px) 80vw, 314px",
+}: {
+  video: VideoCardData;
+  sizes?: string;
+}) {
   const thumb = videoThumbUrl(video);
   const duration = formatDuration(video.durationSeconds);
 
   return (
-    <Link href={`/video/${video.slug}`} className="group block h-full">
-      <article className="chamfer-tr flex h-full flex-col overflow-hidden border border-line bg-surface transition-transform duration-200 group-hover:-translate-y-1">
-        <div className="relative aspect-video w-full overflow-hidden bg-panel">
-          {thumb ? (
-            <Image
-              src={thumb}
-              alt={video.thumbnail?.alt ?? video.title}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="h-full w-full" style={placeholderStyle(video.title)} />
-          )}
-
-          {/* play icon overlay */}
-          <span className="absolute inset-0 flex items-center justify-center">
-            <span className="chamfer-tr flex h-11 w-11 items-center justify-center bg-accent/90 text-accent-fg transition-transform duration-200 group-hover:scale-110">
-              <Play size={20} fill="currentColor" aria-hidden />
-            </span>
-          </span>
-
+    <article className="group relative flex flex-col gap-3">
+      <span className="relative block aspect-video overflow-clip rounded-md">
+        {thumb ? (
+          <Image
+            src={thumb}
+            alt={video.thumbnail?.alt ?? video.title}
+            fill
+            sizes={sizes}
+            className="card-img object-cover"
+          />
+        ) : (
+          <span className="absolute inset-0" style={placeholderStyle(video.title)} />
+        )}
+        <span
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,transparent,#15151e)]"
+        />
+        <span className="absolute inset-x-0 bottom-0 flex items-end justify-between p-3">
+          <PlayChip />
           {duration ? (
-            <span className="absolute bottom-2 right-2 bg-page/90 px-1.5 py-0.5 text-xs font-bold tabular-nums text-white">
+            <span className="body-2xs rounded-sm bg-black/40 px-1 pb-px font-semibold text-white">
               {duration}
             </span>
           ) : null}
-        </div>
+        </span>
+      </span>
+      <Link
+        href={`/video/${video.slug}`}
+        className="body-s font-semibold text-current after:absolute after:inset-0 group-hover:underline md:text-[1.0625rem] md:leading-6"
+      >
+        {video.title}
+      </Link>
+    </article>
+  );
+}
 
-        <div className="flex flex-1 flex-col gap-1.5 p-4">
-          <h3 className="line-clamp-2 text-sm font-black uppercase leading-snug tracking-tight text-white transition-colors group-hover:text-accent">
-            {video.title}
-          </h3>
-          {video.publishedAt ? (
-            <p className="mt-auto pt-1 text-xs font-semibold uppercase tracking-wide text-fg-faint">
-              {format(new Date(video.publishedAt), "d MMM yyyy")}
-            </p>
-          ) : null}
-        </div>
-      </article>
-    </Link>
+/** Video grid for the /video hub and related sections (2 → 3 → 4 columns). */
+export function VideoGrid({ videos }: { videos: (VideoCardData & { id: string })[] }) {
+  if (!videos.length) return null;
+  return (
+    <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3 lg:gap-6 min-[1696px]:grid-cols-4">
+      {videos.map((v) => (
+        <li key={v.id}>
+          <VideoCard video={v} sizes="(max-width: 735px) 50vw, 33vw" />
+        </li>
+      ))}
+    </ul>
   );
 }

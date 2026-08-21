@@ -7,8 +7,12 @@ import {
   getSeasonYears,
 } from "@/components/racing/data";
 import { formatDateRange } from "@/components/racing/meta";
-import { StandingsShell } from "@/components/racing/standings-shell";
-import { ConstructorStandingsTable } from "@/components/racing/standings-tables";
+import { ResultsHub } from "@/components/racing/results-hub";
+import {
+  CategoryDropdown,
+  ConstructorStandingsTable,
+  StandingsEmpty,
+} from "@/components/racing/standings-tables";
 
 type Props = {
   params: Promise<{ year: string }>;
@@ -52,21 +56,27 @@ export default async function ConstructorStandingsPage({ params, searchParams }:
         : null;
 
   return (
-    <StandingsShell
+    <ResultsHub
       year={year}
       years={years}
-      active="constructors"
-      categories={categories}
-      activeCategorySlug={activeCategory.slug}
+      active="teams"
+      title={`${year} Teams' Standings`}
       note={note}
+      filters={
+        <CategoryDropdown
+          categories={categories}
+          activeSlug={activeCategory.slug}
+          hrefFor={(slug) => `/standings/${year}/constructors?category=${slug}`}
+        />
+      }
     >
       {standings.rows.length === 0 ? (
-        <p className="chamfer-tr border border-line bg-surface p-6 text-fg-muted">
+        <StandingsEmpty>
           The {activeCategory.name} team entry list has not been announced yet.
-        </p>
+        </StandingsEmpty>
       ) : (
         <ConstructorStandingsTable rows={standings.rows} />
       )}
-    </StandingsShell>
+    </ResultsHub>
   );
 }

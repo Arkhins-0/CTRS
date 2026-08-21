@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { Bookmark, BookmarkCheck } from "lucide-react";
 import { db, savedArticles } from "@ctr/db";
 import { toggleSaveArticle } from "@/app/(main)/latest/article/save-action";
 import { getFanSession } from "@/lib/fan-auth";
@@ -24,15 +25,13 @@ export async function SaveArticleButton({ articleId }: { articleId: string }) {
 
   return (
     <form action={toggleSaveArticle.bind(null, articleId)}>
-      <button
-        type="submit"
-        className={`chamfer-tr px-5 py-2 text-xs font-black uppercase tracking-wide transition-colors ${
-          saved
-            ? "border border-line bg-panel text-white hover:bg-surface"
-            : "bg-accent text-accent-fg hover:bg-accent-dark"
-        }`}
-      >
-        {saved ? "Saved ✓" : "Save article"}
+      <button type="submit" className={`btn btn-sm ${saved ? "btn-tonal" : "btn-stroke"}`}>
+        {saved ? (
+          <BookmarkCheck size={16} aria-hidden />
+        ) : (
+          <Bookmark size={16} aria-hidden />
+        )}
+        {saved ? "Saved" : "Save article"}
       </button>
     </form>
   );

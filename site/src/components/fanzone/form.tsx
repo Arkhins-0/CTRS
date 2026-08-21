@@ -7,7 +7,7 @@ import { COUNTRIES } from "./countries";
  */
 
 export const inputClass =
-  "w-full border border-line bg-panel px-3 py-2 text-sm text-white outline-none transition-colors placeholder:text-fg-faint focus:border-accent";
+  "w-full rounded-md border border-surface-4 bg-surface-1 px-4 py-2.5 body-s text-text-5 placeholder:text-text-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text-5";
 
 export function Field({
   label,
@@ -24,12 +24,12 @@ export function Field({
     <div>
       <label
         htmlFor={htmlFor}
-        className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-faint"
+        className="body-xs mb-1.5 block font-semibold uppercase text-text-3"
       >
         {label}
       </label>
       {children}
-      {hint ? <p className="mt-1 text-xs text-fg-faint">{hint}</p> : null}
+      {hint ? <p className="body-xs mt-1.5 text-text-3">{hint}</p> : null}
     </div>
   );
 }
@@ -72,10 +72,7 @@ export function CountrySelect({
 export function FormError({ children }: { children?: ReactNode }) {
   if (!children) return null;
   return (
-    <div
-      role="alert"
-      className="border-l-4 border-red-500 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-400"
-    >
+    <div role="alert" className="body-xs font-semibold text-negative">
       {children}
     </div>
   );
@@ -84,10 +81,7 @@ export function FormError({ children }: { children?: ReactNode }) {
 export function FormSuccess({ children }: { children?: ReactNode }) {
   if (!children) return null;
   return (
-    <div
-      role="status"
-      className="border-l-4 border-emerald-500 bg-emerald-500/10 px-3 py-2 text-sm font-semibold text-emerald-400"
-    >
+    <div role="status" className="body-xs font-semibold text-positive">
       {children}
     </div>
   );

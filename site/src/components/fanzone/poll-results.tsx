@@ -1,6 +1,6 @@
 import { Chip } from "./chip";
 
-/** Horizontal result bars for a poll — fan's own pick highlighted in accent. */
+/** Horizontal result bars for a poll — fan's own pick highlighted in brand. */
 export function PollResults({
   options,
   counts,
@@ -9,7 +9,7 @@ export function PollResults({
 }: {
   options: { id: string; label: string }[];
   counts: Record<string, number>;
-  /** the fan's own choice — rendered as an accent bar */
+  /** the fan's own choice — rendered as a brand bar */
   highlightOptionId?: string | null;
   /** mark the most-voted option(s) — for closed polls */
   markWinner?: boolean;
@@ -26,11 +26,11 @@ export function PollResults({
         const winner = markWinner && total > 0 && votes === max;
         return (
           <div key={o.id}>
-            <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
-              <span className={`font-semibold ${mine ? "text-accent" : "text-white"}`}>
+            <div className="mb-1.5 flex items-baseline justify-between gap-3">
+              <span className={`body-s font-semibold ${mine ? "text-brand" : "text-text-5"}`}>
                 {o.label}
                 {mine ? (
-                  <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-accent">
+                  <span className="ml-2 text-[11px] font-bold uppercase leading-4 text-brand">
                     Your pick
                   </span>
                 ) : null}
@@ -40,21 +40,27 @@ export function PollResults({
                   </Chip>
                 ) : null}
               </span>
-              <span className="shrink-0 text-xs font-bold text-fg-faint">
-                {pct}% · {votes} {votes === 1 ? "vote" : "votes"}
+              <span className="body-2xs shrink-0 text-text-3">
+                <span className="font-digits font-bold text-text-5">{pct}%</span>
+                <span aria-hidden className="mx-1.5">
+                  ·
+                </span>
+                <span className="font-digits font-bold text-text-5">{votes}</span>{" "}
+                {votes === 1 ? "vote" : "votes"}
               </span>
             </div>
-            <div className="h-2.5 w-full overflow-hidden bg-page">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-3">
               <div
-                className={`h-full transition-all ${mine ? "bg-accent" : "bg-panel"}`}
+                className={`h-full rounded-full transition-all ${mine ? "bg-brand" : "bg-surface-5"}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
           </div>
         );
       })}
-      <p className="text-xs font-semibold uppercase tracking-wide text-fg-faint">
-        {total} total {total === 1 ? "vote" : "votes"}
+      <p className="body-2xs font-semibold uppercase text-text-3">
+        <span className="font-digits font-bold text-text-5">{total}</span> total{" "}
+        {total === 1 ? "vote" : "votes"}
       </p>
     </div>
   );

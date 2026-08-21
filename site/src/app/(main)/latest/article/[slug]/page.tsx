@@ -6,9 +6,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { articleRelated, articles, db, TAGS } from "@ctr/db";
-import { SectionHeading } from "@ctr/ui";
 import { ArticleBody } from "@/components/news/article-body";
-import { ArticleCard } from "@/components/news/article-card";
+import { ArticleGrid, Tag } from "@/components/news/article-card";
 import { SaveArticleButton } from "@/components/news/save-article-button";
 import { cached } from "@/lib/cache";
 import { mediaUrl } from "@/lib/media";
@@ -116,130 +115,104 @@ export default async function ArticlePage({ params }: Props) {
   const tagList = article.articleTags.map((t) => t.tag);
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
-      {/* header */}
-      <header className="mx-auto max-w-4xl">
-        <div className="flex flex-wrap items-center gap-2">
-          {article.isBreaking ? (
-            <span
-              className="chamfer-tr inline-flex items-center bg-white px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-page"
-              style={{ ["--chamfer" as string]: "6px" }}
-            >
-              Breaking
-            </span>
+    <main>
+      {/* ── Header + hero ────────────────────────────────────────────────── */}
+      <div className="bg-surface-1">
+        <div className="f1-inner py-8 lg:py-12">
+          <header className="max-w-[860px]">
+            <div className="flex flex-wrap items-center gap-2">
+              {article.isBreaking ? <Tag variant="breaking">Breaking</Tag> : null}
+              {article.category ? (
+                <Link href={`/latest/${article.category.slug}`}>
+                  <Tag variant="brand">{article.category.name}</Tag>
+                </Link>
+              ) : null}
+            </div>
+
+            <h1 className="display-2xl lg:display-3xl mt-4 font-black uppercase text-text-5">
+              {article.title}
+            </h1>
+
+            {article.standfirst ? (
+              <p className="body-m lg:body-l mt-4 font-semibold text-text-3">
+                {article.standfirst}
+              </p>
+            ) : null}
+
+            <div className="body-xs mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-surface-4 py-3">
+              <span className="font-bold uppercase text-text-5">By {byline}</span>
+              {article.publishedAt ? (
+                <time
+                  dateTime={new Date(article.publishedAt).toISOString()}
+                  className="font-semibold uppercase text-text-3"
+                >
+                  {format(new Date(article.publishedAt), "d MMMM yyyy")}
+                </time>
+              ) : null}
+            </div>
+          </header>
+
+          {heroImg ? (
+            <figure className="mt-8">
+              <div className="relative aspect-video w-full overflow-hidden rounded-md bg-surface-3">
+                <Image
+                  src={heroImg}
+                  alt={article.hero?.alt ?? article.title}
+                  fill
+                  priority
+                  sizes="(max-width: 1069px) 100vw, 1100px"
+                  className="object-cover"
+                />
+              </div>
+              {article.hero?.caption || article.hero?.credit ? (
+                <figcaption className="body-xs mt-2 flex flex-wrap justify-between gap-2 text-text-3">
+                  <span>{article.hero?.caption}</span>
+                  {article.hero?.credit ? (
+                    <span className="uppercase">{article.hero.credit}</span>
+                  ) : null}
+                </figcaption>
+              ) : null}
+            </figure>
           ) : null}
-          {article.category ? (
-            <Link
-              href={`/latest/${article.category.slug}`}
-              className="chamfer-tr inline-flex items-center bg-accent px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
-              style={{ ["--chamfer" as string]: "6px" }}
-            >
-              {article.category.name}
-            </Link>
-          ) : null}
-          {tagList.map((t) => (
-            <Link
-              key={t.id}
-              href={`/latest/tags/${t.slug}`}
-              className="chamfer-tr inline-flex items-center border border-line px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-fg-muted transition-colors hover:border-accent hover:text-accent"
-              style={{ ["--chamfer" as string]: "6px" }}
-            >
-              {t.name}
-            </Link>
-          ))}
-        </div>
 
-        <h1 className="mt-4 text-3xl font-black uppercase leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
-          {article.title}
-        </h1>
+          {/* ── Body ───────────────────────────────────────────────────────── */}
+          <div className="mt-8 max-w-[680px]">
+            <ArticleBody html={article.bodyHtml ?? ""} />
 
-        {article.standfirst ? (
-          <p className="mt-4 text-lg font-semibold leading-relaxed text-fg-muted sm:text-xl">
-            {article.standfirst}
-          </p>
-        ) : null}
-
-        <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-line py-3 text-sm">
-          <span className="font-bold uppercase tracking-wide text-white">By {byline}</span>
-          {article.publishedAt ? (
-            <time
-              dateTime={new Date(article.publishedAt).toISOString()}
-              className="font-semibold uppercase tracking-wide text-fg-faint"
-            >
-              {format(new Date(article.publishedAt), "d MMMM yyyy")}
-            </time>
-          ) : null}
-        </div>
-      </header>
-
-      {/* hero image */}
-      {heroImg ? (
-        <figure className="mx-auto mt-8 max-w-5xl">
-          <div className="chamfer-tr-lg relative aspect-video w-full overflow-hidden bg-panel">
-            <Image
-              src={heroImg}
-              alt={article.hero?.alt ?? article.title}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 1024px"
-              className="object-cover"
-            />
-          </div>
-          {article.hero?.caption || article.hero?.credit ? (
-            <figcaption className="mt-2 flex flex-wrap justify-between gap-2 text-sm text-fg-muted">
-              <span>{article.hero?.caption}</span>
-              {article.hero?.credit ? (
-                <span className="text-xs uppercase tracking-wide text-fg-faint">
-                  {article.hero.credit}
+            {/* save button — fan-session dependent, deliberately not cached */}
+            <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-surface-4 pt-6">
+              <Suspense fallback={<span className="btn btn-sm btn-stroke">Save article</span>}>
+                <SaveArticleButton articleId={article.id} />
+              </Suspense>
+              {tagList.length ? (
+                <span className="body-xs flex flex-wrap items-center gap-2 font-semibold text-text-3">
+                  Tagged:
+                  {tagList.map((t) => (
+                    <Link
+                      key={t.id}
+                      href={`/latest/tags/${t.slug}`}
+                      className="text-brand hover:underline"
+                    >
+                      {t.name}
+                    </Link>
+                  ))}
                 </span>
               ) : null}
-            </figcaption>
-          ) : null}
-        </figure>
-      ) : null}
-
-      {/* body */}
-      <div className="mx-auto mt-8 max-w-3xl">
-        <ArticleBody html={article.bodyHtml ?? ""} />
-
-        {/* save button — fan-session dependent, deliberately not cached */}
-        <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-line pt-6">
-          <Suspense
-            fallback={
-              <span className="chamfer-tr border border-line bg-panel px-5 py-2 text-xs font-black uppercase tracking-wide text-fg-faint">
-                Save article
-              </span>
-            }
-          >
-            <SaveArticleButton articleId={article.id} />
-          </Suspense>
-          {tagList.length ? (
-            <span className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-fg-muted">
-              Tagged:
-              {tagList.map((t) => (
-                <Link
-                  key={t.id}
-                  href={`/latest/tags/${t.slug}`}
-                  className="text-accent transition-colors hover:text-white"
-                >
-                  {t.name}
-                </Link>
-              ))}
-            </span>
-          ) : null}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* related */}
+      {/* ── Related ──────────────────────────────────────────────────────── */}
       {related.length ? (
-        <section className="mt-14">
-          <SectionHeading className="[&_h2]:border-accent [&_h2]:text-white">
-            Related News
-          </SectionHeading>
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {related.map((a) => (
-              <ArticleCard key={a.id} article={a} />
-            ))}
+        <section className="bg-surface-3">
+          <div className="f1-inner py-8 lg:py-12">
+            <h2 className="display-xl lg:display-2xl font-black uppercase text-text-5">
+              Related news
+            </h2>
+            <div className="mt-6">
+              <ArticleGrid articles={related} />
+            </div>
           </div>
         </section>
       ) : null}

@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
-import { ChamferCard } from "@ctr/ui";
 
 /**
- * Centered chamfered dark surface card on a carbon-fibre band — the premium
- * sign-up / sign-in shell used across the fan zone.
+ * Centered white rounded card on the warm band — the sign-up / sign-in shell
+ * used across the fan zone.
  */
 export function AuthCard({
   title,
@@ -17,22 +16,16 @@ export function AuthCard({
   footer?: ReactNode;
 }) {
   return (
-    <main className="bg-carbon-fibre">
-      <div className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center px-4 py-16">
+    <main className="bg-surface-3">
+      <div className="f1-inner flex min-h-[70vh] items-center justify-center py-12">
         <div className="w-full max-w-md">
-          <ChamferCard
-            corner="tr-lg"
-            className="border border-line border-t-2 border-t-accent bg-surface p-8"
-          >
-            <div className="h-1 w-10 bg-accent" aria-hidden />
-            <h1 className="mt-3 text-2xl font-black uppercase tracking-tight text-white">
-              {title}
-            </h1>
-            {subtitle ? <p className="mt-1 text-sm text-fg-muted">{subtitle}</p> : null}
+          <div className="rounded-md bg-surface-1 p-6 md:p-8">
+            <h1 className="display-l font-black uppercase text-text-5">{title}</h1>
+            {subtitle ? <p className="body-s mt-2 text-text-3">{subtitle}</p> : null}
             <div className="mt-6">{children}</div>
-          </ChamferCard>
+          </div>
           {footer ? (
-            <div className="mt-4 text-center text-sm font-semibold text-fg-muted">{footer}</div>
+            <div className="body-s mt-4 text-center font-semibold text-text-3">{footer}</div>
           ) : null}
         </div>
       </div>

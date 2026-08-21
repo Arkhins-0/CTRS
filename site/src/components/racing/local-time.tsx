@@ -37,7 +37,7 @@ export function LocalTime({
   }, [iso, mode]);
 
   return (
-    <time dateTime={iso} suppressHydrationWarning className={className}>
+    <time dateTime={iso} suppressHydrationWarning className={`whitespace-nowrap ${className}`}>
       {local ?? `${formatIso(iso, mode, "UTC")}${mode === "date" ? "" : " UTC"}`}
     </time>
   );

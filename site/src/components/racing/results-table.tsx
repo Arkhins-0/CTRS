@@ -1,57 +1,237 @@
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { formatGap, formatLapTime } from "@ctr/db";
-import { CountryFlag, TeamColorBar } from "@ctr/ui";
-import type { ClassificationRow } from "./data";
-import { resultsTableKind, type SessionType } from "./meta";
+import { CountryFlag } from "@ctr/ui";
+import { StatusChip } from "./category-ui";
+import type { ClassificationRow, SeasonRoundRow } from "./data";
+import { formatDate, resultsTableKind, type SessionType } from "./meta";
 
-const STATUS_SHORT: Record<string, string> = {
+/* ── F1 results-table primitives (spec §2.5) ───────────────────────────────
+   White rounded-md card on the beige hub surface; 14px uppercase muted thead
+   over a 2px rule; 56px body rows split by 1px dividers; 16px Titillium
+   semibold cells; first column flush-left, last column flush-right; the
+   whole table x-scrolls (with th snap points) inside the card on mobile.
+   Shared by the season race-results list and the classification tables. ──── */
+
+export const resultsTh =
+  "body-xs snap-start scroll-ml-6 whitespace-nowrap py-4 pl-1 pr-6 text-left align-top font-semibold uppercase md:scroll-ml-12 md:pr-12";
+export const resultsThEnd =
+  "body-xs whitespace-nowrap py-4 pl-1 pr-1 text-right align-top font-semibold uppercase";
+export const resultsTd =
+  "body-s whitespace-nowrap py-4 pl-1 pr-6 font-semibold md:pr-12";
+export const resultsTdEnd =
+  "body-s whitespace-nowrap py-4 pl-1 pr-1 text-right font-semibold";
+
+/** thead row: 2px #aaa rule + muted uppercase labels. */
+export const resultsTheadRow = "border-b-2 border-surface-6 text-text-3";
+/** tbody row: 1px divider under every row but the last. */
+export const resultsBodyRow = "border-b border-surface-4 last:border-0";
+
+/** White rounded-md card with the spec's combined gutters + mobile x-scroll. */
+export function ResultsTableCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-md bg-surface-1 px-12 py-8 md:px-16 md:py-10 lg:py-12">
+      <div className="snap-x overflow-x-auto">{children}</div>
+    </div>
+  );
+}
+
+/* ── Filter-row dropdown (spec §2.3, stroke-medium skin) ─────────────────────
+   Native-details recipe shared by the two results pages: black-stroke pill
+   trigger, bordered menu of links, brand dot on the current item. Server-only
+   (mirrors SeasonDropdown's classes in results-hub.tsx). ──────────────────── */
+
+export type FilterOption = {
+  key: string;
+  label: React.ReactNode;
+  href: string;
+  active?: boolean;
+};
+
+export function FilterDropdown({
+  label,
+  options,
+  ariaLabel,
+}: {
+  label: React.ReactNode;
+  options: FilterOption[];
+  ariaLabel?: string;
+}) {
+  return (
+    <details className="relative max-md:w-full">
+      <summary
+        aria-label={ariaLabel}
+        className="btn btn-md btn-stroke cursor-pointer select-none list-none max-md:w-full [&::-webkit-details-marker]:hidden"
+      >
+        {label}
+        <ChevronDown size={16} aria-hidden />
+      </summary>
+      <div className="absolute left-0 z-30 mt-3 max-h-[50vh] min-w-52 overflow-y-auto rounded-md border-2 border-text-5 bg-surface-1 p-1">
+        {options.map((o) => (
+          <Link
+            key={o.key}
+            href={o.href}
+            aria-current={o.active ? "page" : undefined}
+            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-black/10"
+          >
+            {o.label}
+            {o.active ? (
+              <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
+            ) : null}
+          </Link>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+/* ── Season race-results list (spec §4.2, adapted to SeasonRoundRow) ───────
+   Our round rows carry no winner data, so the columns are Grand Prix · Date ·
+   Circuit · Status plus a right-flushed results affordance. Rounds without
+   results render muted and link to the schedule page instead. ─────────────── */
+
+export function SeasonRoundsTable({
+  year,
+  rounds,
+}: {
+  year: number;
+  rounds: SeasonRoundRow[];
+}) {
+  return (
+    <ResultsTableCard>
+      <table className="w-full">
+        <thead>
+          <tr className={resultsTheadRow}>
+            <th scope="col" className={resultsTh}>
+              Grand Prix
+            </th>
+            <th scope="col" className={resultsTh}>
+              Date
+            </th>
+            <th scope="col" className={resultsTh}>
+              Circuit
+            </th>
+            <th scope="col" className={resultsTh}>
+              Status
+            </th>
+            <th scope="col" className={resultsThEnd}>
+              <span className="sr-only">Results</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody className="text-text-5">
+          {rounds.map((r) => {
+            const href = r.hasResults
+              ? `/results/${year}/${r.slug}`
+              : `/schedule/${year}/${r.slug}`;
+            return (
+              <tr
+                key={r.id}
+                className={`${resultsBodyRow}${r.hasResults ? "" : " text-text-3"}`}
+              >
+                <td className={resultsTd}>
+                  <Link href={href} className="flex items-center gap-2.5 hover:underline">
+                    <CountryFlag code={r.countryCode} className="text-xl leading-none" />
+                    {r.name}
+                  </Link>
+                </td>
+                <td className={resultsTd}>
+                  {formatDate(r.endDate ?? r.startDate, "dd MMM")}
+                </td>
+                <td className={resultsTd}>
+                  {r.circuitName}
+                  {r.locality ? `, ${r.locality}` : ""}
+                </td>
+                <td className={resultsTd}>
+                  <StatusChip status={r.status} />
+                </td>
+                <td className={resultsTdEnd}>
+                  {r.hasResults ? (
+                    <Link
+                      href={`/results/${year}/${r.slug}`}
+                      className="whitespace-nowrap font-bold hover:text-brand"
+                    >
+                      Results <span aria-hidden>→</span>
+                    </Link>
+                  ) : r.status === "cancelled" ? (
+                    "—"
+                  ) : (
+                    "Scheduled"
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </ResultsTableCard>
+  );
+}
+
+/* ── Cell primitives (spec §2.6) ─────────────────────────────────────────── */
+
+/** DNF/DNS rows show "NC" (not classified) in the Pos column, DSQ shows "DQ". */
+const STATUS_POS: Partial<Record<ClassificationRow["status"], string>> = {
+  dnf: "NC",
+  dns: "NC",
+  nc: "NC",
+  dsq: "DQ",
+};
+
+const STATUS_SHORT: Partial<Record<ClassificationRow["status"], string>> = {
   dnf: "DNF",
   dns: "DNS",
   dsq: "DSQ",
   nc: "NC",
 };
 
-const th = "px-3 py-2.5 text-xs font-bold uppercase tracking-wider";
-const td = "px-3 py-2.5";
-
-function DriverCell({ row }: { row: ClassificationRow }) {
+/** 20px team-colour disc + responsive name: First Last → Last → code. */
+function DriverChip({ row }: { row: ClassificationRow }) {
   return (
-    <span className="flex items-center gap-2">
-      <TeamColorBar color={row.team.color} />
-      <span className="font-bold text-fg-faint">{row.driver.code}</span>
-      <Link
-        href={`/drivers/${row.driver.slug}`}
-        className="whitespace-nowrap font-semibold text-white hover:text-accent"
-      >
-        {row.driver.firstName} {row.driver.lastName}
-      </Link>
-      <CountryFlag code={row.driver.countryCode} />
+    <span className="flex items-center gap-2.5">
+      <span
+        aria-hidden
+        className="h-5 w-5 shrink-0 rounded-full"
+        style={{ backgroundColor: row.team.color }}
+      />
+      <span className="whitespace-nowrap">
+        <span className="max-lg:hidden">{row.driver.firstName}&nbsp;</span>
+        <span className="max-md:hidden">{row.driver.lastName}</span>
+        <span className="md:hidden">{row.driver.code}</span>
+      </span>
     </span>
   );
 }
 
-function PosCell({ row }: { row: ClassificationRow }) {
+/** 20px team-colour disc + team short name. */
+function TeamChip({ team }: { team: { shortName: string; color: string } }) {
   return (
-    <td className={`${td} font-black text-white`}>
-      {row.position ?? STATUS_SHORT[row.status] ?? "—"}
-    </td>
+    <span className="inline-flex items-center gap-2.5">
+      <span
+        aria-hidden
+        className="h-5 w-5 shrink-0 rounded-full"
+        style={{ backgroundColor: team.color }}
+      />
+      {team.shortName}
+    </span>
   );
 }
 
-/** "+1.234s" gap for single-session qualifying / practice screens. */
-function qualiGap(row: ClassificationRow, leaderMs: number | null): string {
-  if (row.position === 1) return "—";
+/** Practice "Time / Gap" cell: leader's lap time, then "+2.974s" gaps. */
+function lapTimeOrGap(row: ClassificationRow, leaderMs: number | null): string {
+  if (row.status !== "finished") return STATUS_SHORT[row.status] ?? "—";
+  if (row.position === 1 || leaderMs == null) return formatLapTime(row.timeMs);
   if (row.gapMs != null) return `+${(row.gapMs / 1000).toFixed(3)}s`;
-  const t = row.q1TimeMs ?? row.timeMs;
-  if (t != null && leaderMs != null && t >= leaderMs) return `+${((t - leaderMs) / 1000).toFixed(3)}s`;
-  return STATUS_SHORT[row.status] ?? "—";
+  if (row.timeMs != null && row.timeMs >= leaderMs) {
+    return `+${((row.timeMs - leaderMs) / 1000).toFixed(3)}s`;
+  }
+  return formatLapTime(row.timeMs);
 }
 
 /**
- * Dark session classification table. Column set adapts to the session type:
- * race/race2 → LAPS + TIME/GAP + PTS · qualifying (INCRC runs a single
- * session) → TIME + GAP · practice → TIME + LAPS.
- * Rows must already be ordered (position, nulls last).
+ * Session classification table (spec §5.3). Column set adapts to the session
+ * kind: race → Laps + Time/Retired + Pts · qualifying → Q1/Q2/Q3 · practice
+ * → Time/Gap + Laps. Rows must already be ordered (position, nulls last).
  */
 export function ResultsTable({
   rows,
@@ -61,51 +241,78 @@ export function ResultsTable({
   sessionType: SessionType;
 }) {
   const kind = resultsTableKind(sessionType);
-  const leaderMs = rows[0] ? (rows[0].q1TimeMs ?? rows[0].timeMs) : null;
+  const leaderMs = rows[0] ? (rows[0].timeMs ?? rows[0].q1TimeMs) : null;
 
   return (
-    <div className="chamfer-tr overflow-x-auto border border-line bg-surface">
-      <table className="w-full min-w-[640px] text-left text-sm">
+    <ResultsTableCard>
+      <table className="w-full">
         <thead>
-          <tr className="bg-panel text-white">
-            <th className={`${th} w-14`}>Pos</th>
-            <th className={`${th} w-12`}>No</th>
-            <th className={th}>Driver</th>
-            <th className={th}>Team</th>
+          <tr className={resultsTheadRow}>
+            <th scope="col" className={resultsTh}>
+              Pos.
+            </th>
+            <th scope="col" className={resultsTh}>
+              No.
+            </th>
+            <th scope="col" className={resultsTh}>
+              Driver
+            </th>
+            <th scope="col" className={resultsTh}>
+              Team
+            </th>
             {kind === "race" ? (
               <>
-                <th className={`${th} text-right`}>Laps</th>
-                <th className={`${th} text-right`}>Time / Gap</th>
-                <th className={`${th} text-right`}>Pts</th>
+                <th scope="col" className={resultsTh}>
+                  Laps
+                </th>
+                <th scope="col" className={resultsTh}>
+                  Time / Retired
+                </th>
+                <th scope="col" className={resultsThEnd}>
+                  Pts.
+                </th>
               </>
             ) : kind === "qualifying" ? (
               <>
-                <th className={`${th} text-right`}>Time</th>
-                <th className={`${th} text-right`}>Gap</th>
+                <th scope="col" className={resultsTh}>
+                  Q1
+                </th>
+                <th scope="col" className={resultsTh}>
+                  Q2
+                </th>
+                <th scope="col" className={resultsThEnd}>
+                  Q3
+                </th>
               </>
             ) : (
               <>
-                <th className={`${th} text-right`}>Time</th>
-                <th className={`${th} text-right`}>Laps</th>
+                <th scope="col" className={resultsTh}>
+                  Time / Gap
+                </th>
+                <th scope="col" className={resultsThEnd}>
+                  Laps
+                </th>
               </>
             )}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="text-text-5">
           {rows.map((row) => (
-            <tr key={row.id} className="border-b border-line last:border-0 hover:bg-panel/60">
-              <PosCell row={row} />
-              <td className={`${td} font-bold text-fg-faint`}>{row.carNumber}</td>
-              <td className={td}>
-                <DriverCell row={row} />
+            <tr key={row.id} className={resultsBodyRow}>
+              <td className={resultsTd}>
+                {row.position ?? STATUS_POS[row.status] ?? "NC"}
               </td>
-              <td className={`${td} whitespace-nowrap text-fg-muted`}>{row.team.shortName}</td>
+              <td className={resultsTd}>{row.carNumber}</td>
+              <td className={resultsTd}>
+                <DriverChip row={row} />
+              </td>
+              <td className={resultsTd}>
+                <TeamChip team={row.team} />
+              </td>
               {kind === "race" ? (
                 <>
-                  <td className={`${td} text-right tabular-nums text-fg-muted`}>
-                    {row.laps ?? "—"}
-                  </td>
-                  <td className={`${td} whitespace-nowrap text-right tabular-nums text-fg-muted`}>
+                  <td className={resultsTd}>{row.laps ?? "—"}</td>
+                  <td className={`${resultsTd}${row.fastestLap ? " text-brand" : ""}`}>
                     {formatGap({
                       position: row.position,
                       status: row.status,
@@ -113,39 +320,35 @@ export function ResultsTable({
                       lapsBehind: row.lapsBehind,
                       timeMs: row.timeMs,
                     })}
-                    {row.fastestLap ? (
-                      <span className="ml-2 inline-block rounded-sm bg-purple-600 px-1.5 py-0.5 align-middle text-[10px] font-black leading-none text-white">
-                        FL
-                      </span>
-                    ) : null}
                   </td>
-                  <td className={`${td} text-right font-black tabular-nums text-white`}>
-                    {row.points}
-                  </td>
+                  <td className={resultsTdEnd}>{row.points}</td>
                 </>
               ) : kind === "qualifying" ? (
                 <>
-                  <td className={`${td} text-right font-semibold tabular-nums text-white`}>
-                    {formatLapTime(row.q1TimeMs ?? row.timeMs)}
+                  <td
+                    className={`${resultsTd}${row.fastestLap ? " text-brand" : ""}`}
+                  >
+                    {row.status === "finished"
+                      ? formatLapTime(row.q1TimeMs ?? row.timeMs)
+                      : (STATUS_SHORT[row.status] ?? "—")}
                   </td>
-                  <td className={`${td} text-right tabular-nums text-fg-muted`}>
-                    {qualiGap(row, leaderMs)}
-                  </td>
+                  <td className={resultsTd}>{formatLapTime(row.q2TimeMs)}</td>
+                  <td className={resultsTdEnd}>{formatLapTime(row.q3TimeMs)}</td>
                 </>
               ) : (
                 <>
-                  <td className={`${td} text-right font-semibold tabular-nums text-white`}>
-                    {formatLapTime(row.timeMs)}
+                  <td
+                    className={`${resultsTd}${row.fastestLap ? " text-brand" : ""}`}
+                  >
+                    {lapTimeOrGap(row, leaderMs)}
                   </td>
-                  <td className={`${td} text-right tabular-nums text-fg-muted`}>
-                    {row.laps ?? "—"}
-                  </td>
+                  <td className={resultsTdEnd}>{row.laps ?? "—"}</td>
                 </>
               )}
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+    </ResultsTableCard>
   );
 }

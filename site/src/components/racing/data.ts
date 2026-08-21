@@ -1029,6 +1029,15 @@ export type TeamIndexCard = {
   base: string | null;
   principal: string | null;
   driverCount: number;
+  /** Line-up shown as chips on the team card (one entry per driver). */
+  drivers: {
+    slug: string;
+    firstName: string;
+    lastName: string;
+    code: string;
+    carNumber: number;
+    headshotPath: string | null;
+  }[];
   categories: { slug: string; shortName: string; color: string; sort: number }[];
 };
 
@@ -1039,7 +1048,12 @@ export function getTeamsIndex(year: number): Promise<TeamIndexCard[]> {
       if (!season) return [];
       const entries = await db.query.teamSeasonEntries.findMany({
         where: (e, { eq: whereEq }) => whereEq(e.championshipSeasonId, season.id),
-        with: { team: true, driverEntries: { with: { category: true } } },
+        with: {
+          team: true,
+          driverEntries: {
+            with: { category: true, driver: { with: { headshot: true } } },
+          },
+        },
       });
 
       const cards = entries.map((entry): TeamIndexCard => {
@@ -1047,9 +1061,11 @@ export function getTeamsIndex(year: number): Promise<TeamIndexCard[]> {
           string,
           { slug: string; shortName: string; color: string; sort: number }
         >();
-        const driverIds = new Set<string>();
+        // One chip per driver — the latest entry wins when a driver switched
+        // seats mid-season.
+        const byDriver = new Map<string, (typeof entry.driverEntries)[number]>();
         for (const d of entry.driverEntries) {
-          driverIds.add(d.driverId);
+          keepLatest(byDriver, d.driverId, d);
           if (d.category) {
             categories.set(d.category.id, {
               slug: d.category.slug,
@@ -1066,7 +1082,17 @@ export function getTeamsIndex(year: number): Promise<TeamIndexCard[]> {
           color: entry.primaryColor,
           base: entry.team.base,
           principal: entry.teamPrincipal,
-          driverCount: driverIds.size,
+          driverCount: byDriver.size,
+          drivers: [...byDriver.values()]
+            .sort((a, b) => a.carNumber - b.carNumber)
+            .map((d) => ({
+              slug: d.driver.slug,
+              firstName: d.driver.firstName,
+              lastName: d.driver.lastName,
+              code: d.driver.code,
+              carNumber: d.carNumber,
+              headshotPath: d.driver.headshot?.path ?? null,
+            })),
           categories: [...categories.values()].sort((a, b) => a.sort - b.sort),
         };
       });

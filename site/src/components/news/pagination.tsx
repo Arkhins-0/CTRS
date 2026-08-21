@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-/** Previous / next pagination controls in the site's dark chamfered style. */
+/** Previous / next pagination — system pill buttons either side of a muted
+ *  "Page N of M" caption. Disabled ends render as inert 50%-opacity pills. */
 export function Pagination({
   page,
   totalPages,
@@ -13,34 +15,36 @@ export function Pagination({
   if (totalPages <= 1) return null;
 
   const href = (p: number) => (p <= 1 ? basePath : `${basePath}?page=${p}`);
-  const buttonClass =
-    "chamfer-tr border border-line bg-panel px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-accent hover:text-accent-fg";
-  const disabledClass =
-    "chamfer-tr cursor-not-allowed border border-line bg-surface px-4 py-2 text-xs font-bold uppercase tracking-wide text-fg-faint";
+  const enabled = "btn btn-sm btn-stroke";
+  const disabled = "btn btn-sm btn-stroke pointer-events-none opacity-50";
 
   return (
     <nav aria-label="Pagination" className="mt-10 flex items-center justify-center gap-4">
       {page > 1 ? (
-        <Link href={href(page - 1)} className={buttonClass}>
-          ← Previous
+        <Link href={href(page - 1)} rel="prev" className={enabled}>
+          <ChevronLeft size={16} aria-hidden />
+          Previous
         </Link>
       ) : (
-        <span aria-disabled className={disabledClass}>
-          ← Previous
+        <span aria-disabled className={disabled}>
+          <ChevronLeft size={16} aria-hidden />
+          Previous
         </span>
       )}
 
-      <span className="text-sm font-bold uppercase tracking-wide text-fg-muted">
+      <span className="body-xs font-bold uppercase text-text-3">
         Page {page} of {totalPages}
       </span>
 
       {page < totalPages ? (
-        <Link href={href(page + 1)} className={buttonClass}>
-          Next →
+        <Link href={href(page + 1)} rel="next" className={enabled}>
+          Next
+          <ChevronRight size={16} aria-hidden />
         </Link>
       ) : (
-        <span aria-disabled className={disabledClass}>
-          Next →
+        <span aria-disabled className={disabled}>
+          Next
+          <ChevronRight size={16} aria-hidden />
         </span>
       )}
     </nav>

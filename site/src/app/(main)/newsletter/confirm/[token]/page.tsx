@@ -40,17 +40,14 @@ export default async function ConfirmSubscriptionPage({
         title="Link invalid"
         subtitle="This confirmation link is invalid or has expired."
       >
-        <div className="space-y-5">
-          <div className="flex items-center gap-3 text-fg-muted">
-            <XCircle size={28} className="shrink-0 text-red-400" />
-            <p className="text-sm">
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <XCircle size={28} aria-hidden className="shrink-0 text-negative" />
+            <p className="body-s text-text-3">
               The link may have been used already, or the subscription was cancelled.
             </p>
           </div>
-          <Link
-            href="/newsletter"
-            className="chamfer-tr inline-block bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
-          >
+          <Link href="/newsletter" className="btn btn-md btn-brand">
             Subscribe again
           </Link>
         </div>
@@ -63,25 +60,19 @@ export default async function ConfirmSubscriptionPage({
       title="Subscription confirmed"
       subtitle="You're on the grid — see you on race week."
     >
-      <div className="space-y-5">
+      <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <CheckCircle2 size={28} className="shrink-0 text-emerald-400" />
-          <p className="text-sm text-fg-muted">
-            <strong className="text-white">{confirmedEmail}</strong> will now receive the race
-            week briefing.
+          <CheckCircle2 size={28} aria-hidden className="shrink-0 text-positive" />
+          <p className="body-s text-text-3">
+            <strong className="font-bold text-text-5">{confirmedEmail}</strong> will now receive
+            the race week briefing.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link
-            href="/"
-            className="chamfer-tr inline-block bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
-          >
+          <Link href="/" className="btn btn-md btn-brand">
             Back to the homepage
           </Link>
-          <Link
-            href="/account"
-            className="chamfer-tr inline-block border border-line bg-panel px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-fg-muted transition-colors hover:border-accent hover:text-accent"
-          >
+          <Link href="/account" className="btn btn-md btn-stroke">
             My account
           </Link>
         </div>

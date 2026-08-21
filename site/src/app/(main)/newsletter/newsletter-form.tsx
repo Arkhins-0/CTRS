@@ -56,7 +56,7 @@ export function NewsletterForm({ defaultEmail }: { defaultEmail: string | null }
 
       <SubmitButton label="Subscribe" pendingLabel="Subscribing…" className="w-full" />
 
-      <p className="text-xs text-fg-faint">
+      <p className="body-xs text-text-3">
         One email per race week. Unsubscribe any time from your account.
       </p>
     </form>

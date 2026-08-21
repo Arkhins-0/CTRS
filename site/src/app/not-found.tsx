@@ -11,30 +11,27 @@ export const metadata: Metadata = {
  */
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-carbon-fibre px-4 py-16 text-center text-white">
-      <Link href="/" className="flex items-center gap-2">
-        <span className="chamfer-tr bg-accent px-2.5 py-1 text-lg font-black uppercase italic leading-none text-accent-fg">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-surface-3 px-6 py-16 text-center">
+      <Link href="/" aria-label="CTR Sports home" className="flex items-center gap-1.5">
+        <span className="rounded-sm bg-brand px-1.5 py-0.5 font-display text-base font-black italic leading-5 text-brand-fg">
           CTR
         </span>
-        <span className="text-lg font-black uppercase tracking-wider text-white">Sports</span>
+        <span className="font-display text-base font-medium uppercase leading-5 tracking-wide text-text-5">
+          Sports
+        </span>
       </Link>
 
-      <h1 className="mt-6 text-[8rem] font-black italic leading-none tracking-tight text-accent sm:text-[12rem]">
-        404
-      </h1>
+      <h1 className="display-4xl lg:display-5xl mt-8 font-black text-brand">404</h1>
 
-      <p className="mt-2 text-2xl font-black uppercase tracking-tight sm:text-3xl">
+      <p className="display-l lg:display-xl mt-2 font-black uppercase text-text-5">
         The chequered flag came out early
       </p>
-      <p className="mt-3 max-w-md text-sm leading-relaxed text-fg-muted">
+      <p className="body-m mt-3 max-w-[680px] text-text-3">
         The page you&apos;re looking for has retired from the race — it may have been moved,
         deleted, or never made it to the grid.
       </p>
 
-      <Link
-        href="/"
-        className="chamfer-tr mt-8 bg-accent px-6 py-3 text-sm font-black uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
-      >
+      <Link href="/" className="btn btn-md btn-brand mt-8">
         Back to the home straight
       </Link>
     </main>

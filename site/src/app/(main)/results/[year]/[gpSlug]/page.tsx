@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CountryFlag } from "@ctr/ui";
-import { CategoryTabBar, StatusChip } from "@/components/racing/category-ui";
-import { CountdownBoxes } from "@/components/racing/countdown";
+import { InlineCountdown } from "@/components/racing/countdown";
 import {
-  getCategories,
   getGpDetail,
+  getSeasonRounds,
+  getSeasonYears,
   getSessionClassification,
+  type GpSessionInfo,
 } from "@/components/racing/data";
-import { LocalTime } from "@/components/racing/local-time";
 import {
   formatDate,
   formatDateRange,
@@ -17,11 +17,12 @@ import {
   SESSION_ORDER,
   sessionDisplayLabel,
 } from "@/components/racing/meta";
-import { ResultsTable } from "@/components/racing/results-table";
+import { ResultsHub } from "@/components/racing/results-hub";
+import { FilterDropdown, ResultsTable } from "@/components/racing/results-table";
 
 type Props = {
   params: Promise<{ year: string; gpSlug: string }>;
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ session?: string; category?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -37,140 +38,137 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function RoundResultsPage({ params, searchParams }: Props) {
-  const [{ year: yearParam, gpSlug }, { category: categoryParam }] = await Promise.all([
-    params,
-    searchParams,
-  ]);
+  const [{ year: yearParam, gpSlug }, { session: sessionParam, category: categoryParam }] =
+    await Promise.all([params, searchParams]);
   const year = Number(yearParam);
   if (!Number.isInteger(year)) notFound();
 
-  const [gp, categories] = await Promise.all([getGpDetail(year, gpSlug), getCategories()]);
+  const [gp, years, rounds] = await Promise.all([
+    getGpDetail(year, gpSlug),
+    getSeasonYears(),
+    getSeasonRounds(year),
+  ]);
   if (!gp) notFound();
 
-  // Which categories have any results this weekend?
-  const resultsByCategory = new Set(
-    gp.sessions.filter((s) => s.hasResults && s.category).map((s) => s.category?.id),
+  /* ── Session selection (searchParams-driven, server-rendered links) ──────
+     ?session=<id> picks a classification directly; ?category=<slug> (legacy
+     links) narrows the default. Fallback = the newest headline session with
+     results (Race 2 → Race 1 → Qualifying → Practice, flagship class first). */
+  const withResults = gp.sessions.filter((s) => s.hasResults);
+  const newestFirst = [...withResults].sort(
+    (a, b) =>
+      SESSION_ORDER[b.type] - SESSION_ORDER[a.type] ||
+      b.sequence - a.sequence ||
+      (a.category?.sort ?? 999) - (b.category?.sort ?? 999),
   );
-
-  // Active tab: ?category= → first category with results → first category.
-  const activeCategory =
-    categories.find((c) => c.slug === categoryParam) ??
-    categories.find((c) => resultsByCategory.has(c.id)) ??
-    categories[0] ??
+  const selected =
+    withResults.find((s) => s.id === sessionParam) ??
+    newestFirst.find((s) => s.category?.slug === categoryParam) ??
+    newestFirst[0] ??
     null;
 
-  // This category's sessions with results, newest first (R2 → R1 → Q → P).
-  const categorySessions = activeCategory
-    ? gp.sessions
-        .filter((s) => s.category?.id === activeCategory.id && s.hasResults)
-        .sort(
-          (a, b) => SESSION_ORDER[b.type] - SESSION_ORDER[a.type] || b.sequence - a.sequence,
-        )
-    : [];
+  const rows = selected ? await getSessionClassification(selected.id) : [];
 
-  const classifications = await Promise.all(
-    categorySessions.map((s) => getSessionClassification(s.id)),
-  );
+  /* Session labels: the stored label ("ISC — Race 1") wins; when the weekend
+     is multi-class and the label lacks the class, prefix its shortName. */
+  const multiClass =
+    new Set(withResults.map((s) => s.category?.id).filter(Boolean)).size > 1;
+  const sessionLabel = (s: GpSessionInfo): string => {
+    const label = sessionDisplayLabel(s);
+    if (
+      multiClass &&
+      s.category &&
+      !label.toLowerCase().includes(s.category.shortName.toLowerCase())
+    ) {
+      return `${s.category.shortName} — ${label}`;
+    }
+    return label;
+  };
 
   const lightsOutDate = gp.firstRaceStartsAt
     ? istDateKey(gp.firstRaceStartsAt)
     : (gp.startDate ?? null);
 
   return (
-    <div className="bg-page">
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        {/* Breadcrumb + header */}
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-fg-faint">
-          <Link href={`/results/${year}`} className="hover:text-accent">
-            {year} Results
-          </Link>{" "}
-          <span aria-hidden>/</span> Round {gp.round}
-        </p>
-
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="flex items-center gap-3 border-l-4 border-accent pl-3 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
-              {gp.name}
-              <CountryFlag code={gp.circuit.countryCode} className="text-2xl" />
-            </h1>
-            <p className="mt-1 pl-4 text-sm font-semibold text-fg-muted">
-              {gp.circuit.name}
-              {gp.circuit.locality ? `, ${gp.circuit.locality}` : ""}
-              {" · "}
-              {formatDateRange(gp.startDate, gp.endDate) || "Dates TBC"}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <StatusChip status={gp.status} />
-            <Link
-              href={`/schedule/${gp.seasonYear}/${gp.slug}`}
-              className="text-xs font-black uppercase tracking-wider text-accent hover:text-accent-dark"
-            >
-              Race Weekend <span aria-hidden>→</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Category tabs */}
-        <div className="mt-8">
-          <CategoryTabBar
-            categories={categories}
-            activeSlug={activeCategory?.slug ?? null}
-            hrefFor={(slug) => `/results/${year}/${gp.slug}?category=${slug}`}
+    <ResultsHub
+      year={year}
+      years={years}
+      active="races"
+      title={gp.officialName ?? gp.name}
+      filters={
+        <>
+          {/* Race selector — every round of the season */}
+          <FilterDropdown
+            ariaLabel="Choose a Grand Prix"
+            label={gp.name}
+            options={rounds.map((r) => ({
+              key: r.id,
+              label: (
+                <>
+                  <CountryFlag code={r.countryCode} className="text-base leading-none" />
+                  {r.name}
+                </>
+              ),
+              href: r.hasResults
+                ? `/results/${year}/${r.slug}`
+                : `/schedule/${year}/${r.slug}`,
+              active: r.slug === gp.slug,
+            }))}
           />
-        </div>
+          {/* Session selector — this weekend's classifications */}
+          {selected ? (
+            <FilterDropdown
+              ariaLabel="Choose a session"
+              label={sessionLabel(selected)}
+              options={withResults.map((s) => ({
+                key: s.id,
+                label: sessionLabel(s),
+                href: `/results/${year}/${gp.slug}?session=${s.id}`,
+                active: s.id === selected.id,
+              }))}
+            />
+          ) : null}
+          {/* Big country flag, right edge of the filter row (spec §5.1) */}
+          <CountryFlag
+            code={gp.circuit.countryCode}
+            className="ml-auto text-4xl leading-none"
+          />
+        </>
+      }
+    >
+      {/* Meta block under the H1: date range + circuit line (spec §5.2) */}
+      <div className="-mt-3 mb-6 flex flex-col gap-1.5 text-text-3">
+        <p className="display-s font-medium uppercase">
+          {formatDateRange(gp.startDate, gp.endDate) || "Dates TBC"}
+        </p>
+        <p className="body-xs font-semibold">
+          {gp.circuit.name}
+          {gp.circuit.locality ? `, ${gp.circuit.locality}` : ""}
+          {gp.circuit.country ? `, ${gp.circuit.country}` : ""}
+        </p>
+      </div>
 
-        {/* Classifications */}
-        {!gp.hasAnyResults ? (
-          <section className="chamfer-tr mt-8 flex flex-col items-center border border-line bg-surface px-6 py-12 text-center">
-            <p className="text-2xl font-black uppercase tracking-tight text-white">
-              No results yet
-            </p>
-            <p className="mt-2 max-w-md text-sm font-semibold text-fg-muted">
-              Lights out on {formatDate(lightsOutDate)} at {gp.circuit.name}
-              {gp.circuit.locality ? `, ${gp.circuit.locality}` : ""}.
-            </p>
-            {gp.firstRaceStartsAt ? (
-              <CountdownBoxes targetIso={gp.firstRaceStartsAt} className="mt-8" />
-            ) : null}
-            <Link
-              href={`/schedule/${gp.seasonYear}/${gp.slug}`}
-              className="chamfer-tr mt-8 inline-flex items-center gap-2 bg-accent px-4 py-2 text-xs font-black uppercase tracking-wider text-accent-fg transition-colors hover:bg-accent-dark"
-              style={{ ["--chamfer" as string]: "8px" }}
-            >
-              Weekend Timetable <span aria-hidden>→</span>
-            </Link>
-          </section>
-        ) : categorySessions.length === 0 ? (
-          <p className="chamfer-tr mt-8 border border-line bg-surface p-6 text-fg-muted">
-            No {activeCategory?.shortName ?? ""} classifications are available for this round yet
-            — check another category.
+      {selected ? (
+        <ResultsTable rows={rows} sessionType={selected.type} />
+      ) : (
+        /* Empty state: no classifications yet — countdown to lights out */
+        <div className="flex flex-col items-start gap-4 rounded-md bg-surface-1 px-6 py-8 md:px-8 md:py-10">
+          <p className="display-l font-black uppercase text-text-5">No results yet</p>
+          <p className="body-s text-text-3">
+            Lights out on {formatDate(lightsOutDate)} at {gp.circuit.name}
+            {gp.circuit.locality ? `, ${gp.circuit.locality}` : ""}. Classifications
+            will appear here as soon as the sessions run.
           </p>
-        ) : (
-          <div className="mt-8 space-y-10">
-            {categorySessions.map((session, i) => (
-              <section key={session.id}>
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                  <h2
-                    className="border-l-4 pl-3 text-xl font-black uppercase tracking-tight text-white sm:text-2xl"
-                    style={{ borderColor: activeCategory?.color ?? "var(--color-accent)" }}
-                  >
-                    {sessionDisplayLabel(session)}
-                  </h2>
-                  {session.startsAt ? (
-                    <p className="text-xs font-bold uppercase tracking-wider text-fg-faint">
-                      <LocalTime iso={session.startsAt} />
-                    </p>
-                  ) : null}
-                </div>
-                <div className="mt-4">
-                  <ResultsTable rows={classifications[i] ?? []} sessionType={session.type} />
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+          {gp.firstRaceStartsAt ? (
+            <p className="body-s font-bold text-text-5">
+              <InlineCountdown targetIso={gp.firstRaceStartsAt} />
+            </p>
+          ) : null}
+          <Link href={`/schedule/${gp.seasonYear}/${gp.slug}`} className="btn btn-md btn-stroke">
+            Weekend schedule <span aria-hidden>→</span>
+          </Link>
+        </div>
+      )}
+    </ResultsHub>
   );
 }

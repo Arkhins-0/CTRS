@@ -10,7 +10,7 @@ export type CategoryRef = {
   color: string;
 };
 
-/** Small outlined badge in the category's colour (shortName). */
+/** Small tag in the category's colour (shortName). */
 export function CategoryBadge({
   category,
   className = "",
@@ -20,7 +20,7 @@ export function CategoryBadge({
 }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${className}`}
+      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-xs border px-1.5 py-0.5 text-[11px] font-bold uppercase leading-4 ${className}`}
       style={{ borderColor: category.color, color: category.color }}
     >
       {category.shortName}
@@ -40,9 +40,9 @@ export function CategoryDot({ color, className = "" }: { color: string; classNam
 }
 
 /**
- * F1.com-style category tab bar: uppercase tabs on a hairline, the active tab
- * gets white text + accent underline. Server component — hrefFor never
- * crosses a client boundary.
+ * F1-style underline tab bar: Titillium tabs sitting on a hairline, the
+ * active tab gets strong text + a 2px brand underline. Server component —
+ * hrefFor never crosses a client boundary.
  */
 export function CategoryTabBar({
   categories,
@@ -57,7 +57,7 @@ export function CategoryTabBar({
 }) {
   if (!categories.length) return null;
   return (
-    <nav aria-label={ariaLabel} className="flex overflow-x-auto border-b border-line">
+    <nav aria-label={ariaLabel} className="flex overflow-x-auto">
       {categories.map((c) => {
         const active = c.slug === activeSlug;
         return (
@@ -66,10 +66,10 @@ export function CategoryTabBar({
             href={hrefFor(c.slug)}
             aria-current={active ? "page" : undefined}
             title={c.name}
-            className={`-mb-px flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors sm:px-4 ${
+            className={`body-m-compact flex flex-1 shrink-0 items-center justify-center gap-2 whitespace-nowrap px-4 py-2 text-center transition-colors duration-500 md:px-6 ${
               active
-                ? "border-accent text-white"
-                : "border-transparent text-fg-faint hover:text-fg-muted"
+                ? "border-b-2 border-brand font-bold text-text-5"
+                : "border-b border-surface-4 font-semibold text-text-3 hover:border-surface-6 hover:text-text-5"
             }`}
           >
             <CategoryDot color={c.color} className="h-2 w-2" />
@@ -82,8 +82,8 @@ export function CategoryTabBar({
 }
 
 /**
- * Pill row (All + category shortNames in their colours). Active pill is
- * filled with the category colour; "All" fills with the accent.
+ * Pill row (All + category shortNames in their colours). Pills are fully
+ * round per the design system; the active pill fills with its colour.
  */
 export function CategoryPills({
   categories,
@@ -102,21 +102,17 @@ export function CategoryPills({
 }) {
   if (!categories.length) return null;
   const pill =
-    "chamfer-tr shrink-0 px-3 py-1 text-xs font-bold uppercase tracking-wide transition-colors";
+    "body-xs shrink-0 rounded-full px-4 py-2 font-bold transition-colors";
   return (
-    <nav
-      aria-label={ariaLabel}
-      className="flex flex-wrap items-center gap-1.5"
-      style={{ ["--chamfer" as string]: "8px" }}
-    >
+    <nav aria-label={ariaLabel} className="flex flex-wrap items-center gap-2">
       {allHref ? (
         <Link
           href={allHref}
           aria-current={activeSlug === null ? "page" : undefined}
           className={`${pill} ${
             activeSlug === null
-              ? "bg-accent text-accent-fg"
-              : "border border-line bg-surface text-fg-muted hover:border-accent hover:text-white"
+              ? "bg-brand text-brand-fg"
+              : "text-text-5 shadow-[inset_0_0_0_2px_var(--f1-text-5)] hover:bg-black/10"
           }`}
         >
           {allLabel}
@@ -130,13 +126,14 @@ export function CategoryPills({
             href={hrefFor(c.slug)}
             aria-current={active ? "page" : undefined}
             title={c.name}
-            className={`${pill} border`}
+            className={`${pill} flex items-center gap-2 ${active ? "" : "text-text-5 shadow-[inset_0_0_0_2px_var(--f1-surface-4)] hover:bg-black/10"}`}
             style={
               active
-                ? { backgroundColor: c.color, borderColor: c.color, color: readableOn(c.color) }
-                : { borderColor: c.color, color: c.color }
+                ? { backgroundColor: c.color, color: readableOn(c.color) }
+                : undefined
             }
           >
+            {active ? null : <CategoryDot color={c.color} className="h-2 w-2" />}
             {c.shortName}
           </Link>
         );
@@ -145,7 +142,7 @@ export function CategoryPills({
   );
 }
 
-/** Round/GP status chip on the dark theme. */
+/** Round/GP status tag on any surface. */
 export function StatusChip({
   status,
   className = "",
@@ -154,10 +151,10 @@ export function StatusChip({
   className?: string;
 }) {
   const styles: Record<typeof status, string> = {
-    scheduled: "border border-line text-fg-muted",
-    live: "bg-emerald-600 text-white",
-    completed: "bg-accent text-accent-fg",
-    cancelled: "border border-line text-fg-faint line-through",
+    scheduled: "border border-surface-6 text-text-3",
+    live: "bg-live-blue text-white",
+    completed: "bg-black/10 text-text-5",
+    cancelled: "border border-surface-6 text-text-3 line-through",
   };
   const labels: Record<typeof status, string> = {
     scheduled: "Scheduled",
@@ -167,9 +164,11 @@ export function StatusChip({
   };
   return (
     <span
-      className={`chamfer-tr inline-flex items-center px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${styles[status]} ${className}`}
-      style={{ ["--chamfer" as string]: "6px" }}
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-sm px-2 py-1 text-[11px] font-bold uppercase leading-4 ${styles[status]} ${className}`}
     >
+      {status === "live" ? (
+        <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+      ) : null}
       {labels[status]}
     </span>
   );

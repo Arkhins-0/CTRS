@@ -1,4 +1,14 @@
-import { Exo_2, JetBrains_Mono } from "next/font/google";
+import { Exo_2, JetBrains_Mono, Titillium_Web } from "next/font/google";
+
+/** F1.com's secondary/body face — pairs with the self-hosted Formula1 display
+ *  family declared in the site's globals.css (@font-face → /fonts/formula1). */
+export const titillium = Titillium_Web({
+  subsets: ["latin"],
+  weight: ["300", "400", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-titillium",
+  display: "swap",
+});
 
 export const exo2 = Exo_2({
   subsets: ["latin"],

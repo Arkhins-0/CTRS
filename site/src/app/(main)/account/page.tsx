@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { Bookmark, Heart, LogOut, Mail, Trophy } from "lucide-react";
+import { Bookmark, ChevronRight, Heart, LogOut, Mail, Trophy } from "lucide-react";
 import { db, newsletterSubscribers } from "@ctr/db";
-import { ChamferCard, CountryFlag, SectionHeading } from "@ctr/ui";
+import { CountryFlag } from "@ctr/ui";
 import { requireFan } from "@/lib/fan-auth";
+import { AccountNav } from "@/components/fanzone/account-nav";
 import { Chip } from "@/components/fanzone/chip";
 import { DevNote } from "@/components/fanzone/dev-note";
 import { SubmitButton } from "@/components/fanzone/submit-button";
@@ -49,64 +50,65 @@ export default async function AccountPage() {
   const subStatus = subscription?.status ?? "none";
 
   return (
-    <>
+    <main className="bg-surface-3 pb-16">
+      <AccountNav active="/account" />
+
       {/* greeting band */}
-      <div className="border-b-4 border-accent bg-carbon-fibre">
-        <div className="mx-auto max-w-7xl px-4 py-10">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-accent">Fan zone</p>
-          <div className="mt-1 flex flex-wrap items-end justify-between gap-4">
-            <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
-              Hello, {fan.displayName} <CountryFlag code={fan.countryCode} />
-            </h1>
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="chamfer-tr inline-flex items-center gap-2 border border-line bg-panel px-4 py-2 text-xs font-bold uppercase tracking-wide text-fg-muted transition-colors hover:border-accent hover:text-white"
-              >
-                <LogOut size={14} /> Sign out
-              </button>
-            </form>
-          </div>
-          <p className="mt-1 text-sm font-semibold text-fg-faint">{fan.email}</p>
+      <div className="f1-inner pt-8">
+        <p className="display-s font-medium uppercase text-brand">Fan zone</p>
+        <div className="mt-1 flex flex-wrap items-end justify-between gap-4">
+          <h1 className="display-xl lg:display-2xl font-black uppercase text-text-5">
+            Hello, {fan.displayName} <CountryFlag code={fan.countryCode} />
+          </h1>
+          <form action={signOut}>
+            <button type="submit" className="btn btn-sm btn-stroke">
+              <LogOut size={14} aria-hidden /> Sign out
+            </button>
+          </form>
         </div>
+        <p className="body-xs mt-2 font-semibold text-text-3">{fan.email}</p>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
+      <div className="f1-inner pt-8">
         {/* quick links */}
         <div className="grid gap-4 sm:grid-cols-3">
           {CARDS.map(({ href, title, description, Icon }) => (
-            <Link key={href} href={href} className="group">
-              <ChamferCard className="h-full border border-line bg-surface p-5 transition-all group-hover:-translate-y-0.5 group-hover:border-accent">
-                <Icon size={22} className="text-accent" />
-                <h2 className="mt-3 text-base font-black uppercase tracking-tight text-white transition-colors group-hover:text-accent">
-                  {title}
-                </h2>
-                <p className="mt-1 text-sm text-fg-muted">{description}</p>
-              </ChamferCard>
+            <Link
+              key={href}
+              href={href}
+              className="group flex h-full flex-col rounded-md bg-surface-1 p-6 transition-colors hover:bg-surface-2"
+            >
+              <Icon size={24} aria-hidden className="text-brand" />
+              <h2 className="display-m mt-4 font-medium uppercase text-text-5">{title}</h2>
+              <p className="body-xs mt-1.5 text-text-3">{description}</p>
+              <span className="body-xs mt-auto flex items-center justify-between pt-6 font-bold uppercase text-text-3 transition-colors group-hover:text-text-5">
+                Open
+                <ChevronRight size={20} aria-hidden className="text-text-5" />
+              </span>
             </Link>
           ))}
         </div>
 
         {/* profile */}
-        <SectionHeading className="mt-12">Profile</SectionHeading>
-        <ChamferCard className="mt-6 max-w-xl border border-line bg-surface p-6">
+        <h2 className="display-l mt-12 font-black uppercase text-text-5">Profile</h2>
+        <div className="mt-4 max-w-xl rounded-md bg-surface-1 p-6">
           <ProfileForm
             defaultDisplayName={fan.displayName}
             defaultCountryCode={fan.countryCode}
           />
-        </ChamferCard>
+        </div>
 
         {/* newsletter */}
-        <SectionHeading className="mt-12">Newsletter</SectionHeading>
-        <ChamferCard className="mt-6 max-w-xl border border-line bg-surface p-6">
+        <h2 className="display-l mt-12 font-black uppercase text-text-5">Newsletter</h2>
+        <div className="mt-4 max-w-xl rounded-md bg-surface-1 p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Mail size={20} className="shrink-0 text-accent" />
+              <Mail size={20} aria-hidden className="shrink-0 text-brand" />
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-white">
+                <p className="display-m font-medium uppercase text-text-5">
                   Race week newsletter
                 </p>
-                <p className="text-sm text-fg-muted">{fan.email}</p>
+                <p className="body-xs mt-0.5 text-text-3">{fan.email}</p>
               </div>
             </div>
             {subStatus === "confirmed" ? (
@@ -126,7 +128,7 @@ export default async function AccountPage() {
             </div>
           ) : null}
 
-          <div className="mt-5">
+          <div className="mt-6">
             {subStatus === "confirmed" || subStatus === "pending" ? (
               <form action={unsubscribeNewsletter}>
                 <SubmitButton tone="ghost" label="Unsubscribe" pendingLabel="Working…" />
@@ -137,8 +139,8 @@ export default async function AccountPage() {
               </form>
             )}
           </div>
-        </ChamferCard>
-      </main>
-    </>
+        </div>
+      </div>
+    </main>
   );
 }

@@ -2,6 +2,12 @@ import Link from "next/link";
 import { mediaUrl } from "@/lib/media";
 import { ArticleBody } from "./article-body";
 
+/* ── CMS content blocks in the F1.com 2026 band system ─────────────────────
+   Every block is a full-width band (dark hero, warm CTA, white content) with
+   an `.f1-inner` gutter; reading copy is capped at 680px, media is rounded-md
+   and nothing carries a shadow. Kept synchronous — media rows and sponsors
+   are resolved by the page inside its cached() bundle. ───────────────────── */
+
 /* ── Block data shapes (contentBlocks.data jsonb) ────────────────────────── */
 
 type HeroData = { kicker?: string; heading?: string; sub?: string };
@@ -46,16 +52,17 @@ export type BlockSponsor = {
 
 function HeroBlock({ data, pageTitle }: { data: HeroData; pageTitle: string }) {
   return (
-    <section className="border-b border-line bg-carbon-fibre">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:py-20">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-accent">
+    <section className="dark-section bg-surface-3">
+      <div className="f1-inner py-12 lg:py-16">
+        <p className="display-s font-normal uppercase text-brand">
           {data.kicker ?? "CTR Sports"}
         </p>
-        <h1 className="mt-3 max-w-3xl text-4xl font-black uppercase leading-tight tracking-tight text-white sm:text-5xl">
+        <h1 className="display-2xl lg:display-3xl mt-3 max-w-3xl font-black uppercase text-text-5">
           {data.heading ?? pageTitle}
         </h1>
-        {data.sub ? <p className="mt-4 max-w-2xl text-lg text-fg-muted">{data.sub}</p> : null}
-        <div className="mt-6 h-1 w-24 bg-accent" aria-hidden />
+        {data.sub ? (
+          <p className="body-m mt-4 max-w-[680px] text-text-3">{data.sub}</p>
+        ) : null}
       </div>
     </section>
   );
@@ -68,28 +75,30 @@ function ImageFigure({ item, media }: { item: ImageItem; media: BlockMedia | und
   return (
     <figure>
       {/* CMS images have unknown dimensions — plain <img> by design */}
-      <img src={src} alt={item.alt ?? media?.alt ?? ""} className="chamfer-tr h-auto w-full" />
+      <img
+        src={src}
+        alt={item.alt ?? media?.alt ?? ""}
+        className="h-auto w-full rounded-md object-cover"
+      />
       {caption ? (
-        <figcaption className="mt-2 text-sm text-fg-faint">{caption}</figcaption>
+        <figcaption className="body-xs mt-2 text-text-3">{caption}</figcaption>
       ) : null}
     </figure>
   );
 }
 
 function CtaBlock({ data }: { data: CtaData }) {
+  if (!data.heading && !(data.href && data.buttonLabel)) return null;
   return (
-    <section className="my-12 border-y border-line bg-carbon-fibre">
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 py-12 text-center">
+    <section className="bg-surface-3">
+      <div className="f1-inner flex flex-col items-center gap-6 py-12 text-center lg:py-16">
         {data.heading ? (
-          <h2 className="max-w-2xl text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
+          <h2 className="display-xl lg:display-2xl max-w-2xl font-black uppercase text-text-5">
             {data.heading}
           </h2>
         ) : null}
         {data.href && data.buttonLabel ? (
-          <Link
-            href={data.href}
-            className="chamfer-tr bg-accent px-8 py-3 text-sm font-black uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
-          >
+          <Link href={data.href} className="btn btn-md btn-brand">
             {data.buttonLabel}
           </Link>
         ) : null}
@@ -102,26 +111,28 @@ function FaqBlock({ data }: { data: FaqData }) {
   const items = data.items ?? [];
   if (!items.length) return null;
   return (
-    <div className="mx-auto my-10 max-w-3xl px-4">
-      <div className="chamfer-tr overflow-hidden border border-line bg-surface">
-        {items.map((item, i) => (
-          <details key={i} className="group border-b border-line last:border-b-0">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-black uppercase tracking-tight text-white transition-colors hover:text-accent">
-              {item.q}
-              <span
-                aria-hidden
-                className="text-lg font-black text-accent transition-transform group-open:rotate-45"
-              >
-                +
-              </span>
-            </summary>
-            <div className="px-5 pb-5 text-[15px] leading-relaxed text-fg-muted">
-              <p>{item.a}</p>
-            </div>
-          </details>
-        ))}
+    <section className="bg-surface-1">
+      <div className="f1-inner py-8">
+        <div className="mx-auto max-w-3xl overflow-hidden rounded-md bg-surface-3">
+          {items.map((item, i) => (
+            <details key={i} className="group border-b border-surface-4 last:border-b-0">
+              <summary className="body-m-compact flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-bold text-text-5 [&::-webkit-details-marker]:hidden">
+                {item.q}
+                <span
+                  aria-hidden
+                  className="display-l shrink-0 font-medium text-brand transition-transform group-open:rotate-45"
+                >
+                  +
+                </span>
+              </summary>
+              <div className="body-s px-5 pb-5 text-text-3">
+                <p>{item.a}</p>
+              </div>
+            </details>
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -137,15 +148,13 @@ function SponsorTierRow({
   if (!sponsors.length) return null;
   return (
     <div>
-      <p className="text-center text-[11px] font-bold uppercase tracking-[0.25em] text-fg-faint">
-        {label}
-      </p>
-      <ul className="mt-5 flex flex-wrap items-stretch justify-center gap-4">
+      <p className="display-s text-center font-medium uppercase text-text-3">{label}</p>
+      <ul className="mt-6 flex flex-wrap items-stretch justify-center gap-4">
         {sponsors.map((s) => {
           const logo = mediaUrl(s.logo?.path);
           const card = (
             <span
-              className={`chamfer-tr flex h-full items-center justify-center border border-line bg-surface transition-all duration-200 hover:-translate-y-0.5 hover:border-accent ${
+              className={`flex h-full items-center justify-center rounded-md bg-surface-3 transition-colors hover:bg-surface-4 ${
                 size === "lg" ? "min-w-[180px] px-8 py-6" : "min-w-[140px] px-6 py-4"
               }`}
             >
@@ -158,8 +167,8 @@ function SponsorTierRow({
                 />
               ) : (
                 <span
-                  className={`font-black uppercase tracking-wider text-white ${
-                    size === "lg" ? "text-lg" : "text-sm"
+                  className={`font-medium uppercase text-text-5 ${
+                    size === "lg" ? "display-l" : "display-m"
                   }`}
                 >
                   {s.name}
@@ -185,16 +194,27 @@ function SponsorTierRow({
 }
 
 function SponsorGridBlock({ sponsors }: { sponsors: BlockSponsor[] }) {
-  const global = sponsors.filter((s) => s.tier === "global_partner");
-  const official = sponsors.filter((s) => s.tier === "official_partner");
-  const suppliers = sponsors.filter((s) => s.tier === "supplier");
   if (!sponsors.length) return null;
   return (
-    <div className="mx-auto my-10 max-w-7xl space-y-12 px-4">
-      <SponsorTierRow label="Title Partners" sponsors={global} size="lg" />
-      <SponsorTierRow label="CTR Associates" sponsors={official} size="sm" />
-      <SponsorTierRow label="Championship Partners" sponsors={suppliers} size="sm" />
-    </div>
+    <section className="bg-surface-1">
+      <div className="f1-inner flex flex-col gap-12 py-12">
+        <SponsorTierRow
+          label="Title Partners"
+          sponsors={sponsors.filter((s) => s.tier === "global_partner")}
+          size="lg"
+        />
+        <SponsorTierRow
+          label="CTR Associates"
+          sponsors={sponsors.filter((s) => s.tier === "official_partner")}
+          size="sm"
+        />
+        <SponsorTierRow
+          label="Championship Partners"
+          sponsors={sponsors.filter((s) => s.tier === "supplier")}
+          size="sm"
+        />
+      </div>
+    </section>
   );
 }
 
@@ -229,21 +249,29 @@ export function BlockRenderer({
             const { html } = block.data as RichTextData;
             if (!html) return null;
             return (
-              <div key={block.id} className="mx-auto my-10 max-w-3xl px-4">
-                <ArticleBody html={html} />
-              </div>
+              <section key={block.id} className="bg-surface-1">
+                <div className="f1-inner py-8">
+                  <div className="mx-auto max-w-[680px]">
+                    <ArticleBody html={html} />
+                  </div>
+                </div>
+              </section>
             );
           }
 
           case "image": {
             const item = block.data as ImageItem;
             return (
-              <div key={block.id} className="mx-auto my-10 max-w-4xl px-4">
-                <ImageFigure
-                  item={item}
-                  media={item.mediaId ? mediaById[item.mediaId] : undefined}
-                />
-              </div>
+              <section key={block.id} className="bg-surface-1">
+                <div className="f1-inner py-8">
+                  <div className="mx-auto max-w-4xl">
+                    <ImageFigure
+                      item={item}
+                      media={item.mediaId ? mediaById[item.mediaId] : undefined}
+                    />
+                  </div>
+                </div>
+              </section>
             );
           }
 
@@ -251,17 +279,19 @@ export function BlockRenderer({
             const { items = [] } = block.data as ImageGridData;
             if (!items.length) return null;
             return (
-              <div key={block.id} className="mx-auto my-10 max-w-5xl px-4">
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {items.map((item, i) => (
-                    <ImageFigure
-                      key={i}
-                      item={item}
-                      media={item.mediaId ? mediaById[item.mediaId] : undefined}
-                    />
-                  ))}
+              <section key={block.id} className="bg-surface-1">
+                <div className="f1-inner py-8">
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+                    {items.map((item, i) => (
+                      <ImageFigure
+                        key={i}
+                        item={item}
+                        media={item.mediaId ? mediaById[item.mediaId] : undefined}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </section>
             );
           }
 
@@ -278,11 +308,12 @@ export function BlockRenderer({
             const { html } = block.data as RawHtmlData;
             if (!html) return null;
             return (
-              <div
-                key={block.id}
-                className="mx-auto my-10 max-w-4xl px-4"
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
+              <section key={block.id} className="bg-surface-1">
+                <div
+                  className="f1-inner py-8"
+                  dangerouslySetInnerHTML={{ __html: html }}
+                />
+              </section>
             );
           }
 

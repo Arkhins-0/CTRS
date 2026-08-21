@@ -3,8 +3,8 @@ import { desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db, TAGS, videos } from "@ctr/db";
-import { SectionHeading } from "@ctr/ui";
-import { formatDuration, VideoCard, videoThumbUrl } from "@/components/news/video-card";
+import { VideoRailBand } from "@/components/home/video-rail";
+import { formatDuration, videoThumbUrl } from "@/components/news/video-card";
 import { cached } from "@/lib/cache";
 import { mediaUrl } from "@/lib/media";
 
@@ -24,10 +24,10 @@ function getVideoBundle(slug: string) {
       const relatedRaw = await db.query.videos.findMany({
         where: eq(videos.status, "published"),
         orderBy: [desc(videos.publishedAt)],
-        limit: 5, // one spare in case the current video is among the newest
+        limit: 7, // spare in case the current video is among the newest
         with: { thumbnail: true },
       });
-      const related = relatedRaw.filter((v) => v.id !== video.id).slice(0, 4);
+      const related = relatedRaw.filter((v) => v.id !== video.id).slice(0, 6);
 
       return { video, related };
     },
@@ -58,11 +58,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 function UnavailablePlayer() {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-carbon-fibre px-4 text-center">
-      <span className="text-sm font-black uppercase tracking-[0.25em] text-fg-faint">
-        Video unavailable
-      </span>
-      <span className="text-xs text-fg-muted">
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-static-10 px-4 text-center">
+      <span className="display-s font-medium uppercase text-static-5">Video unavailable</span>
+      <span className="body-xs text-static-5">
         This video can&apos;t be played right now — please check back later.
       </span>
     </div>
@@ -81,10 +79,10 @@ export default async function VideoPage({ params }: Props) {
 
   return (
     <main>
-      {/* player band */}
-      <div className="border-b border-line bg-surface">
-        <div className="mx-auto max-w-5xl sm:px-4 sm:py-8">
-          <div className="relative aspect-video w-full overflow-hidden bg-panel">
+      {/* Player band — always dark, like the F1 media pages */}
+      <div className="dark-section bg-surface-3">
+        <div className="f1-inner py-0 md:py-8">
+          <div className="relative mx-auto aspect-video w-full max-w-[1100px] overflow-hidden bg-black md:rounded-md">
             {video.provider === "youtube" ? (
               video.externalId ? (
                 <iframe
@@ -111,41 +109,29 @@ export default async function VideoPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="mx-auto max-w-5xl">
-          <h1 className="text-2xl font-black uppercase leading-tight tracking-tight text-white sm:text-3xl">
-            {video.title}
-          </h1>
-
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-semibold uppercase tracking-wide text-fg-faint">
-            {video.publishedAt ? (
-              <time dateTime={new Date(video.publishedAt).toISOString()}>
-                {format(new Date(video.publishedAt), "d MMMM yyyy")}
-              </time>
-            ) : null}
-            {duration ? <span>{duration}</span> : null}
-          </div>
-
-          {video.description ? (
-            <p className="mt-5 max-w-3xl text-[17px] leading-relaxed text-fg-muted">
-              {video.description}
-            </p>
-          ) : null}
-        </div>
-
-        {related.length ? (
-          <section className="mt-14">
-            <SectionHeading className="[&_h2]:border-accent [&_h2]:text-white">
-              More Videos
-            </SectionHeading>
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {related.map((v) => (
-                <VideoCard key={v.id} video={v} />
-              ))}
+      {/* Title + description */}
+      <div className="bg-surface-1">
+        <div className="f1-inner py-8 lg:py-12">
+          <div className="max-w-[680px]">
+            <h1 className="display-xl lg:display-2xl font-black uppercase text-text-5">
+              {video.title}
+            </h1>
+            <div className="body-xs mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-semibold uppercase text-text-3">
+              {video.publishedAt ? (
+                <time dateTime={new Date(video.publishedAt).toISOString()}>
+                  {format(new Date(video.publishedAt), "d MMMM yyyy")}
+                </time>
+              ) : null}
+              {duration ? <span className="font-digits">{duration}</span> : null}
             </div>
-          </section>
-        ) : null}
+            {video.description ? (
+              <p className="body-m mt-6 text-text-4">{video.description}</p>
+            ) : null}
+          </div>
+        </div>
       </div>
+
+      <VideoRailBand title="More videos" videos={related} dark={false} />
     </main>
   );
 }

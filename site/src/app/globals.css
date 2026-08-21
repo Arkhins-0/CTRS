@@ -2,8 +2,353 @@
 @import "../../../packages/ui/src/theme.css";
 @source "../../../packages/ui/src";
 
+/* ══════════════════════════════════════════════════════════════════════════
+   CTR Sports — F1.com 2026 ("f1rd") design system port.
+   Light-first warm surfaces, forced-dark chrome bars, Formula1 display type.
+
+   Conventions (match the design spec in every component):
+   - Formula1 face: "bold" = font-medium (500), "black" = font-black (900).
+   - Titillium: font-semibold (600) / font-bold (700).
+   - Radius: rounded-sm 4px tags · rounded-md 8px cards/tables · rounded-full
+     pills for ALL buttons. No drop shadows — depth comes from surface steps.
+   - Brand accent: --color-brand follows the CMS accent (--ctr-accent); set the
+     admin theme to #e10600 for the exact F1 hot-red look.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Self-hosted display faces (Titillium Web loads via next/font) ───────── */
+
+@font-face {
+  font-family: "Formula1";
+  src: url("/fonts/formula1/Formula1-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Formula1";
+  src: url("/fonts/formula1/Formula1-Bold.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Formula1";
+  src: url("/fonts/formula1/Formula1-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Formula1";
+  src: url("/fonts/formula1/Formula1-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Formula1Wide";
+  src: url("/fonts/formula1/Formula1-Wide.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+/* Handwritten script accent (driver-hero first names) */
+@font-face {
+  font-family: "Northwell";
+  src: url("/fonts/northwell/northwell.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Northwell Clean";
+  src: url("/fonts/northwell/northwell-clean.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+/* Timing/numeric face ("technical-*" roles) */
+@font-face {
+  font-family: "Formula1Digits";
+  src: url("/fonts/kh-interference-f1/KHInterferenceF1-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Formula1Digits";
+  src: url("/fonts/kh-interference-f1/KHInterferenceF1-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Semantic surface/text variables (light default; .dark-section forces the
+      dark chrome palette on any subtree — header nav, sponsor tiers). ─────── */
+
+:root {
+  --f1-surface-1: #ffffff;
+  --f1-surface-2: #f3f3f4;
+  --f1-surface-3: #f7f4f1;
+  --f1-surface-4: #e0dedc;
+  --f1-surface-5: #cdcdcd;
+  --f1-surface-6: #aaaaaa;
+  --f1-surface-7: #606066;
+  --f1-surface-8: #47464c;
+  --f1-surface-9: #303037;
+  --f1-surface-10: #15151e;
+  --f1-surface-11: #000000;
+  --f1-text-1: #ffffff;
+  --f1-text-2: #f7f4f1;
+  --f1-text-3: #606066;
+  --f1-text-4: #1c1c25;
+  --f1-text-5: #000000;
+}
+
+.dark-section {
+  --f1-surface-1: #000000;
+  --f1-surface-2: #26262b;
+  --f1-surface-3: #15151e;
+  --f1-surface-4: #303037;
+  --f1-surface-5: #47464c;
+  --f1-surface-6: #606066;
+  --f1-surface-7: #aaaaaa;
+  --f1-surface-8: #cdcdcd;
+  --f1-surface-9: #e0dedc;
+  --f1-surface-10: #f7f4f1;
+  --f1-surface-11: #ffffff;
+  --f1-text-1: #000000;
+  --f1-text-2: #15151e;
+  --f1-text-3: #aaaaaa;
+  --f1-text-4: #ffffff;
+  --f1-text-5: #ffffff;
+  color: var(--f1-text-4);
+}
+
+@theme inline {
+  /* Semantic (flip inside .dark-section) */
+  --color-surface-1: var(--f1-surface-1);
+  --color-surface-2: var(--f1-surface-2);
+  --color-surface-3: var(--f1-surface-3);
+  --color-surface-4: var(--f1-surface-4);
+  --color-surface-5: var(--f1-surface-5);
+  --color-surface-6: var(--f1-surface-6);
+  --color-surface-7: var(--f1-surface-7);
+  --color-surface-8: var(--f1-surface-8);
+  --color-surface-9: var(--f1-surface-9);
+  --color-surface-10: var(--f1-surface-10);
+  --color-surface-11: var(--f1-surface-11);
+  --color-text-1: var(--f1-text-1);
+  --color-text-2: var(--f1-text-2);
+  --color-text-3: var(--f1-text-3);
+  --color-text-4: var(--f1-text-4);
+  --color-text-5: var(--f1-text-5);
+
+  /* Brand accent — CMS-driven (admin theme setting), F1 hot red as fallback */
+  --color-brand: var(--ctr-accent, #e10600);
+  --color-brand-dark: var(--ctr-accent-dark, #ca0500);
+  --color-brand-fg: var(--ctr-accent-fg, #ffffff);
+
+  /* Fixed accents (never themed) */
+  --color-hot-red: #e10600;
+  --color-hot-red-dark: #ca0500;
+  --color-live-blue: #0076cc;
+  --color-live-blue-dark: #006ab8;
+  --color-breaking-yellow: #ffd100;
+  --color-spark-yellow: #e6f854;
+  --color-shift-green: #71cc98;
+  --color-tag-magenta: #e51073;
+  --color-warning-orange: #e66700;
+  --color-positive: #1a8930;
+  --color-negative: #e91711;
+
+  /* Static ramp (theme-independent) */
+  --color-static-1: #ffffff;
+  --color-static-2: #f7f4f1;
+  --color-static-3: #e0dedc;
+  --color-static-4: #cdcdcd;
+  --color-static-5: #aaaaaa;
+  --color-static-6: #606066;
+  --color-static-7: #47464c;
+  --color-static-8: #303037;
+  --color-static-9: #1c1c25;
+  --color-static-10: #15151e;
+  --color-static-11: #000000;
+
+  /* Typography */
+  --font-display: "Formula1", var(--font-titillium), "Segoe UI", sans-serif;
+  --font-wide: "Formula1Wide", "Formula1", var(--font-titillium), sans-serif;
+  --font-body: var(--font-titillium), "Titillium Web", "Segoe UI", sans-serif;
+  --font-digits: "Formula1Digits", "Consolas", monospace;
+  --font-numeric: "Formula1Digits", "Consolas", monospace;
+  --font-script: "Northwell", "Northwell Clean", cursive;
+
+  /* Breakpoints (F1 system: 735 / 1069 / 1696) */
+  --breakpoint-md: 735px;
+  --breakpoint-lg: 1069px;
+  --breakpoint-xl: 1696px;
+
+  /* Radius scale: tags 2/4 · cards 8 · large panels 16 · buttons = pill */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  /* Legacy token bridge — old classes resolve to the new light palette */
+  --color-page: var(--f1-surface-2);
+  --color-surface: var(--f1-surface-1);
+  --color-panel: var(--f1-surface-3);
+  --color-line: var(--f1-surface-4);
+  --color-fg-muted: var(--f1-text-3);
+  --color-fg-faint: var(--f1-surface-6);
+  --color-accent: var(--ctr-accent, #e10600);
+  --color-accent-dark: var(--ctr-accent-dark, #ca0500);
+  --color-accent-fg: var(--ctr-accent-fg, #ffffff);
+}
+
+/* ── Type roles (family + size + line-height; weight via utilities) ──────── */
+
+.display-s  { font-family: var(--font-display); font-size: 0.75rem;  line-height: 1rem; }
+.display-m  { font-family: var(--font-display); font-size: 1rem;     line-height: 1.375rem; }
+.display-l  { font-family: var(--font-display); font-size: 1.25rem;  line-height: 1.5rem; }
+.display-xl { font-family: var(--font-display); font-size: 1.5rem;   line-height: 1.75rem; }
+.display-2xl { font-family: var(--font-display); font-size: 2rem;    line-height: 2.375rem; }
+.display-3xl { font-family: var(--font-display); font-size: 2.5rem;  line-height: 2.75rem; }
+.display-4xl { font-family: var(--font-display); font-size: 3rem;    line-height: 3.25rem; }
+.display-5xl { font-family: var(--font-display); font-size: 3.75rem; line-height: 3.75rem; }
+
+.body-2xs { font-family: var(--font-body); font-size: 0.75rem;   line-height: 1rem; }
+.body-xs  { font-family: var(--font-body); font-size: 0.875rem;  line-height: 1rem; }
+.body-s   { font-family: var(--font-body); font-size: 1rem;      line-height: 1.5rem; }
+.body-m   { font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.75rem; }
+.body-m-compact { font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.5rem; }
+.body-l   { font-family: var(--font-body); font-size: 1.25rem;   line-height: 2rem; }
+
+.technical-2xs { font-family: var(--font-digits); font-size: 11px; line-height: 1; }
+.technical-xs  { font-family: var(--font-digits); font-size: 12px; line-height: 1; }
+.technical-s   { font-family: var(--font-digits); font-size: 14px; line-height: 1; }
+.technical-m   { font-family: var(--font-digits); font-size: 16px; line-height: 1; }
+.technical-l   { font-family: var(--font-digits); font-size: 20px; line-height: 1; }
+.technical-xl  { font-family: var(--font-digits); font-size: 24px; line-height: 1; }
+.technical-2xl { font-family: var(--font-digits); font-size: 28px; line-height: 1; }
+.technical-3xl { font-family: var(--font-digits); font-size: 36px; line-height: 1; }
+.technical-4xl { font-family: var(--font-digits); font-size: 44px; line-height: 1; }
+
+/* ── Container recipe: 24/32/48px gutters, 1600px cap ≥1696px ────────────── */
+
+.f1-inner {
+  margin-inline: 24px;
+}
+@media (min-width: 735px) {
+  .f1-inner { margin-inline: 32px; }
+}
+@media (min-width: 1069px) {
+  .f1-inner { margin-inline: 48px; }
+}
+@media (min-width: 1696px) {
+  .f1-inner { width: 1600px; margin-inline: auto; }
+}
+
+/* ── Buttons: every button is a pill; press = inset shadow + 1px nudge ───── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 1000px;
+  border: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1rem;
+  font-weight: 700;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--f1-text-5);
+  outline-offset: 2px;
+}
+.btn:active {
+  box-shadow: inset 3px 2px 6px #000;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-xs { padding: 4px 12px; }
+.btn-sm { padding: 8px 16px; }
+.btn-md { padding: 10px 28px; font-size: 1.0625rem; line-height: 1.5rem; }
+
+.btn-brand { background: var(--color-brand); color: var(--color-brand-fg); }
+.btn-brand:hover { background: var(--color-brand-dark); }
+.btn-black { background: #000; color: #fff; }
+.btn-black:hover { background: #333; }
+.btn-white { background: #fff; color: #000; }
+.btn-white:hover { background: #e5e5e5; }
+.btn-stroke {
+  background: transparent;
+  color: var(--f1-text-5);
+  box-shadow: inset 0 0 0 2px var(--f1-text-5);
+}
+.btn-stroke:hover { background: rgb(from var(--f1-text-5) r g b / 0.1); }
+.btn-stroke:active { box-shadow: inset 0 0 0 2px var(--f1-text-5), inset 3px 2px 6px #000; }
+.btn-ghost { background: transparent; color: var(--f1-text-5); }
+.btn-ghost:hover { background: rgb(from var(--f1-text-5) r g b / 0.1); }
+.btn-tonal { background: rgb(from var(--f1-text-5) r g b / 0.1); color: var(--f1-text-5); }
+.btn-tonal:hover { background: rgb(from var(--f1-text-5) r g b / 0.2); }
+.btn-live { background: #0076cc; color: #fff; }
+.btn-live:hover { background: #006ab8; }
+
+/* ── Decorative helpers ──────────────────────────────────────────────────── */
+
+/* Chequered-flag texture (nav bar backdrop) — pure CSS, no asset. */
+.chequer {
+  background-image: repeating-conic-gradient(currentColor 0% 25%, transparent 0% 50%);
+  background-size: 14px 14px;
+}
+
+/* DRS-style chevron pattern: the bright team colour punched through a repeating
+   diagonal mask and faded toward the left — stands in for F1's DRS-*.webp mask
+   assets (not distributable). Set --team on the element or an ancestor. */
+.drs {
+  background-color: var(--team, #ffffff);
+  mask-image:
+    repeating-linear-gradient(115deg, #000 0 13px, transparent 13px 42px),
+    linear-gradient(90deg, transparent 0%, #000 60%);
+  mask-composite: intersect;
+  -webkit-mask-image:
+    repeating-linear-gradient(115deg, #000 0 13px, transparent 13px 42px),
+    linear-gradient(90deg, transparent 0%, #000 60%);
+  -webkit-mask-composite: source-in;
+}
+
+/* Mirrored variant (team cards pin the strip to the bottom-right corner). */
+.drs-flip {
+  mask-image:
+    repeating-linear-gradient(65deg, #000 0 13px, transparent 13px 42px),
+    linear-gradient(270deg, transparent 0%, #000 60%);
+  -webkit-mask-image:
+    repeating-linear-gradient(65deg, #000 0 13px, transparent 13px 42px),
+    linear-gradient(270deg, transparent 0%, #000 60%);
+}
+
+/* Quiet hover conventions */
+.hover-tint { transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+.hover-tint:hover { background-color: rgb(from var(--f1-text-5) r g b / 0.1); }
+
+/* Card image zoom (pair with `group` on the card, `card-img` on the <img>) */
+.card-img { transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1); }
+.group:hover .card-img { transform: scale(1.1); }
+
 body {
   font-family: var(--font-body);
-  background-color: var(--color-page);
-  color: #ffffff;
+  background-color: var(--f1-surface-2);
+  color: var(--f1-text-4);
+  overflow-x: clip;
+}
+
+html {
+  scrollbar-gutter: stable;
 }
