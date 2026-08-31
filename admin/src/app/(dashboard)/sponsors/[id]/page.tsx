@@ -62,7 +62,7 @@ export default async function SponsorEditor({ params }: { params: Promise<{ id: 
               />
             </Field>
             <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-fg">
-              <input type="checkbox" name="isActive" defaultChecked={sponsor.isActive} className="size-4 accent-f1-red" />
+              <input type="checkbox" name="isActive" defaultChecked={sponsor.isActive} className="size-5 accent-accent" />
               Active — shown on the public site
             </label>
             <SubmitButton>Save sponsor</SubmitButton>

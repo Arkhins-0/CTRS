@@ -16,13 +16,61 @@ const TIER_LABELS: Record<string, string> = {
   supplier: "Supplier",
 };
 
+type SponsorRow = {
+  id: string;
+  name: string;
+  tier: string;
+  url: string | null;
+  sort: number;
+  isActive: boolean;
+  logo: { path: string; alt: string | null } | null;
+};
+
+function Logo({ sponsor, className }: { sponsor: SponsorRow; className: string }) {
+  if (!sponsor.logo) {
+    return (
+      <span
+        className={`flex items-center justify-center border border-dashed border-line text-[9px] font-bold uppercase text-fg-faint ${className}`}
+      >
+        None
+      </span>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={publicUrl(variantKey(sponsor.logo.path, "thumb"))}
+      alt={sponsor.logo.alt ?? sponsor.name}
+      className={`border border-line bg-surface object-contain p-0.5 ${className}`}
+    />
+  );
+}
+
+function ActiveToggle({ sponsor }: { sponsor: SponsorRow }) {
+  return (
+    <form action={toggleSponsorAction}>
+      <input type="hidden" name="sponsorId" value={sponsor.id} />
+      <button
+        className={`inline-block px-2 py-1 text-[11px] font-bold uppercase tracking-wide ring-1 ring-inset transition-opacity hover:opacity-80 ${
+          sponsor.isActive
+            ? "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30"
+            : "bg-panel text-fg-muted ring-line"
+        }`}
+        title={sponsor.isActive ? "Click to deactivate" : "Click to activate"}
+      >
+        {sponsor.isActive ? "Active" : "Inactive"}
+      </button>
+    </form>
+  );
+}
+
 export default async function SponsorsPage() {
   await requirePermission(PERMISSIONS.PAGES_MANAGE);
 
-  const rows = await db.query.sponsors.findMany({
+  const rows = (await db.query.sponsors.findMany({
     orderBy: (t, { asc }) => [asc(t.sort), asc(t.name)],
     with: { logo: { columns: { path: true, alt: true } } },
-  });
+  })) as SponsorRow[];
 
   return (
     <>
@@ -31,75 +79,113 @@ export default async function SponsorsPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           {rows.length ? (
-            <Table
-              head={
-                <>
-                  <th className="w-16">Logo</th>
-                  <th>Name</th>
-                  <th>Tier</th>
-                  <th>URL</th>
-                  <th>Sort</th>
-                  <th>Active</th>
-                  <th className="text-right">Actions</th>
-                </>
-              }
-            >
-              {rows.map((s) => (
-                <tr key={s.id}>
-                  <td>
-                    {s.logo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={publicUrl(variantKey(s.logo.path, "thumb"))}
-                        alt={s.logo.alt ?? s.name}
-                        className="h-9 w-12 border border-line bg-surface object-contain p-0.5"
-                      />
-                    ) : (
-                      <span className="flex h-9 w-12 items-center justify-center border border-dashed border-line text-[9px] font-bold uppercase text-fg-faint">
-                        None
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <Link href={`/sponsors/${s.id}`} className="font-bold hover:text-f1-red">
-                      {s.name}
-                    </Link>
-                  </td>
-                  <td className="whitespace-nowrap text-fg-muted">{TIER_LABELS[s.tier] ?? s.tier}</td>
-                  <td className="max-w-48 truncate text-fg-muted">{s.url ?? "—"}</td>
-                  <td>{s.sort}</td>
-                  <td>
-                    <form action={toggleSponsorAction}>
-                      <input type="hidden" name="sponsorId" value={s.id} />
-                      <button
-                        className={`inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide transition-colors ${
-                          s.isActive ? "bg-emerald-600 text-white" : "bg-panel text-fg"
-                        } hover:opacity-80`}
-                        title={s.isActive ? "Click to deactivate" : "Click to activate"}
-                      >
-                        {s.isActive ? "Active" : "Inactive"}
-                      </button>
-                    </form>
-                  </td>
-                  <td>
-                    <div className="flex items-center justify-end gap-2">
-                      <Link
-                        href={`/sponsors/${s.id}`}
-                        className="text-xs font-bold uppercase text-f1-red hover:underline"
-                      >
-                        Edit
-                      </Link>
-                      <form action={deleteSponsorAction}>
-                        <input type="hidden" name="sponsorId" value={s.id} />
-                        <ConfirmSubmit message={`Delete sponsor "${s.name}"?`}>Delete</ConfirmSubmit>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </Table>
+            <>
+              {/*
+                * Below lg the seven-column table becomes a card per sponsor.
+                * Side-scrolling a table on a phone hides the Actions column
+                * behind a swipe, which is exactly the column you came for.
+                */}
+              <ul className="grid gap-3 lg:hidden">
+                {rows.map((s) => (
+                  <li key={s.id}>
+                    <Card className="p-3">
+                      <div className="flex items-start gap-3">
+                        <Logo sponsor={s} className="h-10 w-14 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            href={`/sponsors/${s.id}`}
+                            className="block truncate font-bold text-fg hover:text-accent"
+                          >
+                            {s.name}
+                          </Link>
+                          <p className="truncate text-xs text-fg-muted">
+                            {TIER_LABELS[s.tier] ?? s.tier} · sort {s.sort}
+                          </p>
+                          {s.url ? (
+                            <p className="truncate text-[11px] text-fg-faint">{s.url}</p>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+                        <ActiveToggle sponsor={s} />
+                        <Link
+                          href={`/sponsors/${s.id}`}
+                          className="ml-auto text-xs font-bold uppercase tracking-wide text-accent hover:underline"
+                        >
+                          Edit
+                        </Link>
+                        <form action={deleteSponsorAction}>
+                          <input type="hidden" name="sponsorId" value={s.id} />
+                          <ConfirmSubmit message={`Delete sponsor "${s.name}"?`}>Delete</ConfirmSubmit>
+                        </form>
+                      </div>
+                    </Card>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="hidden lg:block">
+                <Table
+                  head={
+                    <>
+                      <th className="w-16">Logo</th>
+                      <th>Name</th>
+                      <th>Tier</th>
+                      <th>URL</th>
+                      <th>Sort</th>
+                      <th>Active</th>
+                      <th className="text-right">Actions</th>
+                    </>
+                  }
+                >
+                  {rows.map((s) => (
+                    <tr key={s.id}>
+                      <td>
+                        <Logo sponsor={s} className="h-9 w-12" />
+                      </td>
+                      <td>
+                        <Link
+                          href={`/sponsors/${s.id}`}
+                          className="font-bold hover:text-accent"
+                        >
+                          {s.name}
+                        </Link>
+                      </td>
+                      <td className="whitespace-nowrap text-fg-muted">
+                        {TIER_LABELS[s.tier] ?? s.tier}
+                      </td>
+                      <td className="max-w-48 truncate text-fg-muted">{s.url ?? "—"}</td>
+                      <td>{s.sort}</td>
+                      <td>
+                        <ActiveToggle sponsor={s} />
+                      </td>
+                      <td>
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/sponsors/${s.id}`}
+                            className="text-xs font-bold uppercase text-accent hover:underline"
+                          >
+                            Edit
+                          </Link>
+                          <form action={deleteSponsorAction}>
+                            <input type="hidden" name="sponsorId" value={s.id} />
+                            <ConfirmSubmit message={`Delete sponsor "${s.name}"?`}>
+                              Delete
+                            </ConfirmSubmit>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </Table>
+              </div>
+            </>
           ) : (
-            <EmptyState title="No sponsors yet" hint="Add the first partner with the form on the right." />
+            <EmptyState
+              title="No sponsors yet"
+              hint="Add the first partner with the Add sponsor form."
+            />
           )}
         </div>
 
