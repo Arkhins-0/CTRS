@@ -18,11 +18,51 @@ export function pushConfigured(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
 }
 
+/**
+ * Builds the VAPID "subject" — a contact identifier for the push service to
+ * reach the operator, never a URL anything fetches.
+ *
+ * web-push REJECTS anything that is not https: or mailto: and throws, which
+ * previously escaped as a 500 on the announcements page whenever SITE_URL was
+ * an http:// origin. Since the value is only an identifier, an insecure origin
+ * is upgraded rather than treated as fatal, and a mailto: built from EMAIL_FROM
+ * is preferred because it actually reaches a person.
+ */
+export function vapidSubject(): string {
+  const email = process.env.EMAIL_FROM?.trim();
+  const candidates = [
+    process.env.VAPID_SUBJECT,
+    email && email.includes("@") ? `mailto:${email}` : undefined,
+    process.env.SITE_URL,
+    process.env.ADMIN_URL,
+  ];
+
+  for (const candidate of candidates) {
+    const value = candidate?.trim();
+    if (!value) continue;
+    if (value.startsWith("mailto:") && value.length > "mailto:".length) return value;
+    // A bare address with no scheme, e.g. VAPID_SUBJECT=ops@ctrsports.in
+    if (value.includes("@") && !value.includes("/")) return `mailto:${value}`;
+
+    const origin = value.startsWith("https://")
+      ? value
+      : value.startsWith("http://")
+        ? `https://${value.slice("http://".length)}`
+        : null;
+    if (!origin) continue;
+    // Apple's push service rejects a localhost subject with BadJwtToken, so a
+    // dev origin is worse than no origin — fall through to the mailto instead.
+    if (/^https:\/\/(localhost|127\.0\.0\.1|\[::1\])(:|\/|$)/.test(origin)) continue;
+    return origin;
+  }
+
+  // Nothing configured at all — valid, and obviously a placeholder in logs.
+  return "mailto:noreply@ctrsports.invalid";
+}
+
 function configure(): void {
-  const subject =
-    process.env.VAPID_SUBJECT || process.env.SITE_URL || "https://localhost:3001";
   webpush.setVapidDetails(
-    subject,
+    vapidSubject(),
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "",
     process.env.VAPID_PRIVATE_KEY ?? "",
   );
