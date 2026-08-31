@@ -5,6 +5,7 @@ import {
   index,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   serial,
@@ -83,6 +84,76 @@ export const adminSessions = pgTable(
   (t) => [index("admin_sessions_user_idx").on(t.adminUserId)],
 );
 
+/* ── Self-service account tokens ─────────────────────────────────────────── */
+
+export const adminTokenTypeEnum = pgEnum("admin_token_type", ["password_reset", "email_change"]);
+
+/**
+ * Single-use tokens for password reset and email change.
+ *
+ * Only the sha256 of the token is stored — the raw value exists solely in the
+ * email, so a database leak cannot be replayed into an account takeover. Rows
+ * are consumed by stamping usedAt rather than deleting, which keeps a short
+ * audit trail of what was used and when.
+ */
+export const adminVerificationTokens = pgTable(
+  "admin_verification_tokens",
+  {
+    tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
+    adminUserId: uuid("admin_user_id")
+      .notNull()
+      .references(() => adminUsers.id, { onDelete: "cascade" }),
+    type: adminTokenTypeEnum("type").notNull(),
+    // email_change only: the address being moved to, confirmed via this token
+    newEmail: varchar("new_email", { length: 255 }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("admin_verification_tokens_user_idx").on(t.adminUserId, t.type)],
+);
+
+/**
+ * Per-admin notification preferences.
+ *
+ * One row per admin, created lazily on first read. Absence of a row means
+ * "every default on" — see DEFAULT_NOTIFICATION_PREFS in the admin app.
+ */
+export const adminNotificationPrefs = pgTable("admin_notification_prefs", {
+  adminUserId: uuid("admin_user_id")
+    .primaryKey()
+    .references(() => adminUsers.id, { onDelete: "cascade" }),
+  // categories
+  announcements: boolean("announcements").notNull().default(true),
+  raceOps: boolean("race_ops").notNull().default(true),
+  resultsReminders: boolean("results_reminders").notNull().default(true),
+  // delivery channels
+  emailEnabled: boolean("email_enabled").notNull().default(true),
+  pushEnabled: boolean("push_enabled").notNull().default(true),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Durable fixed-window rate limiter.
+ *
+ * Middleware runs on the edge with no DB and server actions POST to page URLs,
+ * so in-memory limiting cannot cover the auth surface — and per-instance state
+ * is lost on every cold start anyway. Keyed rows here survive both.
+ */
+export const rateLimitBuckets = pgTable(
+  "rate_limit_buckets",
+  {
+    key: varchar("key", { length: 200 }).notNull(),
+    windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+    count: integer("count").notNull().default(0),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.key, t.windowStart] }),
+    index("rate_limit_buckets_expiry_idx").on(t.expiresAt),
+  ],
+);
+
 export const auditLog = pgTable(
   "audit_log",
   {
@@ -103,9 +174,28 @@ export const auditLog = pgTable(
 
 /* ── Relations ───────────────────────────────────────────────────────────── */
 
-export const adminUsersRelations = relations(adminUsers, ({ many }) => ({
+export const adminUsersRelations = relations(adminUsers, ({ many, one }) => ({
   userRoles: many(adminUserRoles),
   sessions: many(adminSessions),
+  verificationTokens: many(adminVerificationTokens),
+  notificationPrefs: one(adminNotificationPrefs, {
+    fields: [adminUsers.id],
+    references: [adminNotificationPrefs.adminUserId],
+  }),
+}));
+
+export const adminVerificationTokensRelations = relations(adminVerificationTokens, ({ one }) => ({
+  user: one(adminUsers, {
+    fields: [adminVerificationTokens.adminUserId],
+    references: [adminUsers.id],
+  }),
+}));
+
+export const adminNotificationPrefsRelations = relations(adminNotificationPrefs, ({ one }) => ({
+  user: one(adminUsers, {
+    fields: [adminNotificationPrefs.adminUserId],
+    references: [adminUsers.id],
+  }),
 }));
 
 export const rolesRelations = relations(roles, ({ many }) => ({

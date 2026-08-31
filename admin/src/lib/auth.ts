@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, ne } from "drizzle-orm";
 import {
   adminSessions,
   adminUserRoles,
@@ -50,6 +50,30 @@ export async function destroySession() {
     await db.delete(adminSessions).where(eq(adminSessions.tokenHash, sha256(token)));
   }
   store.delete(COOKIE);
+}
+
+/**
+ * Signs out every session for a user except the one making the request.
+ *
+ * Call after a password or email change: if an attacker already holds a stolen
+ * session cookie, changing the credential is meaningless while their session
+ * stays alive. Passing no current token evicts everything, including the
+ * caller — that is what an admin-initiated reset wants.
+ */
+export async function evictOtherSessions(adminUserId: string): Promise<void> {
+  const token = (await cookies()).get(COOKIE)?.value;
+  await db
+    .delete(adminSessions)
+    .where(
+      token
+        ? and(eq(adminSessions.adminUserId, adminUserId), ne(adminSessions.tokenHash, sha256(token)))
+        : eq(adminSessions.adminUserId, adminUserId),
+    );
+}
+
+/** Signs out every session for a user, the caller's included. */
+export async function evictAllSessions(adminUserId: string): Promise<void> {
+  await db.delete(adminSessions).where(eq(adminSessions.adminUserId, adminUserId));
 }
 
 /** Loads user + full permission set once per request (React cache). */

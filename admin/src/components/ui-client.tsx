@@ -11,17 +11,18 @@ export function SubmitButton({
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "danger" }) {
   const { pending } = useFormStatus();
+  // Mirrors btnStyles in ui.tsx — keep the two in step.
   const styles =
     variant === "secondary"
-      ? "bg-panel text-white hover:bg-line"
+      ? "bg-panel text-fg hover:bg-line"
       : variant === "danger"
         ? "bg-surface border border-f1-red text-f1-red hover:bg-f1-red hover:text-white"
-        : "bg-f1-red text-white hover:bg-f1-red-dark";
+        : "bg-accent text-accent-fg hover:bg-accent-dark";
   return (
     <button
       type="submit"
       disabled={pending}
-      className={`chamfer-tr inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
+      className={`chamfer-tr inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
       {...rest}
     >
       {pending ? "Working…" : children}

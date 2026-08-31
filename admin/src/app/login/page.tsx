@@ -5,14 +5,22 @@ import { LoginForm } from "./login-form";
 
 export const metadata = { title: "Sign in" };
 
+/** Confirmations handed over by the recovery flows, which end at /login. */
+const LOGIN_NOTICES: Record<string, string> = {
+  "password-reset": "Password updated. Sign in with your new password.",
+  "email-changed": "Address confirmed. Sign in with your new email.",
+};
+
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; status?: string }>;
 }) {
   const session = await getAdminSession();
   if (session) redirect("/");
-  const { next } = await searchParams;
+  const { next, status } = await searchParams;
+
+  const notice = status ? LOGIN_NOTICES[status] : undefined;
 
   return (
     <main className="safe-t safe-b flex min-h-dvh items-center justify-center bg-carbon-fibre px-4 py-8">
@@ -27,6 +35,14 @@ export default async function LoginPage({
             className="mb-5 h-auto w-28"
           />
           <h1 className="text-2xl font-black uppercase tracking-tight text-fg">Admin sign in</h1>
+          {notice ? (
+            <p
+              role="status"
+              className="mt-4 border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300"
+            >
+              {notice}
+            </p>
+          ) : null}
           <LoginForm next={next ?? "/"} />
         </div>
         <p className="mt-4 text-center text-xs text-fg-faint">

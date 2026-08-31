@@ -5,9 +5,18 @@ import { NextResponse, type NextRequest } from "next/server";
  * permission checks live in requirePermission() inside every server action,
  * route handler and section layout.
  */
+/**
+ * Routes reachable without a session. These are the account-recovery flows:
+ * by definition the caller cannot sign in yet, so gating them would make
+ * recovery impossible. Each one authenticates by single-use emailed token.
+ */
+const PUBLIC_PREFIXES = ["/login", "/forgot-password", "/reset-password", "/confirm-email"];
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (pathname.startsWith("/login")) return NextResponse.next();
+  if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    return NextResponse.next();
+  }
   if (!req.cookies.has("ctr_admin_session")) {
     const login = new URL("/login", req.url);
     if (pathname !== "/") login.searchParams.set("next", pathname);

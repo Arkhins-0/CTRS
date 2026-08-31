@@ -1,7 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { loginAction } from "./actions";
+
+const fieldClass =
+  "w-full min-h-11 border border-line bg-page px-3 py-2 text-sm text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-accent";
 
 export function LoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(loginAction, undefined);
@@ -11,34 +15,40 @@ export function LoginForm({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
       <label className="block">
         <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">Email</span>
-        <input
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          className="w-full border border-line px-3 py-2 text-sm outline-none focus:border-f1-red"
-        />
+        <input name="email" type="email" required autoComplete="email" className={fieldClass} />
       </label>
       <label className="block">
-        <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">Password</span>
+        <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">
+          Password
+        </span>
         <input
           name="password"
           type="password"
           required
           autoComplete="current-password"
-          className="w-full border border-line px-3 py-2 text-sm outline-none focus:border-f1-red"
+          className={fieldClass}
         />
       </label>
       {state?.error ? (
-        <p className="border-l-4 border-f1-red bg-red-50 px-3 py-2 text-sm text-f1-red">{state.error}</p>
+        <p className="border-l-4 border-f1-red bg-f1-red/10 px-3 py-2 text-sm text-red-300">
+          {state.error}
+        </p>
       ) : null}
       <button
         type="submit"
         disabled={pending}
-        className="chamfer-tr w-full bg-f1-red px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-f1-red-dark disabled:opacity-50"
+        className="chamfer-tr min-h-11 w-full bg-accent px-4 text-sm font-bold uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark disabled:opacity-50"
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>
+      <p className="pt-1 text-center">
+        <Link
+          href="/forgot-password"
+          className="text-xs font-bold uppercase tracking-wide text-fg-faint transition-colors hover:text-fg"
+        >
+          Forgot password?
+        </Link>
+      </p>
     </form>
   );
 }
