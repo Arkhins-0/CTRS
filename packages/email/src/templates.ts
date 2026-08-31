@@ -1,4 +1,5 @@
 import type { EmailMessage } from "./client";
+import { brandMark, COLOR, ctaButton, FONT, FONT_FACES, hazardStripe } from "./brand";
 
 /** Minimal HTML-escape for user-supplied strings interpolated into templates. */
 export function escapeHtml(value: string): string {
@@ -10,31 +11,49 @@ export function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+const WIDTH = 560;
+
 /**
- * Shared CTR-branded shell: carbon header with the accent kick, white body,
- * plain-table layout that renders everywhere. Inline styles only — email
- * clients ignore stylesheets.
+ * Shared CTR-branded shell for every notice — password resets, invitations,
+ * account security alerts. Dark throughout on purpose (see brand.ts for why
+ * these are the exact admin-console tokens), one message, one card, one call
+ * to action. The newsletter in newsletter.ts is the elaborate member of this
+ * family; these stay deliberately plain — a security notice earns attention
+ * by being unmistakable, not by being decorated.
+ *
+ * <meta name="color-scheme"/"supported-color-schemes"> tells clients that DO
+ * respect them (Apple Mail, some Outlook builds) that this design already IS
+ * dark, so they don't attempt their own dark-mode re-colouring on top of it.
  */
 function layout(title: string, bodyHtml: string, footerNote: string): string {
   return `<!doctype html>
 <html>
-<body style="margin:0;padding:0;background:#f7f4f1;font-family:Arial,Helvetica,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f4f1;padding:24px 12px;">
-    <tr><td align="center">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="supported-color-schemes" content="dark" />
+  <style>${FONT_FACES}</style>
+</head>
+<body style="margin:0;padding:0;background:${COLOR.page};font-family:${FONT.body};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLOR.page};" bgcolor="${COLOR.page}">
+    <tr><td align="center" style="padding:32px 16px;">
+      <table role="presentation" width="${WIDTH}" cellpadding="0" cellspacing="0" style="max-width:${WIDTH}px;width:100%;background:${COLOR.surface};" bgcolor="${COLOR.surface}">
         <tr>
-          <td style="background:#15151E;padding:20px 28px;border-top:4px solid #F7D619;">
-            <span style="color:#ffffff;font-size:18px;font-weight:900;letter-spacing:1px;text-transform:uppercase;">CTR Sports</span>
+          <td style="padding:24px 30px 20px;">
+            ${brandMark(116)}
           </td>
         </tr>
+        <tr><td>${hazardStripe(WIDTH)}</td></tr>
         <tr>
-          <td style="background:#ffffff;padding:28px;">
-            <h1 style="margin:0 0 16px;font-size:20px;line-height:1.3;color:#15151E;text-transform:uppercase;">${title}</h1>
+          <td style="padding:32px 30px 8px;">
+            <h1 style="margin:0 0 18px;font-family:${FONT.display};font-weight:600;font-size:22px;line-height:1.25;letter-spacing:0.2px;text-transform:uppercase;color:${COLOR.fg};">${title}</h1>
             ${bodyHtml}
           </td>
         </tr>
+        <tr><td style="padding:8px 30px 0;"><table role="presentation" width="100%"><tr><td style="border-top:1px solid ${COLOR.line};font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr>
         <tr>
-          <td style="padding:16px 28px;color:#67676D;font-size:12px;line-height:1.5;">
+          <td style="padding:18px 30px 26px;color:${COLOR.fgFaint};font-family:${FONT.body};font-size:12.5px;line-height:1.6;">
             ${footerNote}
           </td>
         </tr>
@@ -45,11 +64,10 @@ function layout(title: string, bodyHtml: string, footerNote: string): string {
 </html>`;
 }
 
-const button = (href: string, label: string): string =>
-  `<a href="${href}" style="display:inline-block;background:#F7D619;color:#15151E;font-weight:900;text-transform:uppercase;font-size:14px;letter-spacing:0.5px;padding:12px 24px;text-decoration:none;">${label}</a>`;
+const button = (href: string, label: string): string => ctaButton(href, label);
 
 const paragraph = (html: string): string =>
-  `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#333333;">${html}</p>`;
+  `<p style="margin:0 0 16px;font-family:${FONT.body};font-size:15px;line-height:1.65;color:${COLOR.fgMuted};">${html}</p>`;
 
 /* ── Newsletter double-opt-in ────────────────────────────────────────────── */
 
@@ -61,7 +79,7 @@ export function newsletterConfirmEmail(input: { confirmUrl: string }): Omit<Emai
     ) +
       paragraph(button(input.confirmUrl, "Confirm subscription")) +
       paragraph(
-        `Or open this link: <a href="${input.confirmUrl}" style="color:#15151E;">${input.confirmUrl}</a>`,
+        `Or open this link: <a href="${input.confirmUrl}" style="color:${COLOR.accent};">${input.confirmUrl}</a>`,
       ),
     "If you didn't request this, ignore this email and nothing will be sent.",
   );
@@ -92,7 +110,7 @@ export function rsvpConfirmationEmail(input: {
       ) +
       paragraph(button(input.roundUrl, "Weekend schedule")) +
       paragraph(
-        `<a href="${input.calendarUrl}" style="color:#15151E;">Add the sessions to your calendar (.ics)</a>`,
+        `<a href="${input.calendarUrl}" style="color:${COLOR.accent};">Add the sessions to your calendar (.ics)</a>`,
       ),
     "You can change your RSVP any time on the round page.",
   );
@@ -145,7 +163,7 @@ export function adminPasswordResetEmail(input: {
       ) +
       paragraph(button(input.resetUrl, "Reset password")) +
       paragraph(
-        `Or open this link: <a href="${input.resetUrl}" style="color:#15151E;">${input.resetUrl}</a>`,
+        `Or open this link: <a href="${input.resetUrl}" style="color:${COLOR.accent};">${input.resetUrl}</a>`,
       ),
     "If you didn't request this, ignore this email — your password will not change. Signing in normally also invalidates the link.",
   );
@@ -169,7 +187,7 @@ export function adminEmailChangeEmail(input: {
       ) +
       paragraph(button(input.confirmUrl, "Confirm new address")) +
       paragraph(
-        `Or open this link: <a href="${input.confirmUrl}" style="color:#15151E;">${input.confirmUrl}</a>`,
+        `Or open this link: <a href="${input.confirmUrl}" style="color:${COLOR.accent};">${input.confirmUrl}</a>`,
       ),
     "Until you confirm, your old address keeps working. If you didn't request this, ignore this email.",
   );
@@ -197,7 +215,7 @@ export function adminEmailChangedNoticeEmail(input: {
         `The sign-in address on your CTR Sports admin account was changed to <strong>${escapeHtml(input.newEmail)}</strong>. All existing sessions were signed out.`,
       ) +
       paragraph(
-        `If this wasn't you, contact a Super Admin immediately at <a href="mailto:${escapeHtml(input.supportEmail)}" style="color:#15151E;">${escapeHtml(input.supportEmail)}</a>.`,
+        `If this wasn't you, contact a Super Admin immediately at <a href="mailto:${escapeHtml(input.supportEmail)}" style="color:${COLOR.accent};">${escapeHtml(input.supportEmail)}</a>.`,
       ),
     "This is a security notification sent to your previous address.",
   );
@@ -220,7 +238,7 @@ export function adminPasswordChangedNoticeEmail(input: {
         "The password on your CTR Sports admin account was just changed, and every other session was signed out.",
       ) +
       paragraph(
-        `If this wasn't you, contact a Super Admin immediately at <a href="mailto:${escapeHtml(input.supportEmail)}" style="color:#15151E;">${escapeHtml(input.supportEmail)}</a>.`,
+        `If this wasn't you, contact a Super Admin immediately at <a href="mailto:${escapeHtml(input.supportEmail)}" style="color:${COLOR.accent};">${escapeHtml(input.supportEmail)}</a>.`,
       ),
     "This is a security notification.",
   );
@@ -255,7 +273,7 @@ export function memberInviteEmail(input: {
       ) +
       paragraph(button(input.acceptUrl, "Accept invitation")) +
       paragraph(
-        `Or open this link: <a href="${input.acceptUrl}" style="color:#15151E;">${input.acceptUrl}</a>`,
+        `Or open this link: <a href="${input.acceptUrl}" style="color:${COLOR.accent};">${input.acceptUrl}</a>`,
       ),
     `This invitation expires in ${input.expiresInDays} days and can only be used once. If you weren't expecting it, ignore this email.`,
   );
@@ -281,7 +299,7 @@ export function memberPasswordResetEmail(input: {
       ) +
       paragraph(button(input.resetUrl, "Reset password")) +
       paragraph(
-        `Or open this link: <a href="${input.resetUrl}" style="color:#15151E;">${input.resetUrl}</a>`,
+        `Or open this link: <a href="${input.resetUrl}" style="color:${COLOR.accent};">${input.resetUrl}</a>`,
       ),
     "If you didn't request this, ignore this email — your password will not change.",
   );
