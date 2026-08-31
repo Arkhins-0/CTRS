@@ -12,7 +12,7 @@
  * activate() deletes every cache that does not match the current namespace.
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_STATIC = `ctr-admin-static-${CACHE_VERSION}`;
 const CACHE_ASSETS = `ctr-admin-assets-${CACHE_VERSION}`;
 const OWNED = new Set([CACHE_STATIC, CACHE_ASSETS]);
@@ -50,7 +50,7 @@ function isImmutableAsset(url) {
 function isRevalidatableAsset(url) {
   return (
     url.pathname === "/manifest.webmanifest" ||
-    /^\/(icon-|apple-touch-icon)[\w-]*\.png$/.test(url.pathname)
+    /^\/(icon-|apple-touch-icon|badge-)[\w-]*\.png$/.test(url.pathname)
   );
 }
 
@@ -132,7 +132,11 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(data.title, {
       body: data.body,
       icon: "/icon-192.png",
-      badge: "/icon-192.png",
+      // Android renders the badge from the alpha channel alone, as a solid
+      // silhouette. icon-192 is opaque on a dark square, so its alpha is a
+      // full rectangle and it showed up as a plain square next to the app
+      // name. badge-96 is the mark itself, transparent around it.
+      badge: "/badge-96.png",
       data: { url: data.url },
     }),
   );
