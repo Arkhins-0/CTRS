@@ -25,6 +25,20 @@ import { AlertTriangle, BatteryCharging, BellRing, Check, Download, Share } from
 type Step = "checking" | "unsupported" | "install" | "permission" | "blocked" | "battery" | "ready";
 
 const BATTERY_ACK_KEY = "ctr-push-battery-ack";
+const AUTO_PROMPT_KEY = "ctr-push-auto-prompted";
+
+/*
+ * Android system-settings deep links.
+ *
+ * A web page cannot open Android Settings — there is no API for it. Chrome
+ * will, however, follow an `intent:` URL from a real user gesture, and on many
+ * builds these resolve to the battery screens. It is best-effort: where the
+ * device refuses, the written steps below stay on screen as the fallback.
+ */
+const INTENT_BATTERY_OPT =
+  "intent://#Intent;action=android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS;end";
+const INTENT_APP_DETAILS =
+  "intent://#Intent;action=android.settings.APPLICATION_DETAILS_SETTINGS;end";
 
 function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
@@ -44,13 +58,23 @@ function isStandalone() {
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
 const isAndroid = () => /android/i.test(navigator.userAgent);
 
-function readAck() {
+function readFlag(key: string) {
   try {
-    return window.localStorage.getItem(BATTERY_ACK_KEY) === "1";
+    return window.localStorage.getItem(key) === "1";
   } catch {
     return false;
   }
 }
+
+function writeFlag(key: string) {
+  try {
+    window.localStorage.setItem(key, "1");
+  } catch {
+    // storage blocked — the step simply reappears next load
+  }
+}
+
+const readAck = () => readFlag(BATTERY_ACK_KEY);
 
 export function PushSetup({ api = "/api/push" }: { api?: string } = {}) {
   const [step, setStep] = useState<Step>("checking");
@@ -96,7 +120,7 @@ export function PushSetup({ api = "/api/push" }: { api?: string } = {}) {
     resolve().catch(() => setStep("unsupported"));
   }, [resolve]);
 
-  const enable = async () => {
+  const enable = useCallback(async () => {
     setBusy(true);
     setError(null);
     try {
@@ -131,14 +155,29 @@ export function PushSetup({ api = "/api/push" }: { api?: string } = {}) {
     } finally {
       setBusy(false);
     }
-  };
+  }, [api]);
+
+  /*
+   * Fire the browser's own permission dialog as soon as the gate decides one is
+   * needed, so the popup appears without waiting for a tap.
+   *
+   * Once per device only (AUTO_PROMPT_KEY). A dismissed prompt counts against
+   * the site in Chrome — repeated dismissals get the origin auto-blocked — so
+   * re-asking on every page load would end up permanently silencing the very
+   * people it is meant to reach. After the automatic attempt the card stays put
+   * with its button, which also covers Firefox and Safari, where the dialog is
+   * only allowed to open from a real user gesture and the automatic call is
+   * ignored.
+   */
+  useEffect(() => {
+    if (step !== "permission" || busy) return;
+    if (readFlag(AUTO_PROMPT_KEY)) return;
+    writeFlag(AUTO_PROMPT_KEY);
+    void enable();
+  }, [step, busy, enable]);
 
   const ackBattery = () => {
-    try {
-      window.localStorage.setItem(BATTERY_ACK_KEY, "1");
-    } catch {
-      // storage blocked — the step simply reappears next load
-    }
+    writeFlag(BATTERY_ACK_KEY);
     setStep("ready");
   };
 
@@ -208,12 +247,38 @@ export function PushSetup({ api = "/api/push" }: { api?: string } = {}) {
             </li>
           ))}
         </ol>
+        {/*
+          * Real anchors, not script navigation: Chrome only follows an
+          * `intent:` URL from a genuine user gesture on a link. Whether the
+          * device honours it varies by vendor and Android version, so the
+          * written steps above remain the source of truth.
+          */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <a
+            href={INTENT_BATTERY_OPT}
+            className="chamfer-tr inline-flex min-h-11 items-center gap-2 bg-accent px-4 text-sm font-bold uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
+          >
+            <BatteryCharging size={16} /> Open battery settings
+          </a>
+          <a
+            href={INTENT_APP_DETAILS}
+            className="chamfer-tr inline-flex min-h-11 items-center gap-2 border border-line px-4 text-sm font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
+          >
+            App info
+          </a>
+        </div>
+
+        <p className="mt-2 text-xs text-fg-faint">
+          Nothing opened? Android blocks some phones from launching Settings this way — follow the
+          three steps above by hand instead.
+        </p>
+
         <button
           type="button"
           onClick={ackBattery}
-          className="chamfer-tr mt-4 inline-flex min-h-11 items-center gap-2 bg-accent px-4 text-sm font-bold uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark"
+          className="chamfer-tr mt-3 inline-flex min-h-11 items-center gap-2 border border-line px-4 text-sm font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
         >
-          <Check size={16} /> Done
+          <Check size={16} /> I&apos;ve done this
         </button>
       </div>
     );
