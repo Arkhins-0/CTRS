@@ -17,5 +17,13 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|svg|ico|webp)).*)"],
+  /*
+   * The PWA shell must stay reachable without a session: a redirected sw.js
+   * never registers, and the manifest and offline page are fetched in states
+   * where no cookie is present (install, first load, offline navigation).
+   * None of them expose data — the worker caches no authenticated response.
+   */
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|offline\\.html|.*\\.(?:png|jpg|svg|ico|webp)).*)",
+  ],
 };

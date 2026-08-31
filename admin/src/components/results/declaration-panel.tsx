@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const toolbarBtn =
-  "chamfer-tr border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon disabled:cursor-not-allowed disabled:opacity-50";
+  "chamfer-tr border border-line bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint disabled:cursor-not-allowed disabled:opacity-50";
 
 /**
  * Upload slot for the session's official result declaration — the signed
@@ -63,11 +63,11 @@ export function DeclarationPanel({
   };
 
   return (
-    <section className="chamfer-tr mt-6 border border-warm-grey bg-white p-4 shadow-sm">
-      <h2 className="text-sm font-black uppercase tracking-wide text-carbon">
+    <section className="chamfer-tr mt-6 border border-line bg-surface p-4 shadow-sm">
+      <h2 className="text-sm font-black uppercase tracking-wide text-fg">
         Official declaration (PDF)
       </h2>
-      <p className="mt-1 text-xs text-f1-grey">
+      <p className="mt-1 text-xs text-fg-muted">
         The signed classification on the championship letterhead — published on the site beside
         this session&apos;s results as the authentic final declaration.
       </p>
@@ -78,18 +78,18 @@ export function DeclarationPanel({
             href={current.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="chamfer-tr inline-flex items-center gap-2 border border-warm-grey bg-off-white px-3 py-1.5 text-xs font-bold text-carbon transition-colors hover:border-f1-red hover:text-f1-red"
+            className="chamfer-tr inline-flex items-center gap-2 border border-line bg-page px-3 py-1.5 text-xs font-bold text-fg transition-colors hover:border-f1-red hover:text-f1-red"
           >
             <span aria-hidden>📄</span>
             {current.filename}
             {current.sizeBytes ? (
-              <span className="font-normal text-f1-grey">
+              <span className="font-normal text-fg-muted">
                 {Math.max(1, Math.round(current.sizeBytes / 1024))} KB
               </span>
             ) : null}
           </a>
         ) : (
-          <span className="text-xs font-bold uppercase tracking-wide text-f1-grey">
+          <span className="text-xs font-bold uppercase tracking-wide text-fg-muted">
             No declaration uploaded yet
           </span>
         )}
@@ -107,7 +107,7 @@ export function DeclarationPanel({
             type="button"
             disabled={busy}
             onClick={() => void remove()}
-            className="chamfer-tr border border-f1-red bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-f1-red transition-colors hover:bg-f1-red hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="chamfer-tr border border-f1-red bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-f1-red transition-colors hover:bg-f1-red hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             Remove
           </button>
@@ -127,7 +127,7 @@ export function DeclarationPanel({
       </div>
 
       {error ? (
-        <p className="chamfer-tr mt-3 border border-f1-red bg-white px-3 py-2 text-xs font-bold text-f1-red">
+        <p className="chamfer-tr mt-3 border border-f1-red bg-surface px-3 py-2 text-xs font-bold text-f1-red">
           {error}
         </p>
       ) : null}

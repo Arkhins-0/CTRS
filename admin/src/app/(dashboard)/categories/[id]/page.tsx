@@ -33,7 +33,7 @@ export default async function CategoryEditorPage({ params }: { params: Promise<{
           <>
             <span
               aria-hidden
-              className="inline-block size-5 rounded-sm border border-warm-grey"
+              className="inline-block size-5 rounded-sm border border-line"
               style={{ backgroundColor: category.color }}
             />
             {category.isActive ? <Badge tone="green">Active</Badge> : <Badge tone="grey">Inactive</Badge>}
@@ -52,7 +52,7 @@ export default async function CategoryEditorPage({ params }: { params: Promise<{
 
       <Card className="mt-5 max-w-3xl border-f1-red/40">
         <h2 className="text-sm font-black uppercase tracking-wide text-f1-red">Danger zone</h2>
-        <p className="mt-1 text-sm text-f1-grey">
+        <p className="mt-1 text-sm text-fg-muted">
           Deleting this category also deletes ALL of its sessions (with their results) and every
           driver season entry assigned to it. This cannot be undone.
         </p>

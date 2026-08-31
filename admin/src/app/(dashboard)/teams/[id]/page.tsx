@@ -119,14 +119,14 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
               </span>
               <span className="font-bold">{entry.displayName}</span>
               {entry.driverEntries.length ? (
-                <span className="ml-auto text-xs text-f1-grey">
+                <span className="ml-auto text-xs text-fg-muted">
                   Drivers:{" "}
                   {entry.driverEntries
                     .map((d) => `${d.driver.code} (#${d.carNumber})`)
                     .join(" · ")}
                 </span>
               ) : (
-                <span className="ml-auto text-xs text-f1-grey-light">No drivers assigned yet</span>
+                <span className="ml-auto text-xs text-fg-faint">No drivers assigned yet</span>
               )}
             </div>
 
@@ -144,7 +144,7 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
                     type="color"
                     name="primaryColor"
                     defaultValue={entry.primaryColor}
-                    className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+                    className="h-9 w-14 cursor-pointer border border-line bg-surface p-0.5"
                   />
                 </Field>
                 <Field label="Secondary">
@@ -152,7 +152,7 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
                     type="color"
                     name="secondaryColor"
                     defaultValue={entry.secondaryColor ?? "#15151e"}
-                    className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+                    className="h-9 w-14 cursor-pointer border border-line bg-surface p-0.5"
                   />
                 </Field>
               </div>
@@ -184,8 +184,8 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
             </form>
 
             {/* Car editor */}
-            <div className="mt-4 border-t border-warm-grey pt-4">
-              <h3 className="mb-3 text-xs font-black uppercase tracking-wide text-f1-grey">
+            <div className="mt-4 border-t border-line pt-4">
+              <h3 className="mb-3 text-xs font-black uppercase tracking-wide text-fg-muted">
                 Car {entry.car ? `— ${entry.car.modelName}` : "(none yet)"}
               </h3>
               <form action={saveCarAction} className="grid gap-4 sm:grid-cols-3">
@@ -239,7 +239,7 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
 
       {availableSeasons.length ? (
         <Card className="mt-3">
-          <h3 className="mb-3 text-xs font-black uppercase tracking-wide text-f1-grey">Add season entry</h3>
+          <h3 className="mb-3 text-xs font-black uppercase tracking-wide text-fg-muted">Add season entry</h3>
           <form action={createTeamEntryAction} className="grid gap-4 sm:grid-cols-3">
             <input type="hidden" name="teamId" value={team.id} />
             <Field label="Season">
@@ -263,7 +263,7 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
                   type="color"
                   name="primaryColor"
                   defaultValue="#67676d"
-                  className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+                  className="h-9 w-14 cursor-pointer border border-line bg-surface p-0.5"
                 />
               </Field>
               <Field label="Secondary">
@@ -271,7 +271,7 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
                   type="color"
                   name="secondaryColor"
                   defaultValue="#15151e"
-                  className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+                  className="h-9 w-14 cursor-pointer border border-line bg-surface p-0.5"
                 />
               </Field>
             </div>
@@ -291,7 +291,7 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
       {/* ── Danger zone ────────────────────────────────────────────────── */}
       <Card className="mt-6 border-f1-red/40">
         <h2 className="text-sm font-black uppercase tracking-wide text-f1-red">Danger zone</h2>
-        <p className="mt-1 text-sm text-f1-grey">
+        <p className="mt-1 text-sm text-fg-muted">
           Deleting this team removes every season entry, car, driver assignment and result linked to
           it — across all seasons. This cannot be undone.
         </p>

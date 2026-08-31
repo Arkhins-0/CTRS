@@ -74,17 +74,17 @@ export default async function PollsIndex() {
                   {p.question}
                 </Link>
               </td>
-              <td className="uppercase text-f1-grey">{p.kind}</td>
+              <td className="uppercase text-fg-muted">{p.kind}</td>
               <td>
                 <StatusPill status={p.status} />
               </td>
-              <td className="whitespace-nowrap text-f1-grey">
+              <td className="whitespace-nowrap text-fg-muted">
                 {p.roundName
                   ? `R${p.roundNumber} — ${p.roundName} (${p.championshipShort} ${p.seasonYear})`
                   : "—"}
               </td>
               <td className="font-bold">{p.votes}</td>
-              <td className="whitespace-nowrap text-f1-grey">
+              <td className="whitespace-nowrap text-fg-muted">
                 {p.closesAt ? format(p.closesAt, "d MMM yyyy HH:mm") : "—"}
               </td>
             </tr>

@@ -1,16 +1,24 @@
 import Link from "next/link";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
-/* Server-safe UI primitives shared by every CMS section. */
+/*
+ * Server-safe UI primitives shared by every CMS section.
+ *
+ * Dark-first: surfaces step page -> surface -> panel and depth comes from the
+ * hairline `line` border, never a shadow. CTR yellow (`accent`) is reserved for
+ * the primary write action — anything sitting on it must use `accent-fg`.
+ *
+ * Controls are min-h-11 (44px) so they stay reliable touch targets on a phone.
+ */
 
 const btnBase =
-  "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed chamfer-tr";
+  "inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed chamfer-tr";
 
 const btnStyles: Record<string, string> = {
-  primary: "bg-f1-red text-white hover:bg-f1-red-dark",
-  secondary: "bg-carbon text-white hover:bg-carbon-700",
-  ghost: "border border-warm-grey bg-white text-carbon hover:border-carbon",
-  danger: "bg-white border border-f1-red text-f1-red hover:bg-f1-red hover:text-white",
+  primary: "bg-accent text-accent-fg hover:bg-accent-dark",
+  secondary: "bg-panel text-fg hover:bg-line",
+  ghost: "border border-line bg-surface text-fg hover:border-fg-faint",
+  danger: "border border-f1-red bg-surface text-f1-red hover:bg-f1-red hover:text-white",
 };
 
 export function Button({
@@ -40,7 +48,7 @@ export function LinkButton({
 }
 
 const fieldBase =
-  "w-full border border-warm-grey bg-white px-3 py-2 text-sm text-carbon outline-none focus:border-f1-red disabled:bg-off-white";
+  "w-full min-h-11 border border-line bg-surface px-3 py-2 text-sm text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-accent disabled:bg-panel disabled:text-fg-faint";
 
 export function Input({ className = "", ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={`${fieldBase} ${className}`} {...rest} />;
@@ -67,16 +75,16 @@ export function Field({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey">{label}</span>
+      <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">{label}</span>
       {children}
-      {hint ? <span className="mt-1 block text-xs text-f1-grey-light">{hint}</span> : null}
+      {hint ? <span className="mt-1 block text-xs text-fg-faint">{hint}</span> : null}
     </label>
   );
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`chamfer-tr border border-warm-grey bg-white p-5 shadow-sm ${className}`}>
+    <div className={`chamfer-tr border border-line bg-surface p-4 sm:p-5 ${className}`}>
       {children}
     </div>
   );
@@ -92,28 +100,28 @@ export function PageHeader({
   sub?: string;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 className="border-l-4 border-f1-red pl-3 text-2xl font-black uppercase tracking-tight">
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-6">
+      <div className="min-w-0">
+        <h1 className="border-l-4 border-accent pl-3 text-xl font-black uppercase tracking-tight text-fg sm:text-2xl">
           {title}
         </h1>
-        {sub ? <p className="mt-1 pl-4 text-sm text-f1-grey">{sub}</p> : null}
+        {sub ? <p className="mt-1 pl-4 text-sm text-fg-muted">{sub}</p> : null}
       </div>
-      {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
   );
 }
 
 export function Table({ head, children }: { head: ReactNode; children: ReactNode }) {
   return (
-    <div className="chamfer-tr overflow-x-auto border border-warm-grey bg-white shadow-sm">
+    <div className="chamfer-tr overflow-x-auto border border-line bg-surface">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b-2 border-carbon bg-carbon text-left text-xs font-bold uppercase tracking-wide text-white [&>th]:px-4 [&>th]:py-3">
+          <tr className="border-b border-line bg-panel text-left text-xs font-bold uppercase tracking-wide text-fg [&>th]:whitespace-nowrap [&>th]:px-4 [&>th]:py-3">
             {head}
           </tr>
         </thead>
-        <tbody className="[&>tr]:border-b [&>tr]:border-warm-grey [&>tr:hover]:bg-off-white [&>tr>td]:px-4 [&>tr>td]:py-3">
+        <tbody className="[&>tr]:border-b [&>tr]:border-line [&>tr:last-child]:border-0 [&>tr:hover]:bg-panel [&>tr>td]:px-4 [&>tr>td]:py-3">
           {children}
         </tbody>
       </table>
@@ -123,31 +131,32 @@ export function Table({ head, children }: { head: ReactNode; children: ReactNode
 
 export function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="chamfer-tr border border-dashed border-f1-grey-light bg-white p-10 text-center">
-      <p className="font-bold uppercase text-f1-grey">{title}</p>
-      {hint ? <p className="mt-1 text-sm text-f1-grey-light">{hint}</p> : null}
+    <div className="chamfer-tr border border-dashed border-line bg-surface p-10 text-center">
+      <p className="font-bold uppercase text-fg-muted">{title}</p>
+      {hint ? <p className="mt-1 text-sm text-fg-faint">{hint}</p> : null}
     </div>
   );
 }
 
 export function StatusPill({ status }: { status: string }) {
+  // Tones are picked to clear AA against the dark surfaces they sit on.
   const tones: Record<string, string> = {
-    published: "bg-emerald-600 text-white",
-    open: "bg-emerald-600 text-white",
-    completed: "bg-emerald-600 text-white",
-    confirmed: "bg-emerald-600 text-white",
-    draft: "bg-warm-grey text-carbon",
-    scheduled: "bg-amber-500 text-carbon",
-    pending: "bg-amber-500 text-carbon",
-    live: "bg-f1-red text-white",
-    archived: "bg-carbon-600 text-white",
-    closed: "bg-carbon-600 text-white",
-    cancelled: "bg-carbon-600 text-white",
-    unsubscribed: "bg-carbon-600 text-white",
+    published: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
+    open: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
+    completed: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
+    confirmed: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
+    draft: "bg-panel text-fg-muted ring-line",
+    scheduled: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
+    pending: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
+    live: "bg-f1-red/20 text-red-300 ring-f1-red/40",
+    archived: "bg-panel text-fg-faint ring-line",
+    closed: "bg-panel text-fg-faint ring-line",
+    cancelled: "bg-panel text-fg-faint ring-line",
+    unsubscribed: "bg-panel text-fg-faint ring-line",
   };
   return (
     <span
-      className={`inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${tones[status] ?? "bg-warm-grey text-carbon"}`}
+      className={`inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ring-1 ring-inset ${tones[status] ?? "bg-panel text-fg-muted ring-line"}`}
     >
       {status}
     </span>

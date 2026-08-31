@@ -43,13 +43,13 @@ export function SeasonTabs({
   base: string;
 }) {
   return (
-    <div className="mb-5 flex flex-wrap gap-1 border-b-2 border-carbon">
+    <div className="mb-5 flex flex-wrap gap-1 border-b-2 border-line">
       {seasons.map((s) => (
         <Link
           key={s.id}
           href={`${base}?season=${s.id}`}
           className={`px-4 py-2 text-sm font-black uppercase tracking-wide transition-colors ${
-            s.id === activeId ? "chamfer-tr bg-carbon text-white" : "text-f1-grey hover:text-carbon"
+            s.id === activeId ? "chamfer-tr bg-panel text-white" : "text-fg-muted hover:text-fg"
           }`}
         >
           {s.label}

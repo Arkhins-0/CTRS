@@ -137,7 +137,7 @@ export default async function RaceEditorPage({
       />
 
       {sp.error === "duplicate-session" ? (
-        <div className="chamfer-tr mb-4 border border-f1-red bg-white px-4 py-3 text-sm font-bold text-f1-red">
+        <div className="chamfer-tr mb-4 border border-f1-red bg-surface px-4 py-3 text-sm font-bold text-f1-red">
           That session already exists — each weekend allows one session per (category, type,
           sequence) combination. Use a higher sequence for a second race of the same type.
         </div>
@@ -190,7 +190,7 @@ export default async function RaceEditorPage({
                 <option value="cancelled">Cancelled</option>
               </Select>
             </Field>
-            <label className="flex items-end gap-2 pb-2 text-sm font-bold uppercase tracking-wide text-carbon">
+            <label className="flex items-end gap-2 pb-2 text-sm font-bold uppercase tracking-wide text-fg">
               <input
                 type="checkbox"
                 name="hasSprint"
@@ -229,17 +229,17 @@ export default async function RaceEditorPage({
           {sessions.length ? (
             <ul className="space-y-3">
               {sessions.map((s) => (
-                <li key={s.id} className="border border-warm-grey bg-off-white p-3">
+                <li key={s.id} className="border border-line bg-page p-3">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     <span
                       aria-hidden
-                      className="inline-block size-3 rounded-sm border border-warm-grey"
+                      className="inline-block size-3 rounded-sm border border-line"
                       style={{ backgroundColor: s.category?.color ?? "#67676d" }}
                     />
                     <span className="text-sm font-black uppercase">
                       {s.label ?? sessionTypeLabel(s.type, s.sequence)}
                     </span>
-                    <span className="text-xs text-f1-grey">
+                    <span className="text-xs text-fg-muted">
                       {s.category ? s.category.shortName : "Weekend-wide"} ·{" "}
                       {sessionTypeLabel(s.type, s.sequence)}
                     </span>
@@ -310,7 +310,7 @@ export default async function RaceEditorPage({
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-f1-grey">
+            <p className="text-sm text-fg-muted">
               No sessions yet — generate the standard weekend (per-category Practice, Qualifying,
               Race 1 and Race 2) or add sessions manually below.
             </p>
@@ -318,7 +318,7 @@ export default async function RaceEditorPage({
 
           <form
             action={addSessionAction}
-            className="mt-4 flex flex-wrap items-end gap-2 border-t border-warm-grey pt-4"
+            className="mt-4 flex flex-wrap items-end gap-2 border-t border-line pt-4"
           >
             <input type="hidden" name="roundId" value={round.id} />
             <Field label="Add session" className="w-44">
@@ -359,7 +359,7 @@ export default async function RaceEditorPage({
       {/* ── Danger zone ─────────────────────────────────────────────────── */}
       <Card className="mt-5 border-f1-red/40">
         <h2 className="text-sm font-black uppercase tracking-wide text-f1-red">Danger zone</h2>
-        <p className="mt-1 text-sm text-f1-grey">
+        <p className="mt-1 text-sm text-fg-muted">
           Deleting this round also deletes all of its sessions and results. This cannot be undone.
         </p>
         <form action={deleteGpAction} className="mt-3">

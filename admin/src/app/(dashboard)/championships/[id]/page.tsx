@@ -69,17 +69,17 @@ function StandingsTypesFields({ types }: { types: string[] }) {
   const checkbox = "size-4 accent-f1-red";
   return (
     <div className="sm:col-span-2">
-      <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey">
+      <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">
         Standings tables
       </span>
       <div className="flex flex-wrap items-center gap-4">
-        <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-f1-grey">
+        <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-fg-muted">
           <input type="checkbox" checked disabled className={checkbox} /> Overall
         </label>
-        <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-f1-grey">
+        <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-fg-muted">
           <input type="checkbox" checked disabled className={checkbox} /> Team
         </label>
-        <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-carbon">
+        <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-fg">
           <input
             type="checkbox"
             name="typeRookie"
@@ -88,7 +88,7 @@ function StandingsTypesFields({ types }: { types: string[] }) {
           />
           Rookie
         </label>
-        <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-carbon">
+        <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-fg">
           <input
             type="checkbox"
             name="typeGentlemen"
@@ -101,7 +101,7 @@ function StandingsTypesFields({ types }: { types: string[] }) {
           <Input name="extraTypes" defaultValue={freeTextTypes(types)} placeholder="junior, masters" />
         </Field>
       </div>
-      <p className="mt-1 text-xs text-f1-grey-light">
+      <p className="mt-1 text-xs text-fg-faint">
         Overall and Team are always computed. Sub-tables are filled from driver entries tagged with a
         matching classification.
       </p>
@@ -142,7 +142,7 @@ export default async function ChampionshipEditorPage({
           <>
             <span
               aria-hidden
-              className="inline-block size-5 rounded-sm border border-warm-grey"
+              className="inline-block size-5 rounded-sm border border-line"
               style={{ backgroundColor: championship.primaryColor }}
             />
             {championship.isActive ? (
@@ -176,11 +176,11 @@ export default async function ChampionshipEditorPage({
                 {championship.shortName} {season.year}
               </span>
               {season.isCurrent ? <Badge tone="green">Current</Badge> : null}
-              <span className="text-xs text-f1-grey">
+              <span className="text-xs text-fg-muted">
                 {season.rounds.length} round{season.rounds.length === 1 ? "" : "s"} · tables:{" "}
                 {season.standingsTypes.join(" · ")}
               </span>
-              <span className="ml-auto text-xs text-f1-grey">
+              <span className="ml-auto text-xs text-fg-muted">
                 Race {season.pointsSystem.race.join("-")}
                 {season.pointsSystem.sprint?.length
                   ? ` · Sprint ${season.pointsSystem.sprint.join("-")}`
@@ -207,7 +207,7 @@ export default async function ChampionshipEditorPage({
                       defaultValue={season.year}
                     />
                   </Field>
-                  <label className="flex items-center gap-2 pb-2 text-sm font-bold uppercase tracking-wide text-carbon">
+                  <label className="flex items-center gap-2 pb-2 text-sm font-bold uppercase tracking-wide text-fg">
                     <input
                       type="checkbox"
                       name="isCurrent"
@@ -243,7 +243,7 @@ export default async function ChampionshipEditorPage({
         ))
       ) : (
         <Card className="mt-3">
-          <p className="text-sm text-f1-grey">
+          <p className="text-sm text-fg-muted">
             No seasons yet — rounds, entries and standings all hang off a season, so add one below.
           </p>
         </Card>
@@ -251,14 +251,14 @@ export default async function ChampionshipEditorPage({
 
       {/* ── Add season ──────────────────────────────────────────────────── */}
       <Card className="mt-3">
-        <h3 className="mb-3 text-xs font-black uppercase tracking-wide text-f1-grey">Add season</h3>
+        <h3 className="mb-3 text-xs font-black uppercase tracking-wide text-fg-muted">Add season</h3>
         <form action={addChampionshipSeasonAction} className="grid gap-4 sm:grid-cols-2">
           <input type="hidden" name="championshipId" value={championship.id} />
           <div className="flex flex-wrap items-end gap-4">
             <Field label="Year" className="w-28">
               <Input name="year" type="number" min={1950} max={2100} required placeholder="2026" />
             </Field>
-            <label className="flex items-center gap-2 pb-2 text-sm font-bold uppercase tracking-wide text-carbon">
+            <label className="flex items-center gap-2 pb-2 text-sm font-bold uppercase tracking-wide text-fg">
               <input type="checkbox" name="isCurrent" className="size-4 accent-f1-red" />
               Current season
             </label>
@@ -275,7 +275,7 @@ export default async function ChampionshipEditorPage({
       {/* ── Danger zone ─────────────────────────────────────────────────── */}
       <Card className="mt-6 border-f1-red/40">
         <h2 className="text-sm font-black uppercase tracking-wide text-f1-red">Danger zone</h2>
-        <p className="mt-1 text-sm text-f1-grey">
+        <p className="mt-1 text-sm text-fg-muted">
           Deleting this championship removes every season, round, session, result, entry and
           standings table under it. This cannot be undone.
         </p>

@@ -119,7 +119,7 @@ function BlockFields({ block, mediaThumb }: { block: Block; mediaThumb?: string 
     }
     case "sponsor_grid":
       return (
-        <p className="text-sm text-f1-grey">
+        <p className="text-sm text-fg-muted">
           This block automatically renders the active sponsors — there is nothing to configure.
           Manage the list under <span className="font-bold">Sponsors</span>.
         </p>
@@ -146,9 +146,9 @@ function BlockCard({
 }) {
   return (
     <Card>
-      <div className="mb-4 flex items-center justify-between gap-3 border-b border-warm-grey pb-3">
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-line pb-3">
         <p className="text-xs font-black uppercase tracking-wide">
-          <span className="mr-2 inline-block bg-carbon px-1.5 py-0.5 text-white">{index + 1}</span>
+          <span className="mr-2 inline-block bg-panel px-1.5 py-0.5 text-white">{index + 1}</span>
           {BLOCK_LABELS[block.type]}
         </p>
         <div className="flex items-center gap-1.5">
@@ -158,7 +158,7 @@ function BlockCard({
             <button
               disabled={index === 0}
               aria-label="Move block up"
-              className="chamfer-tr border border-warm-grey bg-white px-2 py-1 text-xs font-bold text-carbon hover:border-carbon disabled:cursor-not-allowed disabled:opacity-40"
+              className="chamfer-tr border border-line bg-surface px-2 py-1 text-xs font-bold text-fg hover:border-fg-faint disabled:cursor-not-allowed disabled:opacity-40"
             >
               ▲
             </button>
@@ -169,7 +169,7 @@ function BlockCard({
             <button
               disabled={index === total - 1}
               aria-label="Move block down"
-              className="chamfer-tr border border-warm-grey bg-white px-2 py-1 text-xs font-bold text-carbon hover:border-carbon disabled:cursor-not-allowed disabled:opacity-40"
+              className="chamfer-tr border border-line bg-surface px-2 py-1 text-xs font-bold text-fg hover:border-fg-faint disabled:cursor-not-allowed disabled:opacity-40"
             >
               ▼
             </button>
@@ -251,7 +251,7 @@ export default async function PageEditor({ params }: { params: Promise<{ id: str
               />
             ))
           ) : (
-            <p className="text-sm text-f1-grey">No blocks yet — add the first one below.</p>
+            <p className="text-sm text-fg-muted">No blocks yet — add the first one below.</p>
           )}
 
           <Card>
@@ -304,7 +304,7 @@ export default async function PageEditor({ params }: { params: Promise<{ id: str
 
           <Card className="border-f1-red/40">
             <h2 className="mb-2 text-sm font-black uppercase tracking-wide text-f1-red">Danger zone</h2>
-            <p className="mb-3 text-sm text-f1-grey">
+            <p className="mb-3 text-sm text-fg-muted">
               Deleting a page removes it and all of its blocks from the public site immediately.
             </p>
             <form action={deletePageAction}>

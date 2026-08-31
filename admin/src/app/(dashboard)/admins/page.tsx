@@ -42,27 +42,27 @@ export default async function AdminsIndex() {
                   {u.displayName}
                 </Link>
               </td>
-              <td className="text-f1-grey">{u.email}</td>
+              <td className="text-fg-muted">{u.email}</td>
               <td>
                 <div className="flex flex-wrap gap-1">
                   {u.userRoles.length ? (
                     u.userRoles.map((ur) => (
                       <span
                         key={ur.roleId}
-                        className="inline-block bg-carbon px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white"
+                        className="inline-block bg-panel px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white"
                       >
                         {ur.role.name}
                       </span>
                     ))
                   ) : (
-                    <span className="text-f1-grey-light">—</span>
+                    <span className="text-fg-faint">—</span>
                   )}
                 </div>
               </td>
               <td>
                 <span
                   className={`inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
-                    u.isActive ? "bg-emerald-600 text-white" : "bg-carbon-600 text-white"
+                    u.isActive ? "bg-emerald-600 text-white" : "bg-line text-white"
                   }`}
                 >
                   {u.isActive ? "Active" : "Inactive"}
@@ -76,7 +76,7 @@ export default async function AdminsIndex() {
                   </span>
                 )}
               </td>
-              <td className="whitespace-nowrap text-f1-grey">
+              <td className="whitespace-nowrap text-fg-muted">
                 {u.lastLoginAt ? format(u.lastLoginAt, "d MMM yyyy HH:mm") : "never"}
               </td>
             </tr>

@@ -41,14 +41,14 @@ export default async function AnnouncementsPage({
           {sp.total === "1" ? "" : "s"}.
         </div>
       ) : sp.error ? (
-        <div className="chamfer-tr mb-4 border border-f1-red bg-white px-4 py-3 text-sm font-bold text-f1-red">
+        <div className="chamfer-tr mb-4 border border-f1-red bg-surface px-4 py-3 text-sm font-bold text-f1-red">
           {sp.error}
         </div>
       ) : null}
 
       <Card className="mb-8 max-w-2xl">
         <h2 className="text-sm font-black uppercase tracking-wide">New announcement</h2>
-        <p className="mt-1 text-xs text-f1-grey">
+        <p className="mt-1 text-xs text-fg-muted">
           Delivered instantly as a push notification on subscribers&apos; phones and desktops.
           Keep the title short — it&apos;s the notification headline.
         </p>
@@ -92,10 +92,10 @@ export default async function AnnouncementsPage({
             <tr key={a.id}>
               <td>
                 <p className="font-bold">{a.title}</p>
-                <p className="max-w-md truncate text-xs text-f1-grey">{a.body}</p>
+                <p className="max-w-md truncate text-xs text-fg-muted">{a.body}</p>
               </td>
-              <td className="max-w-40 truncate text-xs text-f1-grey">{a.url ?? "—"}</td>
-              <td className="whitespace-nowrap text-f1-grey">
+              <td className="max-w-40 truncate text-xs text-fg-muted">{a.url ?? "—"}</td>
+              <td className="whitespace-nowrap text-fg-muted">
                 {a.sentAt ? format(a.sentAt, "d MMM yyyy, HH:mm") : "—"}
               </td>
               <td className="whitespace-nowrap text-right">
@@ -104,7 +104,7 @@ export default async function AnnouncementsPage({
                   <span className="text-f1-red"> · {a.failedCount} failed</span>
                 ) : null}
               </td>
-              <td className="text-f1-grey">{a.author?.displayName ?? "—"}</td>
+              <td className="text-fg-muted">{a.author?.displayName ?? "—"}</td>
             </tr>
           ))}
         </Table>

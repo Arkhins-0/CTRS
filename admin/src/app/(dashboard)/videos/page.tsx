@@ -30,7 +30,7 @@ export default async function VideosListPage({
       />
 
       {error ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           Something went wrong ({error}). Please try again.
         </p>
       ) : null}
@@ -51,15 +51,15 @@ export default async function VideosListPage({
           {rows.map((v) => (
             <tr key={v.id}>
               <td>
-                <Link href={`/videos/${v.id}`} className="font-bold text-carbon hover:text-f1-red">
+                <Link href={`/videos/${v.id}`} className="font-bold text-fg hover:text-f1-red">
                   {v.title}
                 </Link>
               </td>
-              <td className="uppercase text-f1-grey">{v.provider}</td>
+              <td className="uppercase text-fg-muted">{v.provider}</td>
               <td>
                 <StatusPill status={v.status} />
               </td>
-              <td className="whitespace-nowrap text-f1-grey">
+              <td className="whitespace-nowrap text-fg-muted">
                 {v.publishedAt ? format(v.publishedAt, "d MMM yyyy HH:mm") : "—"}
               </td>
             </tr>

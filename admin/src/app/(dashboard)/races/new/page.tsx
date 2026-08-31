@@ -84,7 +84,7 @@ export default async function NewRacePage({
               <option value="cancelled">Cancelled</option>
             </Select>
           </Field>
-          <label className="flex items-end gap-2 pb-2 text-sm font-bold uppercase tracking-wide text-carbon">
+          <label className="flex items-end gap-2 pb-2 text-sm font-bold uppercase tracking-wide text-fg">
             <input type="checkbox" name="hasSprint" className="size-4 accent-f1-red" />
             Sprint weekend
           </label>

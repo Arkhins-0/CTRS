@@ -49,7 +49,7 @@ export default async function CategoriesPage() {
               <td>
                 <span
                   aria-hidden
-                  className="inline-block size-4 rounded-sm border border-warm-grey"
+                  className="inline-block size-4 rounded-sm border border-line"
                   style={{ backgroundColor: c.color }}
                 />
               </td>

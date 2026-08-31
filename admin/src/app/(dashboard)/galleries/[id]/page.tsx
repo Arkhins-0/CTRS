@@ -49,17 +49,17 @@ export default async function GalleryEditorPage({
       />
 
       {saved ? (
-        <p className="mb-4 border border-emerald-600 bg-white p-3 text-sm font-bold text-emerald-700">
+        <p className="mb-4 border border-emerald-600 bg-surface p-3 text-sm font-bold text-emerald-700">
           Gallery saved.
         </p>
       ) : null}
       {error === "invalid" ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           The gallery could not be saved — check that the title is filled in.
         </p>
       ) : null}
       {error === "pick-image" ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           Choose an image before adding it to the gallery.
         </p>
       ) : null}
@@ -75,12 +75,12 @@ export default async function GalleryEditorPage({
               <div className="divide-y divide-warm-grey">
                 {items.map((item, index) => (
                   <div key={item.mediaId} className="flex items-center gap-3 py-3">
-                    <span className="w-6 text-center font-black text-f1-grey">{index + 1}</span>
+                    <span className="w-6 text-center font-black text-fg-muted">{index + 1}</span>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={publicUrl(variantKey(item.media.path, "thumb"))}
                       alt={item.media.alt ?? item.media.filename}
-                      className="h-16 w-24 shrink-0 bg-off-white object-cover"
+                      className="h-16 w-24 shrink-0 bg-page object-cover"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-bold" title={item.media.filename}>
@@ -112,7 +112,7 @@ export default async function GalleryEditorPage({
                         value="up"
                         disabled={index === 0}
                         aria-label="Move up"
-                        className="border border-warm-grey bg-white px-2 py-0.5 text-xs font-bold hover:border-carbon disabled:opacity-30"
+                        className="border border-line bg-surface px-2 py-0.5 text-xs font-bold hover:border-fg-faint disabled:opacity-30"
                       >
                         ↑
                       </button>
@@ -121,7 +121,7 @@ export default async function GalleryEditorPage({
                         value="down"
                         disabled={index === items.length - 1}
                         aria-label="Move down"
-                        className="border border-warm-grey bg-white px-2 py-0.5 text-xs font-bold hover:border-carbon disabled:opacity-30"
+                        className="border border-line bg-surface px-2 py-0.5 text-xs font-bold hover:border-fg-faint disabled:opacity-30"
                       >
                         ↓
                       </button>
@@ -159,7 +159,7 @@ export default async function GalleryEditorPage({
                 <StatusPill status={gallery.status} />
               </div>
               {gallery.publishedAt ? (
-                <p className="mt-1 text-xs text-f1-grey">
+                <p className="mt-1 text-xs text-fg-muted">
                   Published {format(gallery.publishedAt, "d MMM yyyy HH:mm")}
                 </p>
               ) : null}
@@ -199,7 +199,7 @@ export default async function GalleryEditorPage({
 
           <Card className="border-f1-red">
             <h2 className="text-sm font-black uppercase tracking-wide text-f1-red">Danger zone</h2>
-            <p className="mt-1 text-xs text-f1-grey">
+            <p className="mt-1 text-xs text-fg-muted">
               Deletes the gallery and its item list — the media files themselves are kept.
             </p>
             <form action={deleteGalleryAction} className="mt-3">

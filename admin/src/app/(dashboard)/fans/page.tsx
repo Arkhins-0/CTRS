@@ -100,19 +100,19 @@ export default async function FansPage({
             return (
               <tr key={f.id}>
                 <td className="font-bold">{f.displayName}</td>
-                <td className="text-f1-grey">{f.email}</td>
+                <td className="text-fg-muted">{f.email}</td>
                 <td className="uppercase">{f.countryCode ?? "—"}</td>
-                <td className="whitespace-nowrap text-f1-grey">{format(f.createdAt, "d MMM yyyy")}</td>
+                <td className="whitespace-nowrap text-fg-muted">{format(f.createdAt, "d MMM yyyy")}</td>
                 <td>
                   <span
                     className={`inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
-                      active ? "bg-emerald-600 text-white" : "bg-carbon-600 text-white"
+                      active ? "bg-emerald-600 text-white" : "bg-line text-white"
                     }`}
                   >
                     {active ? "Active" : "Deactivated"}
                   </span>
                 </td>
-                <td className="whitespace-nowrap text-f1-grey">
+                <td className="whitespace-nowrap text-fg-muted">
                   {fav.driver} driver{fav.driver === 1 ? "" : "s"} · {fav.team} team{fav.team === 1 ? "" : "s"}
                 </td>
                 <td>{savedMap.get(f.id) ?? 0}</td>
@@ -152,7 +152,7 @@ export default async function FansPage({
           ) : (
             <span />
           )}
-          <span className="text-f1-grey">
+          <span className="text-fg-muted">
             Page {page} of {totalPages}
           </span>
           {page < totalPages ? (

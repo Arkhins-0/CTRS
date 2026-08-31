@@ -53,7 +53,7 @@ export default async function ChampionshipsPage() {
                   <img
                     src={publicUrl(variantKey(c.logo.path, "thumb"))}
                     alt={`${c.shortName} logo`}
-                    className="size-9 border border-warm-grey object-contain"
+                    className="size-9 border border-line object-contain"
                   />
                 ) : (
                   <span
@@ -74,20 +74,20 @@ export default async function ChampionshipsPage() {
                   {c.name}
                 </Link>
               </td>
-              <td className="text-f1-grey">{TYPE_LABELS.get(c.type) ?? c.type}</td>
+              <td className="text-fg-muted">{TYPE_LABELS.get(c.type) ?? c.type}</td>
               <td>
                 <span className="inline-flex items-center gap-1">
                   <span
                     aria-hidden
                     title={c.primaryColor}
-                    className="inline-block size-4 rounded-sm border border-warm-grey"
+                    className="inline-block size-4 rounded-sm border border-line"
                     style={{ backgroundColor: c.primaryColor }}
                   />
                   {c.secondaryColor ? (
                     <span
                       aria-hidden
                       title={c.secondaryColor}
-                      className="inline-block size-4 rounded-sm border border-warm-grey"
+                      className="inline-block size-4 rounded-sm border border-line"
                       style={{ backgroundColor: c.secondaryColor }}
                     />
                   ) : null}

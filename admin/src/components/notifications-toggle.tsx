@@ -94,15 +94,15 @@ export function NotificationsToggle() {
   };
 
   const btn =
-    "chamfer-tr border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon disabled:cursor-not-allowed disabled:opacity-50";
+    "chamfer-tr border border-line bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint disabled:cursor-not-allowed disabled:opacity-50";
 
   if (state === "loading") return null;
   if (state === "unsupported") {
-    return <p className="text-xs text-f1-grey">This browser doesn&apos;t support push notifications.</p>;
+    return <p className="text-xs text-fg-muted">This browser doesn&apos;t support push notifications.</p>;
   }
   if (state === "denied") {
     return (
-      <p className="text-xs text-f1-grey">
+      <p className="text-xs text-fg-muted">
         Notifications are blocked for this site — allow them in the browser&apos;s site settings.
       </p>
     );

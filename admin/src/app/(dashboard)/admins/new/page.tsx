@@ -32,12 +32,12 @@ export default async function NewAdmin() {
           </Field>
 
           <div>
-            <p className="mb-2 block text-xs font-bold uppercase tracking-wide text-f1-grey">Roles</p>
+            <p className="mb-2 block text-xs font-bold uppercase tracking-wide text-fg-muted">Roles</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {Object.entries(ROLE_DEFINITIONS).map(([key, def]) => (
                 <label
                   key={key}
-                  className="flex items-center gap-2 border border-warm-grey bg-white px-3 py-2 text-sm font-semibold text-carbon hover:border-carbon"
+                  className="flex items-center gap-2 border border-line bg-surface px-3 py-2 text-sm font-semibold text-fg hover:border-fg-faint"
                 >
                   <input type="checkbox" name="roles" value={key} className="size-4 accent-f1-red" />
                   {def.name}

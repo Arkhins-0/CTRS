@@ -43,9 +43,9 @@ export function RelatedPicker({
           {selected.map((s, i) => (
             <li
               key={s.id}
-              className="flex items-center gap-2 border border-warm-grey bg-off-white px-2 py-1.5 text-xs"
+              className="flex items-center gap-2 border border-line bg-page px-2 py-1.5 text-xs"
             >
-              <span className="font-black text-f1-grey">{i + 1}</span>
+              <span className="font-black text-fg-muted">{i + 1}</span>
               <span className="flex-1 truncate" title={s.title}>
                 {s.title}
               </span>
@@ -53,7 +53,7 @@ export function RelatedPicker({
                 type="button"
                 aria-label={`Remove ${s.title}`}
                 onClick={() => setSelected((prev) => prev.filter((p) => p.id !== s.id))}
-                className="text-f1-grey transition-colors hover:text-f1-red"
+                className="text-fg-muted transition-colors hover:text-f1-red"
               >
                 <X size={13} />
               </button>
@@ -61,7 +61,7 @@ export function RelatedPicker({
           ))}
         </ul>
       ) : (
-        <p className="mb-2 text-xs text-f1-grey">No related articles chosen.</p>
+        <p className="mb-2 text-xs text-fg-muted">No related articles chosen.</p>
       )}
 
       <input
@@ -69,11 +69,11 @@ export function RelatedPicker({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search articles to relate…"
-        className="w-full border border-warm-grey bg-white px-3 py-2 text-sm outline-none focus:border-f1-red"
+        className="w-full border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-f1-red"
       />
 
       {matches.length > 0 ? (
-        <ul className="mt-1 divide-y divide-warm-grey border border-warm-grey bg-white">
+        <ul className="mt-1 divide-y divide-warm-grey border border-line bg-surface">
           {matches.map((m) => (
             <li key={m.id}>
               <button
@@ -82,7 +82,7 @@ export function RelatedPicker({
                   setSelected((prev) => [...prev, m]);
                   setQuery("");
                 }}
-                className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-xs transition-colors hover:bg-off-white"
+                className="flex w-full items-center gap-2 px-2 py-1.5 text-left text-xs transition-colors hover:bg-panel"
               >
                 <Plus size={13} className="shrink-0 text-f1-red" />
                 <span className="truncate">{m.title}</span>
@@ -92,7 +92,7 @@ export function RelatedPicker({
         </ul>
       ) : null}
       {query.trim() && matches.length === 0 ? (
-        <p className="mt-1 text-xs text-f1-grey-light">No matches.</p>
+        <p className="mt-1 text-xs text-fg-faint">No matches.</p>
       ) : null}
     </div>
   );

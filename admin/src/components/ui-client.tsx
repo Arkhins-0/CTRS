@@ -13,9 +13,9 @@ export function SubmitButton({
   const { pending } = useFormStatus();
   const styles =
     variant === "secondary"
-      ? "bg-carbon text-white hover:bg-carbon-700"
+      ? "bg-panel text-white hover:bg-line"
       : variant === "danger"
-        ? "bg-white border border-f1-red text-f1-red hover:bg-f1-red hover:text-white"
+        ? "bg-surface border border-f1-red text-f1-red hover:bg-f1-red hover:text-white"
         : "bg-f1-red text-white hover:bg-f1-red-dark";
   return (
     <button
@@ -47,7 +47,7 @@ export function ConfirmSubmit({
       onClick={(e) => {
         if (!confirm(message)) e.preventDefault();
       }}
-      className={`chamfer-tr inline-flex items-center gap-1 border border-f1-red bg-white px-3 py-1.5 text-xs font-bold uppercase text-f1-red transition-colors hover:bg-f1-red hover:text-white disabled:opacity-50 ${className}`}
+      className={`chamfer-tr inline-flex items-center gap-1 border border-f1-red bg-surface px-3 py-1.5 text-xs font-bold uppercase text-f1-red transition-colors hover:bg-f1-red hover:text-white disabled:opacity-50 ${className}`}
     >
       {pending ? "…" : children}
     </button>

@@ -85,7 +85,7 @@ export function VideoForm({
             <StatusPill status={status} />
           </div>
           {video?.publishedAt ? (
-            <p className="mt-1 text-xs text-f1-grey">
+            <p className="mt-1 text-xs text-fg-muted">
               Published {format(video.publishedAt, "d MMM yyyy HH:mm")}
             </p>
           ) : null}
@@ -113,7 +113,7 @@ export function VideoForm({
 
         <Card>
           <h2 className="mb-3 text-sm font-black uppercase tracking-wide">Thumbnail</h2>
-          <p className="mb-2 text-xs text-f1-grey">
+          <p className="mb-2 text-xs text-fg-muted">
             Optional override — YouTube videos fall back to the YouTube thumbnail.
           </p>
           <MediaPickerInput

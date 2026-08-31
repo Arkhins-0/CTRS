@@ -69,7 +69,7 @@ export default async function NewsListPage({
       />
 
       {error ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           Something went wrong ({error}). Please try again.
         </p>
       ) : null}
@@ -122,7 +122,7 @@ export default async function NewsListPage({
           {rows.map((a) => (
             <tr key={a.id}>
               <td>
-                <Link href={`/news/${a.id}`} className="font-bold text-carbon hover:text-f1-red">
+                <Link href={`/news/${a.id}`} className="font-bold text-fg hover:text-f1-red">
                   {a.isBreaking ? (
                     <span className="mr-1.5 inline-block bg-f1-red px-1.5 py-0.5 text-[10px] font-black uppercase text-white">
                       Breaking
@@ -131,17 +131,17 @@ export default async function NewsListPage({
                   {a.title}
                 </Link>
               </td>
-              <td className="text-f1-grey">{a.category?.name ?? "—"}</td>
+              <td className="text-fg-muted">{a.category?.name ?? "—"}</td>
               <td>
                 <StatusPill status={a.status} />
               </td>
-              <td className="text-f1-grey">
+              <td className="text-fg-muted">
                 {a.authorNameOverride ?? a.author?.displayName ?? "—"}
               </td>
-              <td className="whitespace-nowrap text-f1-grey">
+              <td className="whitespace-nowrap text-fg-muted">
                 {a.publishedAt ? format(a.publishedAt, "d MMM yyyy HH:mm") : "—"}
               </td>
-              <td className="whitespace-nowrap text-f1-grey">
+              <td className="whitespace-nowrap text-fg-muted">
                 {format(a.updatedAt, "d MMM yyyy HH:mm")}
               </td>
             </tr>

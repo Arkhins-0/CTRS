@@ -10,23 +10,23 @@ export function LoginForm({ next }: { next: string }) {
     <form action={action} className="mt-6 space-y-4">
       <input type="hidden" name="next" value={next} />
       <label className="block">
-        <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey">Email</span>
+        <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">Email</span>
         <input
           name="email"
           type="email"
           required
           autoComplete="email"
-          className="w-full border border-warm-grey px-3 py-2 text-sm outline-none focus:border-f1-red"
+          className="w-full border border-line px-3 py-2 text-sm outline-none focus:border-f1-red"
         />
       </label>
       <label className="block">
-        <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey">Password</span>
+        <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">Password</span>
         <input
           name="password"
           type="password"
           required
           autoComplete="current-password"
-          className="w-full border border-warm-grey px-3 py-2 text-sm outline-none focus:border-f1-red"
+          className="w-full border border-line px-3 py-2 text-sm outline-none focus:border-f1-red"
         />
       </label>
       {state?.error ? (

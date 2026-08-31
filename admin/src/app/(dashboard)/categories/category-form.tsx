@@ -52,7 +52,7 @@ export function CategoryFormFields({
             type="color"
             name="color"
             defaultValue={category?.color ?? "#FFC800"}
-            className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+            className="h-9 w-14 cursor-pointer border border-line bg-surface p-0.5"
           />
         </Field>
         <Field label="Sort" hint="Lower numbers appear first.">
@@ -66,7 +66,7 @@ export function CategoryFormFields({
           />
         </Field>
       </div>
-      <label className="flex items-center gap-2 self-end pb-2 text-sm font-bold uppercase tracking-wide text-carbon">
+      <label className="flex items-center gap-2 self-end pb-2 text-sm font-bold uppercase tracking-wide text-fg">
         <input
           type="checkbox"
           name="isActive"

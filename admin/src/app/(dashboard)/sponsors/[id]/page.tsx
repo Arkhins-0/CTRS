@@ -61,7 +61,7 @@ export default async function SponsorEditor({ params }: { params: Promise<{ id: 
                 initialUrl={logoThumb}
               />
             </Field>
-            <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-carbon">
+            <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-fg">
               <input type="checkbox" name="isActive" defaultChecked={sponsor.isActive} className="size-4 accent-f1-red" />
               Active — shown on the public site
             </label>
@@ -71,7 +71,7 @@ export default async function SponsorEditor({ params }: { params: Promise<{ id: 
 
         <Card className="h-fit border-f1-red/40">
           <h2 className="mb-2 text-sm font-black uppercase tracking-wide text-f1-red">Danger zone</h2>
-          <p className="mb-3 text-sm text-f1-grey">Removes the sponsor from every sponsor grid.</p>
+          <p className="mb-3 text-sm text-fg-muted">Removes the sponsor from every sponsor grid.</p>
           <form action={deleteSponsorAction}>
             <input type="hidden" name="sponsorId" value={sponsor.id} />
             <ConfirmSubmit message={`Delete sponsor "${sponsor.name}"? This cannot be undone.`}>

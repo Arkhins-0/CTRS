@@ -52,10 +52,10 @@ export default async function SponsorsPage() {
                       <img
                         src={publicUrl(variantKey(s.logo.path, "thumb"))}
                         alt={s.logo.alt ?? s.name}
-                        className="h-9 w-12 border border-warm-grey bg-white object-contain p-0.5"
+                        className="h-9 w-12 border border-line bg-surface object-contain p-0.5"
                       />
                     ) : (
-                      <span className="flex h-9 w-12 items-center justify-center border border-dashed border-warm-grey text-[9px] font-bold uppercase text-f1-grey-light">
+                      <span className="flex h-9 w-12 items-center justify-center border border-dashed border-line text-[9px] font-bold uppercase text-fg-faint">
                         None
                       </span>
                     )}
@@ -65,15 +65,15 @@ export default async function SponsorsPage() {
                       {s.name}
                     </Link>
                   </td>
-                  <td className="whitespace-nowrap text-f1-grey">{TIER_LABELS[s.tier] ?? s.tier}</td>
-                  <td className="max-w-48 truncate text-f1-grey">{s.url ?? "—"}</td>
+                  <td className="whitespace-nowrap text-fg-muted">{TIER_LABELS[s.tier] ?? s.tier}</td>
+                  <td className="max-w-48 truncate text-fg-muted">{s.url ?? "—"}</td>
                   <td>{s.sort}</td>
                   <td>
                     <form action={toggleSponsorAction}>
                       <input type="hidden" name="sponsorId" value={s.id} />
                       <button
                         className={`inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide transition-colors ${
-                          s.isActive ? "bg-emerald-600 text-white" : "bg-warm-grey text-carbon"
+                          s.isActive ? "bg-emerald-600 text-white" : "bg-panel text-fg"
                         } hover:opacity-80`}
                         title={s.isActive ? "Click to deactivate" : "Click to activate"}
                       >

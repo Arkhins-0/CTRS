@@ -134,7 +134,7 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
               initialUrl={driver.headshot ? publicUrl(variantKey(driver.headshot.path, "thumb")) : null}
             />
           </Field>
-          <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-carbon">
+          <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-fg">
             <input
               type="checkbox"
               name="isActive"
@@ -170,7 +170,7 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
               <span className="text-lg font-black uppercase">{seasonLabel(entry)}</span>
               <span className="font-bold">{entry.teamSeasonEntry.displayName}</span>
               {entry.category ? (
-                <span className="inline-flex items-center gap-1.5 border border-warm-grey bg-white px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-carbon">
+                <span className="inline-flex items-center gap-1.5 border border-line bg-surface px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-fg">
                   <span
                     aria-hidden
                     className="inline-block size-2.5 rounded-sm"
@@ -182,11 +182,11 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
                 <Badge tone="amber">No category</Badge>
               )}
               {entry.classification ? (
-                <span className="inline-flex items-center border border-carbon bg-carbon px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                <span className="inline-flex items-center border border-line bg-panel px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
                   {entry.classification}
                 </span>
               ) : null}
-              <span className="text-xs text-f1-grey">
+              <span className="text-xs text-fg-muted">
                 #{entry.carNumber} · {entry.role}
                 {entry.fromRound || entry.toRound
                   ? ` · rounds ${entry.fromRound ?? "start"} → ${entry.toRound ?? "end"}`
@@ -255,7 +255,7 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
         ))
       ) : (
         <Card className="mt-3">
-          <p className="text-sm text-f1-grey">
+          <p className="text-sm text-fg-muted">
             No season entries yet — the driver won&rsquo;t appear in results grids or standings until
             one is added.
           </p>
@@ -264,7 +264,7 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
 
       {/* ── Add entry ──────────────────────────────────────────────────── */}
       <Card className="mt-3">
-        <h3 className="mb-3 text-xs font-black uppercase tracking-wide text-f1-grey">Add season entry</h3>
+        <h3 className="mb-3 text-xs font-black uppercase tracking-wide text-fg-muted">Add season entry</h3>
         {allTeamEntries.length ? (
           <form action={addDriverEntryAction} className="flex flex-wrap items-end gap-2">
             <input type="hidden" name="driverId" value={driver.id} />
@@ -320,7 +320,7 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
             </div>
           </form>
         ) : (
-          <p className="text-sm text-f1-grey">
+          <p className="text-sm text-fg-muted">
             No team season entries exist yet — create one under Teams &amp; Cars first.
           </p>
         )}

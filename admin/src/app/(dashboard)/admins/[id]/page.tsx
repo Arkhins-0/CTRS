@@ -47,7 +47,7 @@ export default async function AdminEditor({
       />
 
       {error === "self" && (
-        <div className="mb-4 border border-f1-red bg-white px-4 py-3 text-sm font-bold text-f1-red">
+        <div className="mb-4 border border-f1-red bg-surface px-4 py-3 text-sm font-bold text-f1-red">
           You cannot deactivate your own account.
         </div>
       )}
@@ -78,7 +78,7 @@ export default async function AdminEditor({
                 {Object.entries(ROLE_DEFINITIONS).map(([key, def]) => (
                   <label
                     key={key}
-                    className="flex items-center gap-2 border border-warm-grey bg-white px-3 py-2 text-sm font-semibold text-carbon hover:border-carbon"
+                    className="flex items-center gap-2 border border-line bg-surface px-3 py-2 text-sm font-semibold text-fg hover:border-fg-faint"
                   >
                     <input
                       type="checkbox"
@@ -100,11 +100,11 @@ export default async function AdminEditor({
           {/* Access */}
           <Card>
             <h2 className="mb-3 text-sm font-black uppercase tracking-wide">Access</h2>
-            <p className="mb-4 text-sm text-f1-grey">
+            <p className="mb-4 text-sm text-fg-muted">
               Status:{" "}
               <span
                 className={`inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
-                  user.isActive ? "bg-emerald-600 text-white" : "bg-carbon-600 text-white"
+                  user.isActive ? "bg-emerald-600 text-white" : "bg-line text-white"
                 }`}
               >
                 {user.isActive ? "Active" : "Inactive"}
@@ -138,14 +138,14 @@ export default async function AdminEditor({
               )}
             </div>
             {isSelf && (
-              <p className="mt-3 text-xs text-f1-grey-light">You cannot deactivate your own account.</p>
+              <p className="mt-3 text-xs text-fg-faint">You cannot deactivate your own account.</p>
             )}
           </Card>
 
           {/* Reset password */}
           <Card>
             <h2 className="mb-3 text-sm font-black uppercase tracking-wide">Reset password</h2>
-            <p className="mb-4 text-sm text-f1-grey">
+            <p className="mb-4 text-sm text-fg-muted">
               Sets a new password and signs the user out of all sessions.
             </p>
             <form action={resetAdminPasswordAction} className="space-y-4">

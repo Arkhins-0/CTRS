@@ -52,7 +52,7 @@ export default async function DriversPage({
         <Input name="q" defaultValue={q} placeholder="Search by name or code…" aria-label="Search drivers" />
         <button
           type="submit"
-          className="chamfer-tr bg-carbon px-4 py-2 text-sm font-bold uppercase tracking-wide text-white hover:bg-carbon-700"
+          className="chamfer-tr bg-panel px-4 py-2 text-sm font-bold uppercase tracking-wide text-white hover:bg-line"
         >
           Search
         </button>
@@ -84,10 +84,10 @@ export default async function DriversPage({
                     <img
                       src={publicUrl(d.headshot.path)}
                       alt={d.headshot.alt ?? `${d.firstName} ${d.lastName}`}
-                      className="size-9 rounded-full border border-warm-grey object-cover"
+                      className="size-9 rounded-full border border-line object-cover"
                     />
                   ) : (
-                    <span className="flex size-9 items-center justify-center rounded-full bg-carbon text-[10px] font-black text-white">
+                    <span className="flex size-9 items-center justify-center rounded-full bg-panel text-[10px] font-black text-white">
                       {d.code}
                     </span>
                   )}
@@ -110,13 +110,13 @@ export default async function DriversPage({
                         style={{ backgroundColor: latest.teamSeasonEntry.primaryColor }}
                       />
                       {latest.teamSeasonEntry.shortName}
-                      <span className="text-xs text-f1-grey">
+                      <span className="text-xs text-fg-muted">
                         ({latest.championshipSeason.championship.shortName}{" "}
                         {latest.championshipSeason.year})
                       </span>
                     </span>
                   ) : (
-                    <span className="text-f1-grey-light">—</span>
+                    <span className="text-fg-faint">—</span>
                   )}
                 </td>
                 <td>{d.isActive ? <Badge tone="green">Active</Badge> : <Badge tone="grey">Inactive</Badge>}</td>

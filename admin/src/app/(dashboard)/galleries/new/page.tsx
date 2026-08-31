@@ -19,7 +19,7 @@ export default async function NewGalleryPage({
       <PageHeader title="New gallery" sub="Create the gallery first, then add images in the editor." />
 
       {error === "invalid" ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           A title is required.
         </p>
       ) : null}

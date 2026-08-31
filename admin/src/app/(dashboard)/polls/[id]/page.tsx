@@ -119,7 +119,7 @@ export default async function PollEditor({ params }: { params: Promise<{ id: str
             {poll.options.length ? (
               <ul className="space-y-3">
                 {poll.options.map((opt) => (
-                  <li key={opt.id} className="flex flex-wrap items-end gap-3 border-b border-warm-grey pb-3">
+                  <li key={opt.id} className="flex flex-wrap items-end gap-3 border-b border-line pb-3">
                     <form action={updatePollOptionAction} className="flex flex-1 flex-wrap items-end gap-3">
                       <input type="hidden" name="optionId" value={opt.id} />
                       <Field label="Label" className="min-w-40 flex-1">
@@ -143,7 +143,7 @@ export default async function PollEditor({ params }: { params: Promise<{ id: str
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-f1-grey">No options yet — fans can't vote until you add some.</p>
+              <p className="text-sm text-fg-muted">No options yet — fans can't vote until you add some.</p>
             )}
 
             <form action={addPollOptionAction} className="mt-4 flex flex-wrap items-end gap-3">
@@ -186,7 +186,7 @@ export default async function PollEditor({ params }: { params: Promise<{ id: str
                 </form>
               )}
             </div>
-            <p className="mt-3 text-xs text-f1-grey-light">
+            <p className="mt-3 text-xs text-fg-faint">
               Opening sets "opens at" to now when empty · closing stamps "closes at".
             </p>
           </Card>
@@ -204,31 +204,31 @@ export default async function PollEditor({ params }: { params: Promise<{ id: str
                       <li key={opt.id}>
                         <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
                           <span className="truncate font-bold">{opt.label}</span>
-                          <span className="whitespace-nowrap text-xs text-f1-grey">
+                          <span className="whitespace-nowrap text-xs text-fg-muted">
                             {n} · {pct}%
                           </span>
                         </div>
-                        <div className="h-4 w-full bg-warm-grey">
+                        <div className="h-4 w-full bg-panel">
                           <div className="h-full bg-f1-red" style={{ width: `${pct}%` }} />
                         </div>
                       </li>
                     );
                   })}
                 </ul>
-                <p className="mt-4 border-t border-warm-grey pt-3 text-sm">
+                <p className="mt-4 border-t border-line pt-3 text-sm">
                   <span className="font-black">{totalVotes}</span>{" "}
-                  <span className="text-f1-grey">total vote{totalVotes === 1 ? "" : "s"}</span>
+                  <span className="text-fg-muted">total vote{totalVotes === 1 ? "" : "s"}</span>
                 </p>
               </>
             ) : (
-              <p className="text-sm text-f1-grey">Add options to see results.</p>
+              <p className="text-sm text-fg-muted">Add options to see results.</p>
             )}
           </Card>
 
           {/* Danger zone */}
           <Card className="border-f1-red/40">
             <h2 className="mb-2 text-sm font-black uppercase tracking-wide text-f1-red">Danger zone</h2>
-            <p className="mb-3 text-sm text-f1-grey">Deletes the poll, its options and all votes.</p>
+            <p className="mb-3 text-sm text-fg-muted">Deletes the poll, its options and all votes.</p>
             <form action={deletePollAction}>
               <input type="hidden" name="pollId" value={poll.id} />
               <ConfirmSubmit message={`Delete poll "${poll.question}" and all its votes?`}>
