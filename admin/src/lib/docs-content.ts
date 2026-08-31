@@ -47,6 +47,22 @@ export const DOC_SECTIONS: DocSection[] = [
         kind: "note",
         text: "Notifications are granted per device. Turning them on for your phone does not turn them on for your laptop — repeat this on every device you want alerts on.",
       },
+      {
+        kind: "p",
+        text: "On Android there is a second step that catches people out. To save battery, Android clears apps from memory — including your browser — and a cleared browser cannot receive announcements until you next open it. Turn battery optimisation off so alerts always arrive.",
+      },
+      {
+        kind: "steps",
+        items: [
+          "Open Android Settings, then Apps, and pick your browser (usually Chrome).",
+          "Open Battery and choose Unrestricted, or turn 'Optimise battery usage' off.",
+          "On Samsung, Xiaomi, Oppo, Vivo and OnePlus, also allow Autostart and Background activity — these vendors are the most aggressive.",
+        ],
+      },
+      {
+        kind: "note",
+        text: "The console asks you to do all of this the first time you sign in, and keeps asking until it is done — an unreachable device is the same as no device on a race weekend.",
+      },
     ],
   },
   {

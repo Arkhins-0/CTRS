@@ -1,6 +1,7 @@
 import { LogOut } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { AdminShell } from "@/components/shell/admin-shell";
+import { PushSetup } from "@/components/pwa/push-setup";
 import { logoutAction } from "../login/actions";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
       user={{ displayName: session.user.displayName, email: session.user.email }}
       signOut={signOut}
     >
+      {/* Sits above every CMS page until this device is actually reachable. */}
+      <div className="mb-4 empty:mb-0">
+        <PushSetup api="/api/push" />
+      </div>
       {children}
     </AdminShell>
   );

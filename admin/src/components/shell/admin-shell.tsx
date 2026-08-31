@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { LogOut, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeftOpen, User, X } from "lucide-react";
 import { filterNav, type NavGroup } from "@/lib/nav";
 
 const COLLAPSE_KEY = "ctr-admin-rail-collapsed";
@@ -15,6 +15,60 @@ function useActiveMatcher() {
   const pathname = usePathname();
   return (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/* ── Shared nav list ─────────────────────────────────────────────────────── */
+
+function NavList({
+  groups,
+  collapsed = false,
+  onNavigate,
+}: {
+  groups: NavGroup[];
+  collapsed?: boolean;
+  onNavigate?: () => void;
+}) {
+  const isActive = useActiveMatcher();
+
+  return (
+    <>
+      {groups.map((group) => (
+        <div key={group.title}>
+          {!collapsed && (
+            <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-fg-faint">
+              {group.title}
+            </p>
+          )}
+          <ul className="space-y-0.5">
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={onNavigate}
+                    title={collapsed ? item.label : undefined}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex min-h-11 items-center gap-2.5 px-3 text-sm font-semibold transition-colors ${
+                      collapsed ? "justify-center" : ""
+                    } ${
+                      active
+                        ? "chamfer-tr bg-accent text-accent-fg"
+                        : "text-fg-muted hover:bg-panel hover:text-fg"
+                    }`}
+                  >
+                    <Icon size={16} strokeWidth={2.5} className="shrink-0" />
+                    {!collapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </>
+  );
 }
 
 /* ── Desktop rail ────────────────────────────────────────────────────────── */
@@ -32,8 +86,6 @@ function DesktopRail({
   collapsed: boolean;
   onToggle: () => void;
 }) {
-  const isActive = useActiveMatcher();
-
   return (
     <aside
       className={`safe-l fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-line bg-page lg:flex ${
@@ -60,40 +112,7 @@ function DesktopRail({
       </div>
 
       <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 py-4">
-        {groups.map((group) => (
-          <div key={group.title}>
-            {!collapsed && (
-              <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-fg-faint">
-                {group.title}
-              </p>
-            )}
-            <ul className="space-y-0.5">
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.href);
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      title={collapsed ? item.label : undefined}
-                      aria-current={active ? "page" : undefined}
-                      className={`flex min-h-11 items-center gap-2.5 px-3 text-sm font-semibold transition-colors ${
-                        collapsed ? "justify-center" : ""
-                      } ${
-                        active
-                          ? "chamfer-tr bg-accent text-accent-fg"
-                          : "text-fg-muted hover:bg-panel hover:text-fg"
-                      }`}
-                    >
-                      <Icon size={16} strokeWidth={2.5} className="shrink-0" />
-                      {!collapsed && <span className="truncate">{item.label}</span>}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+        <NavList groups={groups} collapsed={collapsed} />
       </nav>
 
       <div className="safe-b border-t border-line p-3">
@@ -109,13 +128,18 @@ function DesktopRail({
   );
 }
 
-/* ── Mobile bar + chip nav ───────────────────────────────────────────────── */
+/* ── Mobile bar + slide-out drawer ───────────────────────────────────────── */
 
 /**
- * Below lg the rail becomes a sticky bar plus a horizontally scrolling chip
- * row that renders the *same* nav list — nothing is hidden behind a "more"
- * menu, so every destination stays one tap away. The active chip scrolls
- * itself into view so you can always see where you are.
+ * Below lg the rail becomes a hamburger and a slide-out drawer carrying the
+ * full grouped nav.
+ *
+ * This replaced a horizontally scrolling chip row: the CMS has ~24
+ * destinations across five groups, and a single-line strip both loses the
+ * group headings that give those items meaning and forces a horizontal hunt
+ * for anything past the third item. A drawer shows the whole tree at once.
+ * (The member area keeps its bottom tab bar — five destinations, no grouping,
+ * and worth the permanent thumb reach.)
  */
 function MobileNav({
   groups,
@@ -126,82 +150,108 @@ function MobileNav({
   user: ShellUser;
   signOut: React.ReactNode;
 }) {
-  const isActive = useActiveMatcher();
   const pathname = usePathname();
-  const activeRef = useRef<HTMLAnchorElement>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
+  // Close on navigation — the drawer must not survive into the new page.
   useEffect(() => {
-    activeRef.current?.scrollIntoView({ inline: "center", block: "nearest" });
+    setOpen(false);
   }, [pathname]);
 
+  // Escape closes; lock body scroll so the page behind cannot be scrolled away.
   useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
-
-  const items = groups.flatMap((g) => g.items);
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    panelRef.current?.focus();
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
 
   return (
-    <header className="safe-t sticky top-0 z-40 border-b border-line bg-page/95 backdrop-blur lg:hidden">
-      <div className="flex items-center gap-2 px-3 py-2">
-        <Link href="/" className="flex items-center gap-2">
-          <Image src="/ctr-logo.webp" alt="CTR Sports" width={40} height={23} priority />
-          <span className="text-sm font-black uppercase tracking-wider text-fg">Admin</span>
-        </Link>
+    <>
+      <header className="safe-t sticky top-0 z-40 border-b border-line bg-page/95 backdrop-blur lg:hidden">
+        <div className="flex items-center gap-2 px-3 py-2">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={open}
+            className="grid size-11 place-items-center border border-line text-fg-muted transition-colors hover:text-fg"
+          >
+            <Menu size={18} />
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-expanded={menuOpen}
-          aria-label="Account menu"
-          className="ml-auto grid size-11 place-items-center border border-line text-fg-muted transition-colors hover:text-fg"
-        >
-          <User size={18} />
-        </button>
-      </div>
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/ctr-logo.webp" alt="CTR Sports" width={40} height={23} priority />
+            <span className="text-sm font-black uppercase tracking-wider text-fg">Admin</span>
+          </Link>
 
-      {menuOpen && (
-        <div className="border-t border-line bg-surface px-4 py-3">
-          <p className="truncate text-xs font-bold text-fg">{user.displayName}</p>
-          <p className="truncate text-[11px] text-fg-faint">{user.email}</p>
-          <div className="mt-3 flex items-center gap-4">
-            <Link href="/account" className="text-xs font-bold uppercase tracking-wide text-fg-muted hover:text-fg">
-              Account
-            </Link>
-            {signOut}
+          <Link
+            href="/account"
+            aria-label="Account"
+            className="ml-auto grid size-11 place-items-center border border-line text-fg-muted transition-colors hover:text-fg"
+          >
+            <User size={18} />
+          </Link>
+        </div>
+      </header>
+
+      {open ? (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <button
+            type="button"
+            aria-label="Close menu"
+            onClick={() => setOpen(false)}
+            className="absolute inset-0 bg-black/60"
+          />
+          <div
+            ref={panelRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation"
+            className="safe-t safe-b absolute inset-y-0 left-0 flex w-[17rem] max-w-[85vw] flex-col border-r border-line bg-page outline-none"
+          >
+            <div className="flex items-center gap-2 border-b border-line px-3 py-3">
+              <Image src="/ctr-logo.webp" alt="" width={36} height={20} priority />
+              <span className="text-sm font-black uppercase tracking-wider text-fg">Admin</span>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close menu"
+                className="ml-auto grid size-10 place-items-center text-fg-faint transition-colors hover:text-fg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 py-4">
+              <NavList groups={groups} onNavigate={() => setOpen(false)} />
+            </nav>
+
+            <div className="border-t border-line p-3">
+              <Link
+                href="/account"
+                onClick={() => setOpen(false)}
+                className="block truncate hover:underline"
+              >
+                <p className="truncate text-xs font-bold text-fg">{user.displayName}</p>
+                <p className="truncate text-[11px] text-fg-faint">{user.email}</p>
+              </Link>
+              <div className="mt-2">{signOut}</div>
+            </div>
           </div>
         </div>
-      )}
-
-      <div
-        className="flex gap-1.5 overflow-x-auto px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        style={{
-          maskImage: "linear-gradient(to right, #000 calc(100% - 24px), transparent)",
-          WebkitMaskImage: "linear-gradient(to right, #000 calc(100% - 24px), transparent)",
-        }}
-      >
-        {items.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              ref={active ? activeRef : undefined}
-              aria-current={active ? "page" : undefined}
-              className={`flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-3 text-xs font-bold uppercase tracking-wide transition-colors ${
-                active
-                  ? "chamfer-tr bg-accent text-accent-fg"
-                  : "border border-line text-fg-muted hover:text-fg"
-              }`}
-            >
-              <Icon size={13} strokeWidth={2.5} />
-              {item.label}
-            </Link>
-          );
-        })}
-      </div>
-    </header>
+      ) : null}
+    </>
   );
 }
 

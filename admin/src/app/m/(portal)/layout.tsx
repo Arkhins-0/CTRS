@@ -1,6 +1,7 @@
 import { LogOut } from "lucide-react";
 import { requireMember } from "@/lib/member-auth";
 import { MemberShell } from "@/components/shell/member-shell";
+import { PushSetup } from "@/components/pwa/push-setup";
 import { memberLogoutAction } from "../login/actions";
 
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
@@ -25,6 +26,10 @@ export default async function MemberLayout({ children }: { children: React.React
       teamName={session.team?.name ?? null}
       signOut={signOut}
     >
+      {/* Sits above every member page until this device is actually reachable. */}
+      <div className="mb-4 empty:mb-0">
+        <PushSetup api="/api/member-push" />
+      </div>
       {children}
     </MemberShell>
   );
