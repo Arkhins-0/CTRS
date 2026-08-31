@@ -1,5 +1,13 @@
 import Link from "next/link";
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { Children, cloneElement, isValidElement } from "react";
+import type {
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  ReactElement,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react";
 
 /*
  * Server-safe UI primitives shared by every CMS section.
@@ -112,17 +120,71 @@ export function PageHeader({
   );
 }
 
+/**
+ * Flattens a header cell to plain text so it can be reused as a mobile label.
+ * Headers are usually a bare string, but some wrap an icon or span.
+ */
+function nodeText(node: ReactNode): string {
+  if (node === null || node === undefined || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join("");
+  if (isValidElement(node)) {
+    return nodeText((node.props as { children?: ReactNode }).children);
+  }
+  return "";
+}
+
+// "data-label" is declared so cloneElement accepts it — React types do not
+// allow arbitrary data-* attributes through a typed props object.
+type CellProps = { children?: ReactNode; colSpan?: number; "data-label"?: string };
+
+/**
+ * Data table that becomes a list of cards below `lg`.
+ *
+ * A wide table in a horizontally scrolling box pushes the last columns —
+ * usually status and the row actions — off-screen behind a swipe, which is
+ * normally what the page is for. Rather than hand-writing a card layout on
+ * every screen, each cell is tagged with its column heading here and CSS
+ * restacks the rows (see `.rtable` in globals.css). Callers pass the same
+ * `head` and `<tr>`/`<td>` markup as before and get both layouts.
+ */
 export function Table({ head, children }: { head: ReactNode; children: ReactNode }) {
+  // `head` arrives as a fragment of <th>; unwrap it to read the labels in order.
+  const headNodes = isValidElement(head)
+    ? ((head.props as { children?: ReactNode }).children ?? head)
+    : head;
+  const labels = Children.toArray(headNodes)
+    .filter(isValidElement)
+    .map((th) => nodeText((th.props as { children?: ReactNode }).children).trim());
+
+  const rows = Children.map(children, (row) => {
+    if (!isValidElement(row) || row.type !== "tr") return row;
+    const rowProps = row.props as { children?: ReactNode };
+
+    let index = 0;
+    const cells = Children.map(rowProps.children, (cell) => {
+      if (!isValidElement(cell) || cell.type !== "td") return cell;
+      const props = cell.props as CellProps;
+      const label = labels[index];
+      index += 1;
+      // A spanning cell (e.g. an inline "no results" row) has no single column.
+      if (props.colSpan) return cell;
+      return label ? cloneElement(cell as ReactElement<CellProps>, { "data-label": label }) : cell;
+    });
+
+    return cloneElement(row as ReactElement<{ children?: ReactNode }>, {}, cells);
+  });
+
   return (
-    <div className="chamfer-tr overflow-x-auto border border-line bg-surface">
-      <table className="w-full text-sm">
+    <div className="chamfer-tr border border-line bg-surface max-lg:border-0 max-lg:bg-transparent lg:overflow-x-auto">
+      <table className="rtable w-full text-sm">
         <thead>
           <tr className="border-b border-line bg-panel text-left text-xs font-bold uppercase tracking-wide text-fg [&>th]:whitespace-nowrap [&>th]:px-4 [&>th]:py-3">
             {head}
           </tr>
         </thead>
         <tbody className="[&>tr]:border-b [&>tr]:border-line [&>tr:last-child]:border-0 [&>tr:hover]:bg-panel [&>tr>td]:px-4 [&>tr>td]:py-3">
-          {children}
+          {rows}
         </tbody>
       </table>
     </div>

@@ -70,3 +70,88 @@ body {
     padding-top: env(safe-area-inset-top);
   }
 }
+
+/*
+ * Responsive data tables.
+ *
+ * Below lg every <tr> becomes a card and every <td> a labelled row, using the
+ * column heading that <Table> copies onto each cell as data-label. This keeps
+ * the last columns — status and row actions — on screen instead of hidden
+ * behind a horizontal swipe.
+ *
+ * These rules are unlayered and therefore beat the Tailwind cell padding set on
+ * <tbody>, which is what we want here and only inside this media query.
+ */
+@media (max-width: 63.999rem) {
+  .rtable thead {
+    /* clip rather than display:none so the headings stay in the a11y tree */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .rtable,
+  .rtable tbody,
+  .rtable tr,
+  .rtable td {
+    display: block;
+    width: 100%;
+  }
+
+  .rtable tr {
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0.875rem;
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--chamfer)) 0,
+      100% var(--chamfer),
+      100% 100%,
+      0 100%
+    );
+  }
+
+  .rtable tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .rtable td {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 0.75rem;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .rtable td:last-child {
+    border-bottom: 0;
+  }
+
+  .rtable td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-fg-faint);
+  }
+
+  /* Long values (URLs, slugs) wrap instead of pushing the card wide. */
+  .rtable td > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* An unlabelled, empty cell contributes nothing on a phone. */
+  .rtable td:not([data-label]):empty {
+    display: none;
+  }
+}
