@@ -8,6 +8,7 @@
 import { readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import sharp from "sharp";
 import { eq, inArray } from "drizzle-orm";
 import type { Db } from "../client";
 import { computeStandings } from "../points";
@@ -95,6 +96,16 @@ export async function wipeOldData(db: Db) {
 
 /* ── 2. Brand assets → S3 → media rows (idempotent, failure-tolerant) ───── */
 
+/** Mirrors admin/src/components/media/process-image.ts. */
+const VARIANT_WIDTHS = { hero: 1600, card: 800, thumb: 320 } as const;
+const WEBP_QUALITY = 82;
+
+/** Mirrors admin/src/components/media/variants.ts. */
+function variantKey(path: string, variant: string): string {
+  const dot = path.lastIndexOf(".");
+  return dot === -1 ? `${path}_${variant}` : `${path.slice(0, dot)}_${variant}${path.slice(dot)}`;
+}
+
 export async function seedAssets(db: Db): Promise<Map<string, string>> {
   const ids = new Map<string, string>();
   const bucket = process.env.S3_BUCKET;
@@ -134,15 +145,33 @@ export async function seedAssets(db: Db): Promise<Map<string, string>> {
       const file = resolve(ASSET_SOURCE_DIR, asset.path);
       const body = readFileSync(file);
       const key = `media/seed/${asset.key}.webp`;
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: bucket,
-          Key: key,
-          Body: body,
-          ContentType: "image/webp",
-          CacheControl: "public, max-age=31536000, immutable",
-        }),
-      );
+      const put = (k: string, b: Buffer) =>
+        s3.send(
+          new PutObjectCommand({
+            Bucket: bucket,
+            Key: k,
+            Body: b,
+            ContentType: "image/webp",
+            CacheControl: "public, max-age=31536000, immutable",
+          }),
+        );
+
+      await put(key, body);
+
+      /*
+       * The admin renders derived renditions, never the original — every
+       * thumbnail resolves variantKey(path, "thumb"). Seeding only the
+       * original therefore produced a broken image on every admin screen that
+       * shows media. Keep these widths in step with process-image.ts.
+       */
+      for (const [variant, width] of Object.entries(VARIANT_WIDTHS)) {
+        const rendition = await sharp(body)
+          .rotate()
+          .resize({ width, withoutEnlargement: true })
+          .webp({ quality: WEBP_QUALITY })
+          .toBuffer();
+        await put(variantKey(key, variant), rendition);
+      }
       const [row] = await db
         .insert(media)
         .values({
