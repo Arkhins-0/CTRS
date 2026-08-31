@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { announcements, db, pushSubscriptions, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { NotificationsToggle } from "@/components/notifications-toggle";
-import { Card, EmptyState, Field, Input, PageHeader, Table, Textarea } from "@/components/ui";
+import { Card, EmptyState, Field, Input, PageHeader, Select, Table, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/ui-client";
 import { sendAnnouncementAction } from "./actions";
 
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function AnnouncementsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sent?: string; total?: string; error?: string }>;
+  searchParams: Promise<{ sent?: string; total?: string; skipped?: string; error?: string }>;
 }) {
   await requirePermission(PERMISSIONS.NEWS_MANAGE);
   const sp = await searchParams;
@@ -36,19 +36,24 @@ export default async function AnnouncementsPage({
       />
 
       {sp.sent != null ? (
-        <div className="chamfer-tr mb-4 border border-emerald-600 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+        <div className="chamfer-tr mb-4 border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-300">
           Announcement sent to {sp.sent} of {sp.total ?? sp.sent} subscribed device
           {sp.total === "1" ? "" : "s"}.
+          {sp.skipped && sp.skipped !== "0" ? (
+            <span className="block font-normal text-fg-muted">
+              {sp.skipped} skipped — outside the chosen audience, or opted out of announcements.
+            </span>
+          ) : null}
         </div>
       ) : sp.error ? (
-        <div className="chamfer-tr mb-4 border border-f1-red bg-white px-4 py-3 text-sm font-bold text-f1-red">
+        <div className="chamfer-tr mb-4 border border-f1-red bg-surface px-4 py-3 text-sm font-bold text-f1-red">
           {sp.error}
         </div>
       ) : null}
 
       <Card className="mb-8 max-w-2xl">
         <h2 className="text-sm font-black uppercase tracking-wide">New announcement</h2>
-        <p className="mt-1 text-xs text-f1-grey">
+        <p className="mt-1 text-xs text-fg-muted">
           Delivered instantly as a push notification on subscribers&apos; phones and desktops.
           Keep the title short — it&apos;s the notification headline.
         </p>
@@ -68,6 +73,17 @@ export default async function AnnouncementsPage({
           </Field>
           <Field label="Link (optional — opens when the notification is tapped)">
             <Input id="url" name="url" maxLength={300} placeholder="/schedule/2026/coimbatore" />
+          </Field>
+          <Field
+            label="Send to"
+            hint="Recipients who turned this category off in their own settings are skipped."
+          >
+            <Select name="audience" defaultValue="everyone">
+              <option value="everyone">Everyone — fans, staff and members</option>
+              <option value="members">Members only — crew, drivers and officials</option>
+              <option value="staff">Staff only — CMS admins</option>
+              <option value="fans">Fans only — public site subscribers</option>
+            </Select>
           </Field>
           <div>
             <SubmitButton>Send announcement</SubmitButton>
@@ -92,10 +108,10 @@ export default async function AnnouncementsPage({
             <tr key={a.id}>
               <td>
                 <p className="font-bold">{a.title}</p>
-                <p className="max-w-md truncate text-xs text-f1-grey">{a.body}</p>
+                <p className="max-w-md truncate text-xs text-fg-muted">{a.body}</p>
               </td>
-              <td className="max-w-40 truncate text-xs text-f1-grey">{a.url ?? "—"}</td>
-              <td className="whitespace-nowrap text-f1-grey">
+              <td className="max-w-40 truncate text-xs text-fg-muted">{a.url ?? "—"}</td>
+              <td className="whitespace-nowrap text-fg-muted">
                 {a.sentAt ? format(a.sentAt, "d MMM yyyy, HH:mm") : "—"}
               </td>
               <td className="whitespace-nowrap text-right">
@@ -104,7 +120,7 @@ export default async function AnnouncementsPage({
                   <span className="text-f1-red"> · {a.failedCount} failed</span>
                 ) : null}
               </td>
-              <td className="text-f1-grey">{a.author?.displayName ?? "—"}</td>
+              <td className="text-fg-muted">{a.author?.displayName ?? "—"}</td>
             </tr>
           ))}
         </Table>

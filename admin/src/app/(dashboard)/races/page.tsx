@@ -96,14 +96,14 @@ export default async function RacesPage({
                   {r.name}
                 </Link>
               </td>
-              <td className="text-f1-grey">
+              <td className="text-fg-muted">
                 {r.circuit.name}
-                <span className="text-f1-grey-light"> · {r.circuit.country}</span>
+                <span className="text-fg-faint"> · {r.circuit.country}</span>
               </td>
               <td className="whitespace-nowrap">
                 {fmtDate(r.startDate)} → {fmtDate(r.endDate)}
               </td>
-              <td>{r.hasSprint ? <Badge tone="red">Sprint</Badge> : <span className="text-f1-grey-light">—</span>}</td>
+              <td>{r.hasSprint ? <Badge tone="red">Sprint</Badge> : <span className="text-fg-faint">—</span>}</td>
               <td>
                 <StatusPill status={r.status} />
               </td>
@@ -114,13 +114,13 @@ export default async function RacesPage({
                   return c && (c.going || c.maybe) ? (
                     <>
                       <span className="font-bold">{c.going}</span>
-                      <span className="text-f1-grey"> going</span>
+                      <span className="text-fg-muted"> going</span>
                       {c.maybe ? (
-                        <span className="text-f1-grey"> · {c.maybe} maybe</span>
+                        <span className="text-fg-muted"> · {c.maybe} maybe</span>
                       ) : null}
                     </>
                   ) : (
-                    <span className="text-f1-grey-light">—</span>
+                    <span className="text-fg-faint">—</span>
                   );
                 })()}
               </td>

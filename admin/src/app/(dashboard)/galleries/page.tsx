@@ -40,7 +40,7 @@ export default async function GalleriesListPage({
       />
 
       {error ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           Something went wrong ({error}). Please try again.
         </p>
       ) : null}
@@ -61,15 +61,15 @@ export default async function GalleriesListPage({
           {rows.map((g) => (
             <tr key={g.id}>
               <td>
-                <Link href={`/galleries/${g.id}`} className="font-bold text-carbon hover:text-f1-red">
+                <Link href={`/galleries/${g.id}`} className="font-bold text-fg hover:text-f1-red">
                   {g.title}
                 </Link>
               </td>
-              <td className="text-f1-grey">{g.itemCount}</td>
+              <td className="text-fg-muted">{g.itemCount}</td>
               <td>
                 <StatusPill status={g.status} />
               </td>
-              <td className="whitespace-nowrap text-f1-grey">
+              <td className="whitespace-nowrap text-fg-muted">
                 {g.publishedAt ? format(g.publishedAt, "d MMM yyyy HH:mm") : "—"}
               </td>
             </tr>

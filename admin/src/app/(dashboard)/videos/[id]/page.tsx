@@ -43,19 +43,19 @@ export default async function VideoEditorPage({
       />
 
       {saved ? (
-        <p className="mb-4 border border-emerald-600 bg-white p-3 text-sm font-bold text-emerald-700">
+        <p className="mb-4 border border-emerald-600 bg-surface p-3 text-sm font-bold text-emerald-700">
           Video saved.
         </p>
       ) : null}
       {error === "invalid" ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           The video could not be saved — check that the title is filled in.
         </p>
       ) : null}
 
       <VideoForm video={video} fileThumbUrl={fileThumbUrl} thumbnailThumbUrl={thumbnailThumbUrl} />
 
-      <div className="mt-8 flex justify-end border-t border-warm-grey pt-4">
+      <div className="mt-8 flex justify-end border-t border-line pt-4">
         <form action={deleteVideoAction}>
           <input type="hidden" name="id" value={video.id} />
           <ConfirmSubmit message="Delete this video? This cannot be undone.">

@@ -47,7 +47,7 @@ function DriversTable({
             <span className="font-bold">
               {r.driver.firstName} {r.driver.lastName}
             </span>{" "}
-            <span className="text-xs font-black text-f1-grey">{r.driver.code}</span>
+            <span className="text-xs font-black text-fg-muted">{r.driver.code}</span>
           </td>
           <td className="text-right">{r.wins}</td>
           <td className="text-right">{r.podiums}</td>
@@ -152,8 +152,8 @@ export default async function StandingsPage({
       <SeasonTabs seasons={seasons} activeId={season.id} base="/standings" />
 
       {meta ? (
-        <p className="mb-4 text-sm text-f1-grey">
-          Computed through round <span className="font-black text-carbon">{meta.computedThroughRound}</span>
+        <p className="mb-4 text-sm text-fg-muted">
+          Computed through round <span className="font-black text-fg">{meta.computedThroughRound}</span>
           {" · "}last updated {format(meta.updatedAt, "d MMM yyyy, HH:mm")}
         </p>
       ) : null}
@@ -167,7 +167,7 @@ export default async function StandingsPage({
                   <>
                     <span
                       aria-hidden
-                      className="inline-block size-3 rounded-sm border border-warm-grey"
+                      className="inline-block size-3 rounded-sm border border-line"
                       style={{ backgroundColor: g.category.color }}
                     />
                     {g.category.shortName}
@@ -179,7 +179,7 @@ export default async function StandingsPage({
 
               <div className="grid gap-5 xl:grid-cols-2">
                 <div>
-                  <h3 className="mb-2 text-xs font-black uppercase tracking-wide text-f1-grey">
+                  <h3 className="mb-2 text-xs font-black uppercase tracking-wide text-fg-muted">
                     Drivers&rsquo; standings
                   </h3>
                   {g.overall.length ? (
@@ -190,7 +190,7 @@ export default async function StandingsPage({
                 </div>
 
                 <div>
-                  <h3 className="mb-2 text-xs font-black uppercase tracking-wide text-f1-grey">
+                  <h3 className="mb-2 text-xs font-black uppercase tracking-wide text-fg-muted">
                     Teams&rsquo; standings
                   </h3>
                   {g.teams.length ? (
@@ -225,7 +225,7 @@ export default async function StandingsPage({
 
                 {[...g.subTables.entries()].map(([type, rows]) => (
                   <div key={type}>
-                    <h3 className="mb-2 text-xs font-black uppercase tracking-wide text-f1-grey">
+                    <h3 className="mb-2 text-xs font-black uppercase tracking-wide text-fg-muted">
                       {type} standings
                     </h3>
                     <DriversTable rows={rows} />

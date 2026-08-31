@@ -40,7 +40,7 @@ export default async function CircuitsPage() {
                   {c.name}
                 </Link>
               </td>
-              <td className="text-f1-grey">{c.locality ?? "—"}</td>
+              <td className="text-fg-muted">{c.locality ?? "—"}</td>
               <td>
                 <span className="inline-flex items-center gap-1.5">
                   <CountryFlag code={c.countryCode} /> {c.country}

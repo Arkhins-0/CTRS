@@ -103,18 +103,18 @@ export default async function NewsletterPage({
               <td>
                 <StatusPill status={s.status} />
               </td>
-              <td className="text-f1-grey">{s.source ?? "—"}</td>
+              <td className="text-fg-muted">{s.source ?? "—"}</td>
               <td>
                 {s.fanId ? (
-                  <span className="inline-block bg-carbon px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                  <span className="inline-block bg-panel px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
                     Fan
                   </span>
                 ) : (
-                  <span className="text-f1-grey-light">—</span>
+                  <span className="text-fg-faint">—</span>
                 )}
               </td>
-              <td className="whitespace-nowrap text-f1-grey">{format(s.createdAt, "d MMM yyyy")}</td>
-              <td className="whitespace-nowrap text-f1-grey">
+              <td className="whitespace-nowrap text-fg-muted">{format(s.createdAt, "d MMM yyyy")}</td>
+              <td className="whitespace-nowrap text-fg-muted">
                 {s.confirmedAt ? format(s.confirmedAt, "d MMM yyyy") : "—"}
               </td>
               <td>
@@ -154,7 +154,7 @@ export default async function NewsletterPage({
           ) : (
             <span />
           )}
-          <span className="text-f1-grey">
+          <span className="text-fg-muted">
             Page {page} of {totalPages}
           </span>
           {page < totalPages ? (

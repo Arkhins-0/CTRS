@@ -71,6 +71,27 @@
       "when": 1788162176225,
       "tag": "0009_first_pestilence",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788171845024,
+      "tag": "0010_fair_marvel_boy",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788172700311,
+      "tag": "0011_small_secret_warriors",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788173028518,
+      "tag": "0012_faithful_silvermane",
+      "breakpoints": true
     }
   ]
 }

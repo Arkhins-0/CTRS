@@ -51,14 +51,14 @@ export function VideoSourceFields({
             />
           </Field>
           {ytId ? (
-            <div className="border border-warm-grey bg-off-white p-1">
+            <div className="border border-line bg-page p-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`https://img.youtube.com/vi/${encodeURIComponent(ytId)}/hqdefault.jpg`}
                 alt={`YouTube thumbnail for ${ytId}`}
                 className="max-h-48 w-full object-cover"
               />
-              <p className="px-1 py-0.5 text-[11px] text-f1-grey">
+              <p className="px-1 py-0.5 text-[11px] text-fg-muted">
                 Live YouTube thumbnail — if this looks wrong, check the video id.
               </p>
             </div>
@@ -66,7 +66,7 @@ export function VideoSourceFields({
         </>
       ) : (
         <div>
-          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey">
+          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">
             Video file
           </span>
           <MediaPickerInput

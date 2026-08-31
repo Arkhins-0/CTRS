@@ -108,23 +108,23 @@ export default async function ResultsPickerPage({
               <details
                 key={round.id}
                 open={hasMissing || round.status === "live"}
-                className="chamfer-tr border border-warm-grey bg-white shadow-sm"
+                className="chamfer-tr border border-line bg-surface shadow-sm"
               >
                 <summary className="flex cursor-pointer flex-wrap items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
                   <span className="w-8 text-center font-black">{round.round}</span>
                   <span className="font-bold uppercase">{round.name}</span>
-                  <span className="text-sm text-f1-grey">{round.circuit.name}</span>
+                  <span className="text-sm text-fg-muted">{round.circuit.name}</span>
                   {round.hasSprint ? <Badge tone="red">Sprint</Badge> : null}
                   <StatusPill status={round.status} />
                   {hasMissing ? <Badge tone="amber">Missing results</Badge> : null}
-                  <span className="ml-auto text-xs font-bold uppercase text-f1-grey">
+                  <span className="ml-auto text-xs font-bold uppercase text-fg-muted">
                     {sessions.length} session{sessions.length === 1 ? "" : "s"}
                   </span>
                 </summary>
 
                 {sessions.length ? (
-                  <table className="w-full border-t border-warm-grey text-sm">
-                    <tbody className="[&>tr]:border-b [&>tr]:border-warm-grey [&>tr:last-child]:border-0 [&>tr>td]:px-4 [&>tr>td]:py-2.5">
+                  <table className="w-full border-t border-line text-sm">
+                    <tbody className="[&>tr]:border-b [&>tr]:border-line [&>tr:last-child]:border-0 [&>tr>td]:px-4 [&>tr>td]:py-2.5">
                       {groups.map((group) => (
                         <GroupRows
                           key={group.key}
@@ -136,7 +136,7 @@ export default async function ResultsPickerPage({
                     </tbody>
                   </table>
                 ) : (
-                  <p className="border-t border-warm-grey px-4 py-3 text-sm text-f1-grey">
+                  <p className="border-t border-line px-4 py-3 text-sm text-fg-muted">
                     No sessions — add them on the{" "}
                     <Link href={`/races/${round.id}`} className="font-bold text-f1-red hover:underline">
                       race weekend page
@@ -176,12 +176,12 @@ function GroupRows({
 }) {
   return (
     <>
-      <tr className="bg-off-white">
+      <tr className="bg-page">
         <td colSpan={5} className="!py-1.5">
-          <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wide text-f1-grey">
+          <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wide text-fg-muted">
             <span
               aria-hidden
-              className="inline-block size-3 rounded-sm border border-warm-grey"
+              className="inline-block size-3 rounded-sm border border-line"
               style={{ backgroundColor: category?.color ?? "#67676d" }}
             />
             {category ? category.shortName : "Weekend-wide"}
@@ -196,7 +196,7 @@ function GroupRows({
             <td className="w-64 font-bold uppercase">
               {s.label ?? sessionTypeLabel(s.type, s.sequence)}
             </td>
-            <td className="whitespace-nowrap text-f1-grey">
+            <td className="whitespace-nowrap text-fg-muted">
               {s.startsAt ? format(s.startsAt, "EEE d MMM, HH:mm") : "TBC"}
             </td>
             <td>
@@ -206,7 +206,7 @@ function GroupRows({
               {missing ? (
                 <Badge tone="amber">Missing results</Badge>
               ) : (
-                <span className={n ? "font-bold" : "text-f1-grey-light"}>
+                <span className={n ? "font-bold" : "text-fg-faint"}>
                   {n ? `${n} classified` : "No results yet"}
                 </span>
               )}

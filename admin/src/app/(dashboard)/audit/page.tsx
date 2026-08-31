@@ -99,7 +99,7 @@ export default async function AuditPage({
 
       <form method="get" className="mb-4 flex flex-wrap items-end gap-3">
         <label className="block">
-          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey">Entity type</span>
+          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">Entity type</span>
           <Select name="entityType" defaultValue={filters.entityType} className="w-44">
             <option value="">All</option>
             {entityTypes.map((t) => (
@@ -110,11 +110,11 @@ export default async function AuditPage({
           </Select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey">Action contains</span>
+          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">Action contains</span>
           <Input name="action" defaultValue={filters.action} placeholder="e.g. publish" className="w-44" />
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey">Actor</span>
+          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">Actor</span>
           <Select name="actor" defaultValue={filters.actor} className="w-44">
             <option value="">Anyone</option>
             {actors.map((a) => (
@@ -125,11 +125,11 @@ export default async function AuditPage({
           </Select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey">From</span>
+          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">From</span>
           <Input name="from" type="date" defaultValue={filters.from} />
         </label>
         <label className="block">
-          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-f1-grey">To</span>
+          <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-fg-muted">To</span>
           <Input name="to" type="date" defaultValue={filters.to} />
         </label>
         <SubmitButton variant="secondary">Apply</SubmitButton>
@@ -151,11 +151,11 @@ export default async function AuditPage({
         >
           {rows.map((r) => (
             <tr key={r.id}>
-              <td className="whitespace-nowrap text-f1-grey">{format(r.createdAt, "d MMM yyyy HH:mm:ss")}</td>
+              <td className="whitespace-nowrap text-fg-muted">{format(r.createdAt, "d MMM yyyy HH:mm:ss")}</td>
               <td className="font-bold">{r.actor ?? "system"}</td>
               <td className="whitespace-nowrap">{r.action}</td>
-              <td className="whitespace-nowrap text-f1-grey">{r.entityType}</td>
-              <td className="max-w-40 truncate text-xs text-f1-grey-light">{r.entityId ?? "—"}</td>
+              <td className="whitespace-nowrap text-fg-muted">{r.entityType}</td>
+              <td className="max-w-40 truncate text-xs text-fg-faint">{r.entityId ?? "—"}</td>
               <td>
                 {r.diff != null ? (
                   <details>
@@ -165,7 +165,7 @@ export default async function AuditPage({
                     <pre className="max-w-lg overflow-auto text-xs">{JSON.stringify(r.diff, null, 2)}</pre>
                   </details>
                 ) : (
-                  <span className="text-f1-grey-light">—</span>
+                  <span className="text-fg-faint">—</span>
                 )}
               </td>
             </tr>
@@ -184,7 +184,7 @@ export default async function AuditPage({
           ) : (
             <span />
           )}
-          <span className="text-f1-grey">
+          <span className="text-fg-muted">
             Page {page} of {totalPages}
           </span>
           {page < totalPages ? (

@@ -40,9 +40,9 @@ export default async function TeamsPage() {
                 <Link href={`/teams/${t.id}`} className="inline-flex items-center gap-1.5 font-bold hover:text-f1-red">
                   <CountryFlag code={t.countryCode} /> {t.name}
                 </Link>
-                {t.fullName ? <span className="block text-xs text-f1-grey">{t.fullName}</span> : null}
+                {t.fullName ? <span className="block text-xs text-fg-muted">{t.fullName}</span> : null}
               </td>
-              <td className="text-f1-grey">{t.base ?? "—"}</td>
+              <td className="text-fg-muted">{t.base ?? "—"}</td>
               <td className="text-right font-black">{t.worldChampionships}</td>
               <td className="text-right font-bold">{t.seasonEntries.length}</td>
               <td className="text-right">

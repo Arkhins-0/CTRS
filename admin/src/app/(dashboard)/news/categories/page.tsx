@@ -40,7 +40,7 @@ export default async function CategoriesPage({
       />
 
       {error ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           {ERRORS[error] ?? "Something went wrong."}
         </p>
       ) : null}
@@ -94,7 +94,7 @@ export default async function CategoriesPage({
                     <div className="w-20">
                       <Input name="sort" type="number" defaultValue={c.sort} />
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-wide text-f1-grey">
+                    <span className="text-xs font-bold uppercase tracking-wide text-fg-muted">
                       {inUse} article{inUse === 1 ? "" : "s"}
                     </span>
                     <SubmitButton variant="secondary" className="!px-3 !py-1.5 !text-xs">

@@ -2,12 +2,43 @@ import { NextResponse, type NextRequest } from "next/server";
 
 /**
  * Fast cookie-presence check only (no DB on the edge). The authoritative
- * permission checks live in requirePermission() inside every server action,
- * route handler and section layout.
+ * permission checks live in requirePermission()/requireMember() inside every
+ * server action, route handler and section layout.
+ *
+ * Two principals share this app: CMS staff (ctr_admin_session) everywhere, and
+ * organisation members (ctr_member_session) under /m. They are separate
+ * cookies against separate tables — holding one never satisfies the other.
  */
+
+/** Reachable with no session at all. */
+const PUBLIC_PREFIXES = [
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/confirm-email",
+  "/m/login",
+  "/m/join",
+];
+
+function isUnder(pathname: string, prefix: string) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (pathname.startsWith("/login")) return NextResponse.next();
+
+  if (PUBLIC_PREFIXES.some((p) => isUnder(pathname, p))) return NextResponse.next();
+
+  // Member area — gated by the member cookie, never the admin one.
+  if (isUnder(pathname, "/m")) {
+    if (!req.cookies.has("ctr_member_session")) {
+      const login = new URL("/m/login", req.url);
+      if (pathname !== "/m") login.searchParams.set("next", pathname);
+      return NextResponse.redirect(login);
+    }
+    return NextResponse.next();
+  }
+
   if (!req.cookies.has("ctr_admin_session")) {
     const login = new URL("/login", req.url);
     if (pathname !== "/") login.searchParams.set("next", pathname);
@@ -17,5 +48,13 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|svg|ico|webp)).*)"],
+  /*
+   * The PWA shell must stay reachable without a session: a redirected sw.js
+   * never registers, and the manifest and offline page are fetched in states
+   * where no cookie is present (install, first load, offline navigation).
+   * None of them expose data — the worker caches no authenticated response.
+   */
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|offline\\.html|.*\\.(?:png|jpg|svg|ico|webp)).*)",
+  ],
 };

@@ -38,11 +38,11 @@ export default async function PagesIndex() {
                       {p.title}
                     </Link>
                   </td>
-                  <td className="text-f1-grey">/{p.slug}</td>
+                  <td className="text-fg-muted">/{p.slug}</td>
                   <td>
                     <StatusPill status={p.status} />
                   </td>
-                  <td className="whitespace-nowrap text-f1-grey">
+                  <td className="whitespace-nowrap text-fg-muted">
                     {format(p.updatedAt, "d MMM yyyy HH:mm")}
                   </td>
                 </tr>

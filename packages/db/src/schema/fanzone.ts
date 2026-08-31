@@ -13,6 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { adminUsers } from "./auth";
 import { articles } from "./content";
+import { members } from "./members";
 import { drivers, rounds } from "./racing";
 
 /* ── Enums ───────────────────────────────────────────────────────────────── */
@@ -160,10 +161,15 @@ export const pushSubscriptions = pgTable(
     fanId: uuid("fan_id").references(() => fans.id, { onDelete: "set null" }),
     /** set when the device subscribed from the admin dashboard */
     adminUserId: uuid("admin_user_id").references(() => adminUsers.id, { onDelete: "cascade" }),
+    /** set when the device subscribed from the member (/m) area */
+    memberId: uuid("member_id").references(() => members.id, { onDelete: "cascade" }),
     userAgent: varchar("user_agent", { length: 300 }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("push_subscriptions_fan_idx").on(t.fanId)],
+  (t) => [
+    index("push_subscriptions_fan_idx").on(t.fanId),
+    index("push_subscriptions_member_idx").on(t.memberId),
+  ],
 );
 
 /** Admin-authored announcements pushed to every subscribed device; the row is

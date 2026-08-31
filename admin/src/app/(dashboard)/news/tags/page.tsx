@@ -41,7 +41,7 @@ export default async function TagsPage({
       />
 
       {error ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           {ERRORS[error] ?? "Something went wrong."}
         </p>
       ) : null}
@@ -86,7 +86,7 @@ export default async function TagsPage({
                     <div className="w-56">
                       <Input name="slug" defaultValue={t.slug} maxLength={120} className="font-mono" />
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-wide text-f1-grey">
+                    <span className="text-xs font-bold uppercase tracking-wide text-fg-muted">
                       {nArticles} article{nArticles === 1 ? "" : "s"} · {nVideos} video
                       {nVideos === 1 ? "" : "s"}
                     </span>

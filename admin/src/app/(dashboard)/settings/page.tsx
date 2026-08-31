@@ -88,7 +88,7 @@ export default async function SettingsPage() {
               <SubmitButton>Save season</SubmitButton>
             </form>
           ) : (
-            <p className="text-sm text-f1-grey">
+            <p className="text-sm text-fg-muted">
               The home championship (&ldquo;{homeSlug}&rdquo;) has no seasons yet — add one under
               Championships first.
             </p>
@@ -105,7 +105,7 @@ export default async function SettingsPage() {
                   type="color"
                   name="accent"
                   defaultValue={theme.accent ?? "#F7D619"}
-                  className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+                  className="h-9 w-14 cursor-pointer border border-line bg-surface p-0.5"
                 />
               </Field>
               <Field label="Accent dark" hint="Hover / pressed shade.">
@@ -113,7 +113,7 @@ export default async function SettingsPage() {
                   type="color"
                   name="accentDark"
                   defaultValue={theme.accentDark ?? "#E0BF06"}
-                  className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+                  className="h-9 w-14 cursor-pointer border border-line bg-surface p-0.5"
                 />
               </Field>
               <Field label="Accent foreground" hint="Text colour on accent surfaces.">
@@ -121,15 +121,15 @@ export default async function SettingsPage() {
                   type="color"
                   name="accentFg"
                   defaultValue={theme.accentFg ?? "#0A0A0A"}
-                  className="h-9 w-14 cursor-pointer border border-warm-grey bg-white p-0.5"
+                  className="h-9 w-14 cursor-pointer border border-line bg-surface p-0.5"
                 />
               </Field>
             </div>
-            <p className="text-xs text-f1-grey">
+            <p className="text-xs text-fg-muted">
               Presets — CTR Yellow: #F7D619 · #E0BF06 · #0A0A0A &nbsp;·&nbsp; Racing Red: #E10600 ·
               #B30500 · #FFFFFF
             </p>
-            <p className="text-xs text-f1-grey">
+            <p className="text-xs text-fg-muted">
               The public site AND this admin CMS both read this setting — saving changes the accent
               colour in both apps.
             </p>
@@ -141,7 +141,7 @@ export default async function SettingsPage() {
         <Card>
           <h2 className="mb-4 text-sm font-black uppercase tracking-wide">Broadcast banner</h2>
           <form action={updateBroadcastBannerAction} className="space-y-4">
-            <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-carbon">
+            <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-fg">
               <input type="checkbox" name="enabled" defaultChecked={banner.enabled ?? false} className="size-4 accent-f1-red" />
               Enabled — shown at the top of every page
             </label>

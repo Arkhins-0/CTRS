@@ -128,7 +128,7 @@ export default async function SessionResultsPage({
         actions={
           <>
             {session.category ? (
-              <span className="inline-flex items-center gap-1.5 border border-warm-grey bg-white px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-carbon">
+              <span className="inline-flex items-center gap-1.5 border border-line bg-surface px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-fg">
                 <span
                   aria-hidden
                   className="inline-block size-3 rounded-sm"
@@ -169,7 +169,7 @@ export default async function SessionResultsPage({
             <SubmitButton variant="secondary" formAction={saveResultsDraftAction}>
               Save without completing
             </SubmitButton>
-            <span className="text-xs text-f1-grey">
+            <span className="text-xs text-fg-muted">
               Publishing replaces the stored classification, marks the session completed
               {sessionKind === "race" ? ", completes the round" : ""} and recomputes the{" "}
               {seasonLabel} standings.

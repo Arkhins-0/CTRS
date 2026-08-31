@@ -96,21 +96,21 @@ export default async function Dashboard() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
-          <p className="text-xs font-bold uppercase tracking-wide text-f1-grey">Draft articles</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-fg-muted">Draft articles</p>
           <p className="mt-1 text-4xl font-black">{draftCount?.n ?? 0}</p>
           <Link href="/news?status=draft" className="mt-2 inline-block text-xs font-bold uppercase text-f1-red hover:underline">
             Review drafts →
           </Link>
         </Card>
         <Card>
-          <p className="text-xs font-bold uppercase tracking-wide text-f1-grey">Fan accounts</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-fg-muted">Fan accounts</p>
           <p className="mt-1 text-4xl font-black">{fanCount?.n ?? 0}</p>
           <Link href="/fans" className="mt-2 inline-block text-xs font-bold uppercase text-f1-red hover:underline">
             View fans →
           </Link>
         </Card>
         <Card>
-          <p className="text-xs font-bold uppercase tracking-wide text-f1-grey">Newsletter subscribers</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-fg-muted">Newsletter subscribers</p>
           <p className="mt-1 text-4xl font-black">{subCount?.n ?? 0}</p>
           <Link href="/newsletter" className="mt-2 inline-block text-xs font-bold uppercase text-f1-red hover:underline">
             Manage list →
@@ -122,7 +122,7 @@ export default async function Dashboard() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 className="text-sm font-black uppercase tracking-wide">Push notifications</h2>
-            <p className="mt-1 text-xs text-f1-grey">
+            <p className="mt-1 text-xs text-fg-muted">
               Receive site announcements on this device — sent from Editorial → Announcements.
             </p>
           </div>
@@ -136,7 +136,7 @@ export default async function Dashboard() {
           {nextRound ? (
             <div className="mt-3">
               <p className="text-2xl font-black uppercase">{nextRound.name}</p>
-              <p className="text-sm text-f1-grey">
+              <p className="text-sm text-fg-muted">
                 Round {nextRound.round} · {nextRound.seasonLabel} {nextRound.seasonYear} ·{" "}
                 {nextRound.startDate} → {nextRound.endDate}
               </p>
@@ -148,7 +148,7 @@ export default async function Dashboard() {
               </Link>
             </div>
           ) : (
-            <p className="mt-3 text-sm text-f1-grey">No upcoming race weekend scheduled.</p>
+            <p className="mt-3 text-sm text-fg-muted">No upcoming race weekend scheduled.</p>
           )}
 
           <h2 className="mt-6 text-sm font-black uppercase tracking-wide">Missing results</h2>
@@ -172,7 +172,7 @@ export default async function Dashboard() {
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-sm text-f1-grey">All completed sessions have results. ✓</p>
+            <p className="mt-2 text-sm text-fg-muted">All completed sessions have results. ✓</p>
           )}
         </Card>
 
@@ -184,14 +184,14 @@ export default async function Dashboard() {
                 <li key={i} className="flex items-center justify-between gap-3 text-sm">
                   <span className="truncate">
                     <span className="font-bold">{a.actor ?? "system"}</span>{" "}
-                    <span className="text-f1-grey">{a.action}</span>
+                    <span className="text-fg-muted">{a.action}</span>
                   </span>
                   <StatusPill status={a.entityType} />
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-3 text-sm text-f1-grey">No activity yet.</p>
+            <p className="mt-3 text-sm text-fg-muted">No activity yet.</p>
           )}
         </Card>
       </div>

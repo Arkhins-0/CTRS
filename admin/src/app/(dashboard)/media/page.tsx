@@ -51,14 +51,14 @@ export default async function MediaLibraryPage({
       <PageHeader title="Media Library" sub={`${total} file${total === 1 ? "" : "s"} in the library`} />
 
       {error === "no-valid-files" ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           No valid image files were uploaded — only image files up to 25 MB are accepted.
         </p>
       ) : null}
 
       <Card className="mb-6">
         <h2 className="text-sm font-black uppercase tracking-wide">Upload images</h2>
-        <p className="mt-1 text-xs text-f1-grey">
+        <p className="mt-1 text-xs text-fg-muted">
           Images are converted to webp, stripped of metadata and stored with hero / card / thumb
           renditions.
         </p>
@@ -69,7 +69,7 @@ export default async function MediaLibraryPage({
             multiple
             required
             accept="image/*"
-            className="text-sm file:mr-3 file:cursor-pointer file:border file:border-warm-grey file:bg-off-white file:px-3 file:py-2 file:text-xs file:font-bold file:uppercase file:tracking-wide"
+            className="text-sm file:mr-3 file:cursor-pointer file:border file:border-line file:bg-page file:px-3 file:py-2 file:text-xs file:font-bold file:uppercase file:tracking-wide"
           />
           <SubmitButton>Upload</SubmitButton>
         </form>
@@ -91,25 +91,25 @@ export default async function MediaLibraryPage({
             <Link
               key={m.id}
               href={`/media/${m.id}`}
-              className="chamfer-tr group border border-warm-grey bg-white shadow-sm transition-colors hover:border-f1-red"
+              className="chamfer-tr group border border-line bg-surface shadow-sm transition-colors hover:border-f1-red"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={publicUrl(variantKey(m.path, "thumb"))}
                 alt={m.alt ?? m.filename}
                 loading="lazy"
-                className="aspect-[4/3] w-full bg-off-white object-cover"
+                className="aspect-[4/3] w-full bg-page object-cover"
               />
               <div className="p-2.5">
-                <p className="truncate text-xs font-bold text-carbon group-hover:text-f1-red">
+                <p className="truncate text-xs font-bold text-fg group-hover:text-f1-red">
                   {m.filename}
                 </p>
-                <p className="mt-0.5 text-[11px] text-f1-grey">
+                <p className="mt-0.5 text-[11px] text-fg-muted">
                   {m.width && m.height ? `${m.width}×${m.height}` : "—"}
                   {" · "}
                   {m.sizeBytes ? `${Math.max(1, Math.round(m.sizeBytes / 1024))} KB` : "—"}
                 </p>
-                <p className="truncate text-[11px] text-f1-grey-light">
+                <p className="truncate text-[11px] text-fg-faint">
                   {m.uploader?.displayName ?? "—"} · {format(m.createdAt, "d MMM yyyy")}
                 </p>
               </div>
@@ -125,7 +125,7 @@ export default async function MediaLibraryPage({
               ← Previous
             </LinkButton>
           ) : null}
-          <span className="text-xs font-bold uppercase tracking-wide text-f1-grey">
+          <span className="text-xs font-bold uppercase tracking-wide text-fg-muted">
             Page {page} of {totalPages}
           </span>
           {page < totalPages ? (

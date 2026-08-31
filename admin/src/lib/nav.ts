@@ -1,6 +1,7 @@
 // subpath import — keeps this file safe for client components (no db client)
 import { PERMISSIONS, type Permission } from "@ctr/db/permissions";
 import {
+  BookOpen,
   BarChart3,
   Bell,
   CalendarDays,
@@ -39,7 +40,10 @@ export type NavGroup = { title: string; items: NavItem[] };
 export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Overview",
-    items: [{ href: "/", label: "Dashboard", icon: LayoutDashboard, permission: null }],
+    items: [
+      { href: "/", label: "Dashboard", icon: LayoutDashboard, permission: null },
+      { href: "/docs", label: "User Guide", icon: BookOpen, permission: null },
+    ],
   },
   {
     title: "Editorial",
@@ -76,6 +80,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "System",
     items: [
+      { href: "/members", label: "Members", icon: UsersRound, permission: PERMISSIONS.MEMBERS_MANAGE },
       { href: "/admins", label: "Admin Users", icon: Shield, permission: PERMISSIONS.ADMINS_MANAGE },
       { href: "/audit", label: "Audit Log", icon: ScrollText, permission: PERMISSIONS.AUDIT_VIEW },
       { href: "/settings", label: "Site Settings", icon: Settings, permission: PERMISSIONS.SETTINGS_MANAGE },

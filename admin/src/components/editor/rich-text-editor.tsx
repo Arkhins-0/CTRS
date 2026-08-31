@@ -106,14 +106,14 @@ export function RichTextEditor({
   }
 
   return (
-    <div className="border border-warm-grey bg-white">
+    <div className="border border-line bg-surface">
       <input type="hidden" name={name} value={json} />
       <input type="hidden" name={`${name}_html`} value={html} />
 
       {editor ? <Toolbar editor={editor} /> : null}
 
       {/* .docx import lives with the toolbar */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-warm-grey bg-off-white px-2 py-1.5">
+      <div className="flex flex-wrap items-center gap-2 border-b border-line bg-page px-2 py-1.5">
         <input
           ref={fileRef}
           type="file"
@@ -128,19 +128,19 @@ export function RichTextEditor({
           type="button"
           disabled={importing || !editor}
           onClick={() => fileRef.current?.click()}
-          className="inline-flex items-center gap-1.5 border border-warm-grey bg-white px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 border border-line bg-surface px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint disabled:opacity-50"
         >
           {importing ? <Loader2 size={12} className="animate-spin" /> : <FileUp size={12} />}
           Import .docx
         </button>
-        <span className="text-[11px] text-f1-grey">Replaces the current body content.</span>
+        <span className="text-[11px] text-fg-muted">Replaces the current body content.</span>
         {importError ? (
           <span className="text-[11px] font-bold text-f1-red">{importError}</span>
         ) : null}
       </div>
 
       {importWarnings.length > 0 ? (
-        <ul className="border-b border-amber-300 bg-amber-50 px-4 py-2 text-xs text-carbon">
+        <ul className="border-b border-amber-300 bg-amber-50 px-4 py-2 text-xs text-fg">
           {importWarnings.map((w, i) => (
             <li key={i}>⚠ {w}</li>
           ))}
@@ -190,7 +190,7 @@ function Toolbar({ editor }: { editor: Editor }) {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-warm-grey bg-off-white px-2 py-1.5">
+    <div className="flex flex-wrap items-center gap-1 border-b border-line bg-page px-2 py-1.5">
       <ToolbarButton
         title="Paragraph"
         active={editor.isActive("paragraph")}
@@ -262,7 +262,7 @@ function Toolbar({ editor }: { editor: Editor }) {
 
       <MediaPicker
         triggerLabel="Image"
-        triggerClassName="inline-flex items-center gap-1 border border-warm-grey bg-white px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon"
+        triggerClassName="inline-flex items-center gap-1 border border-line bg-surface px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
         onSelect={(_id, url) => editor.chain().focus().setImage({ src: url }).run()}
       />
 
@@ -298,7 +298,7 @@ function Toolbar({ editor }: { editor: Editor }) {
         <Redo2 size={14} />
       </ToolbarButton>
 
-      <span className="ml-auto hidden items-center gap-1 text-[11px] text-f1-grey sm:flex">
+      <span className="ml-auto hidden items-center gap-1 text-[11px] text-fg-muted sm:flex">
         <ImagePlus size={12} /> Images insert at the cursor
       </span>
     </div>
@@ -306,7 +306,7 @@ function Toolbar({ editor }: { editor: Editor }) {
 }
 
 function Divider() {
-  return <span className="mx-0.5 h-5 w-px bg-warm-grey" aria-hidden />;
+  return <span className="mx-0.5 h-5 w-px bg-panel" aria-hidden />;
 }
 
 function ToolbarButton({
@@ -331,8 +331,8 @@ function ToolbarButton({
       onClick={onClick}
       className={`inline-flex h-7 w-7 items-center justify-center border transition-colors disabled:opacity-40 ${
         active
-          ? "border-carbon bg-carbon text-white"
-          : "border-warm-grey bg-white text-carbon hover:border-carbon"
+          ? "border-line bg-panel text-white"
+          : "border-line bg-surface text-fg hover:border-fg-faint"
       }`}
     >
       {children}

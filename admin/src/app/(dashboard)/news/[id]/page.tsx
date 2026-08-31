@@ -67,17 +67,17 @@ export default async function ArticleEditorPage({
       />
 
       {saved ? (
-        <p className="mb-4 border border-emerald-600 bg-white p-3 text-sm font-bold text-emerald-700">
+        <p className="mb-4 border border-emerald-600 bg-surface p-3 text-sm font-bold text-emerald-700">
           Article saved.
         </p>
       ) : null}
       {error === "invalid" ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           The article could not be saved — check that the title is filled in.
         </p>
       ) : null}
       {error === "schedule-date" ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           Pick a date and time before scheduling.
         </p>
       ) : null}
@@ -113,7 +113,7 @@ export default async function ArticleEditorPage({
           </Card>
 
           <Card>
-            <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-f1-grey">
+            <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-fg-muted">
               Body
             </span>
             <RichTextEditor
@@ -133,12 +133,12 @@ export default async function ArticleEditorPage({
               <StatusPill status={article.status} />
             </div>
             {article.status === "published" && article.publishedAt ? (
-              <p className="mt-1 text-xs text-f1-grey">
+              <p className="mt-1 text-xs text-fg-muted">
                 Published {format(article.publishedAt, "d MMM yyyy HH:mm")}
               </p>
             ) : null}
             {article.status === "scheduled" && article.scheduledFor ? (
-              <p className="mt-1 text-xs text-f1-grey">
+              <p className="mt-1 text-xs text-fg-muted">
                 Goes live {format(article.scheduledFor, "d MMM yyyy HH:mm")}
               </p>
             ) : null}
@@ -162,7 +162,7 @@ export default async function ArticleEditorPage({
                   Publish now
                 </SubmitButton>
               ) : null}
-              <div className="border-t border-warm-grey pt-3">
+              <div className="border-t border-line pt-3">
                 <Field label="Schedule for">
                   <Input
                     type="datetime-local"
@@ -251,7 +251,7 @@ export default async function ArticleEditorPage({
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-f1-grey">No tags yet.</p>
+              <p className="text-xs text-fg-muted">No tags yet.</p>
             )}
             <div className="mt-3">
               <Field label="New tags" hint="Comma separated — created on save.">
@@ -267,7 +267,7 @@ export default async function ArticleEditorPage({
         </div>
       </form>
 
-      <div className="mt-8 flex justify-end border-t border-warm-grey pt-4">
+      <div className="mt-8 flex justify-end border-t border-line pt-4">
         <form action={deleteArticleAction}>
           <input type="hidden" name="id" value={article.id} />
           <ConfirmSubmit message="Delete this article? Tags and related links are removed too. This cannot be undone.">

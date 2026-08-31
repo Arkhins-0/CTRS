@@ -15,7 +15,7 @@ import { buildTemplateCsv, importResultsCsv } from "./csv-import";
 
 const cell = "px-2 py-1.5 align-middle";
 const inputBase =
-  "w-full border border-warm-grey bg-white px-2 py-1 text-sm text-carbon outline-none focus:border-f1-red";
+  "w-full border border-line bg-surface px-2 py-1 text-sm text-fg outline-none focus:border-f1-red";
 
 function NumberInput({
   value,
@@ -137,7 +137,7 @@ export function ResultsGrid({
         <button
           type="button"
           onClick={fillPositions}
-          className="chamfer-tr border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon"
+          className="chamfer-tr border border-line bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
         >
           Fill positions 1–{rows.length} in current order
         </button>
@@ -145,7 +145,7 @@ export function ResultsGrid({
           <button
             type="button"
             onClick={reapplyPoints}
-            className="chamfer-tr border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon"
+            className="chamfer-tr border border-line bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
           >
             Re-apply points
           </button>
@@ -153,14 +153,14 @@ export function ResultsGrid({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="chamfer-tr border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon"
+          className="chamfer-tr border border-line bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
         >
           Import CSV
         </button>
         <button
           type="button"
           onClick={downloadTemplate}
-          className="chamfer-tr border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon"
+          className="chamfer-tr border border-line bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
         >
           CSV template
         </button>
@@ -176,7 +176,7 @@ export function ResultsGrid({
             e.target.value = ""; // allow re-importing the same file
           }}
         />
-        <span className="text-xs text-f1-grey">
+        <span className="text-xs text-fg-muted">
           {raceLike
             ? 'Times: winner "1:26:33.291", gaps "+5.848" or "+2 laps". Points auto-fill from the season scheme — edit for penalties.'
             : qualiLike
@@ -190,17 +190,17 @@ export function ResultsGrid({
           className={`chamfer-tr mb-3 border px-3 py-2 text-xs font-bold ${
             importNote.tone === "ok"
               ? "border-emerald-600 bg-emerald-50 text-emerald-800"
-              : "border-f1-red bg-white text-f1-red"
+              : "border-f1-red bg-surface text-f1-red"
           }`}
         >
           {importNote.text}
         </div>
       ) : null}
 
-      <div className="chamfer-tr overflow-x-auto border border-warm-grey bg-white shadow-sm">
+      <div className="chamfer-tr overflow-x-auto border border-line bg-surface shadow-sm">
         <table className="w-full min-w-760px text-sm">
           <thead>
-            <tr className="border-b-2 border-carbon bg-carbon text-left text-xs font-bold uppercase tracking-wide text-white [&>th]:px-2 [&>th]:py-2.5">
+            <tr className="border-b-2 border-line bg-panel text-left text-xs font-bold uppercase tracking-wide text-white [&>th]:px-2 [&>th]:py-2.5">
               <th className="w-16 pl-3">Pos</th>
               <th>Driver</th>
               {raceLike ? (
@@ -230,7 +230,7 @@ export function ResultsGrid({
               ) : null}
             </tr>
           </thead>
-          <tbody className="[&>tr]:border-b [&>tr]:border-warm-grey [&>tr:hover]:bg-off-white">
+          <tbody className="[&>tr]:border-b [&>tr]:border-line [&>tr:hover]:bg-page">
             {rows.map((row) => (
               <tr key={row.entryId}>
                 <td className={`${cell} pl-3`}>
@@ -254,7 +254,7 @@ export function ResultsGrid({
                     <span className="flex items-baseline gap-2 whitespace-nowrap">
                       <span className="font-black">{row.driverCode}</span>
                       <span>{row.driverName}</span>
-                      <span className="text-xs text-f1-grey">
+                      <span className="text-xs text-fg-muted">
                         #{row.carNumber} · {row.teamName}
                       </span>
                     </span>

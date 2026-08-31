@@ -41,13 +41,13 @@ export default async function MediaDetailPage({
       />
 
       {error === "in-use" ? (
-        <p className="mb-4 border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">
+        <p className="mb-4 border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">
           This file can’t be deleted while it is referenced — remove it from the entries listed
           under “Where is this used?” first.
         </p>
       ) : null}
       {saved ? (
-        <p className="mb-4 border border-emerald-600 bg-white p-3 text-sm font-bold text-emerald-700">
+        <p className="mb-4 border border-emerald-600 bg-surface p-3 text-sm font-bold text-emerald-700">
           Details saved.
         </p>
       ) : null}
@@ -59,14 +59,14 @@ export default async function MediaDetailPage({
             <img
               src={publicUrl(row.path)}
               alt={row.alt ?? row.filename}
-              className="mx-auto max-h-[520px] w-auto max-w-full bg-off-white object-contain"
+              className="mx-auto max-h-[520px] w-auto max-w-full bg-page object-contain"
             />
           </Card>
 
           <Card>
             <h2 className="text-sm font-black uppercase tracking-wide">Where is this used?</h2>
             {usage.length === 0 ? (
-              <p className="mt-2 text-sm text-f1-grey">
+              <p className="mt-2 text-sm text-fg-muted">
                 Not referenced anywhere — safe to delete.
               </p>
             ) : (
@@ -74,7 +74,7 @@ export default async function MediaDetailPage({
                 {usage.map((u, i) => (
                   <li key={i} className="flex items-center justify-between gap-3 py-2 text-sm">
                     <span>
-                      <span className="mr-2 inline-block bg-warm-grey px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-carbon">
+                      <span className="mr-2 inline-block bg-panel px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-fg">
                         {u.type}
                       </span>
                       {u.name}
@@ -125,7 +125,7 @@ export default async function MediaDetailPage({
               />
               <InfoRow label="Key" value={row.path} mono />
             </dl>
-            <p className="mt-3 text-xs font-bold uppercase tracking-wide text-f1-grey">Renditions</p>
+            <p className="mt-3 text-xs font-bold uppercase tracking-wide text-fg-muted">Renditions</p>
             <ul className="mt-1 space-y-1 text-xs">
               {MEDIA_VARIANTS.map((v) => (
                 <li key={v}>
@@ -144,7 +144,7 @@ export default async function MediaDetailPage({
 
           <Card className="border-f1-red">
             <h2 className="text-sm font-black uppercase tracking-wide text-f1-red">Danger zone</h2>
-            <p className="mt-1 text-xs text-f1-grey">
+            <p className="mt-1 text-xs text-fg-muted">
               Deletes the file and all renditions from storage. Refused while referenced.
             </p>
             <form action={deleteMediaAction} className="mt-3">
@@ -163,7 +163,7 @@ export default async function MediaDetailPage({
 function InfoRow({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <dt className="shrink-0 text-xs font-bold uppercase tracking-wide text-f1-grey">{label}</dt>
+      <dt className="shrink-0 text-xs font-bold uppercase tracking-wide text-fg-muted">{label}</dt>
       <dd className={`truncate text-right ${mono ? "font-mono text-xs" : ""}`} title={value}>
         {value}
       </dd>

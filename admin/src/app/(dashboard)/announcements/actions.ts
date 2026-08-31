@@ -7,7 +7,7 @@ import { z } from "zod";
 import { announcements, db, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
-import { pushConfigured, sendPushToAll } from "@/lib/push";
+import { EVERYONE, pushConfigured, sendPush, type PushAudience } from "@/lib/push";
 
 const announcementSchema = z.object({
   title: z.string().trim().min(1, "Title is required.").max(120),
@@ -20,7 +20,19 @@ const announcementSchema = z.object({
       message: "Link must be site-relative (/results/…) or an http(s) URL.",
     })
     .optional(),
+  /*
+   * Who receives it. Defaults to everyone so an operator who ignores the
+   * control gets the old behaviour rather than an accidentally silent send.
+   */
+  audience: z.enum(["everyone", "staff", "members", "fans"]).default("everyone"),
 });
+
+const AUDIENCES: Record<string, PushAudience> = {
+  everyone: EVERYONE,
+  staff: { admins: true },
+  members: { members: true },
+  fans: { fans: true },
+};
 
 /** Create an announcement and push it to every subscribed device. */
 export async function sendAnnouncementAction(formData: FormData): Promise<void> {
@@ -30,6 +42,7 @@ export async function sendAnnouncementAction(formData: FormData): Promise<void> 
     title: formData.get("title"),
     body: formData.get("body"),
     url: formData.get("url") ?? "",
+    audience: formData.get("audience") ?? "everyone",
   });
   if (!parsed.success) {
     redirect(
@@ -58,7 +71,11 @@ export async function sendAnnouncementAction(formData: FormData): Promise<void> 
     .values({ title: data.title, body: data.body, url, createdBy: admin.user.id })
     .returning();
 
-  const result = await sendPushToAll({ title: data.title, body: data.body, url: absoluteUrl });
+  const result = await sendPush(
+    { title: data.title, body: data.body, url: absoluteUrl },
+    AUDIENCES[data.audience] ?? EVERYONE,
+    "announcements",
+  );
 
   await db
     .update(announcements)
@@ -70,9 +87,9 @@ export async function sendAnnouncementAction(formData: FormData): Promise<void> 
     action: "announcement.send",
     entityType: "announcement",
     entityId: row.id,
-    diff: { after: { title: data.title, url, ...result } },
+    diff: { after: { title: data.title, url, audience: data.audience, ...result } },
   });
 
   revalidatePath("/announcements");
-  redirect(`/announcements?sent=${result.sent}&total=${result.total}`);
+  redirect(`/announcements?sent=${result.sent}&total=${result.total}&skipped=${result.skipped}`);
 }

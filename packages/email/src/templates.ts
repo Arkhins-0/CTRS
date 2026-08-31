@@ -129,3 +129,139 @@ export function roundReminderEmail(input: {
     text: `Hi ${input.fanName},\n\n${input.roundName} at ${input.circuitLine} starts soon — ${input.firstSessionLine}.\n\nTimetable: ${input.roundUrl}\n\nYou're getting this because you RSVP'd to this round.`,
   };
 }
+
+/* ── Admin account lifecycle ─────────────────────────────────────────────── */
+
+export function adminPasswordResetEmail(input: {
+  displayName: string;
+  resetUrl: string;
+  expiresInMinutes: number;
+}): Omit<EmailMessage, "to"> {
+  const html = layout(
+    "Reset your password",
+    paragraph(`Hi ${escapeHtml(input.displayName)},`) +
+      paragraph(
+        `Someone asked to reset the password on your CTR Sports admin account. This link expires in ${input.expiresInMinutes} minutes and can only be used once.`,
+      ) +
+      paragraph(button(input.resetUrl, "Reset password")) +
+      paragraph(
+        `Or open this link: <a href="${input.resetUrl}" style="color:#15151E;">${input.resetUrl}</a>`,
+      ),
+    "If you didn't request this, ignore this email — your password will not change. Signing in normally also invalidates the link.",
+  );
+  return {
+    subject: "Reset your CTR Sports admin password",
+    html,
+    text: `Hi ${input.displayName},\n\nReset your CTR Sports admin password (expires in ${input.expiresInMinutes} minutes, single use):\n${input.resetUrl}\n\nIf you didn't request this, ignore this email.`,
+  };
+}
+
+export function adminEmailChangeEmail(input: {
+  displayName: string;
+  confirmUrl: string;
+  newEmail: string;
+}): Omit<EmailMessage, "to"> {
+  const html = layout(
+    "Confirm your new address",
+    paragraph(`Hi ${escapeHtml(input.displayName)},`) +
+      paragraph(
+        `Confirm that <strong>${escapeHtml(input.newEmail)}</strong> should become the sign-in address for your CTR Sports admin account.`,
+      ) +
+      paragraph(button(input.confirmUrl, "Confirm new address")) +
+      paragraph(
+        `Or open this link: <a href="${input.confirmUrl}" style="color:#15151E;">${input.confirmUrl}</a>`,
+      ),
+    "Until you confirm, your old address keeps working. If you didn't request this, ignore this email.",
+  );
+  return {
+    subject: "Confirm your new CTR Sports admin address",
+    html,
+    text: `Hi ${input.displayName},\n\nConfirm ${input.newEmail} as the sign-in address for your CTR Sports admin account:\n${input.confirmUrl}\n\nIf you didn't request this, ignore this email.`,
+  };
+}
+
+/**
+ * Sent to the OLD address after an email change lands. This is the tripwire
+ * for an account takeover: the person who still controls the old inbox finds
+ * out immediately, even though they can no longer sign in with it.
+ */
+export function adminEmailChangedNoticeEmail(input: {
+  displayName: string;
+  newEmail: string;
+  supportEmail: string;
+}): Omit<EmailMessage, "to"> {
+  const html = layout(
+    "Your sign-in address changed",
+    paragraph(`Hi ${escapeHtml(input.displayName)},`) +
+      paragraph(
+        `The sign-in address on your CTR Sports admin account was changed to <strong>${escapeHtml(input.newEmail)}</strong>. All existing sessions were signed out.`,
+      ) +
+      paragraph(
+        `If this wasn't you, contact a Super Admin immediately at <a href="mailto:${escapeHtml(input.supportEmail)}" style="color:#15151E;">${escapeHtml(input.supportEmail)}</a>.`,
+      ),
+    "This is a security notification sent to your previous address.",
+  );
+  return {
+    subject: "Your CTR Sports admin sign-in address changed",
+    html,
+    text: `Hi ${input.displayName},\n\nThe sign-in address on your CTR Sports admin account was changed to ${input.newEmail}. All existing sessions were signed out.\n\nIf this wasn't you, contact a Super Admin immediately at ${input.supportEmail}.`,
+  };
+}
+
+/** Sent after any password change so a silent takeover cannot go unnoticed. */
+export function adminPasswordChangedNoticeEmail(input: {
+  displayName: string;
+  supportEmail: string;
+}): Omit<EmailMessage, "to"> {
+  const html = layout(
+    "Your password changed",
+    paragraph(`Hi ${escapeHtml(input.displayName)},`) +
+      paragraph(
+        "The password on your CTR Sports admin account was just changed, and every other session was signed out.",
+      ) +
+      paragraph(
+        `If this wasn't you, contact a Super Admin immediately at <a href="mailto:${escapeHtml(input.supportEmail)}" style="color:#15151E;">${escapeHtml(input.supportEmail)}</a>.`,
+      ),
+    "This is a security notification.",
+  );
+  return {
+    subject: "Your CTR Sports admin password changed",
+    html,
+    text: `Hi ${input.displayName},\n\nThe password on your CTR Sports admin account was just changed and every other session was signed out.\n\nIf this wasn't you, contact a Super Admin immediately at ${input.supportEmail}.`,
+  };
+}
+
+/* ── Member invitations ──────────────────────────────────────────────────── */
+
+export function memberInviteEmail(input: {
+  displayName: string;
+  inviterName: string;
+  teamName: string | null;
+  roleLabel: string;
+  acceptUrl: string;
+  expiresInDays: number;
+}): Omit<EmailMessage, "to"> {
+  const where = input.teamName
+    ? `<strong>${escapeHtml(input.teamName)}</strong>`
+    : "the CTR Sports organisation";
+  const html = layout(
+    "You're invited",
+    paragraph(`Hi ${escapeHtml(input.displayName)},`) +
+      paragraph(
+        `${escapeHtml(input.inviterName)} has invited you to join ${where} on the CTR Sports console as <strong>${escapeHtml(input.roleLabel)}</strong>.`,
+      ) +
+      paragraph(
+        "Set a password to activate your account. You can then install the console to your home screen for race-day announcements.",
+      ) +
+      paragraph(button(input.acceptUrl, "Accept invitation")) +
+      paragraph(
+        `Or open this link: <a href="${input.acceptUrl}" style="color:#15151E;">${input.acceptUrl}</a>`,
+      ),
+    `This invitation expires in ${input.expiresInDays} days and can only be used once. If you weren't expecting it, ignore this email.`,
+  );
+  return {
+    subject: `You're invited to ${input.teamName ?? "CTR Sports"}`,
+    html,
+    text: `Hi ${input.displayName},\n\n${input.inviterName} invited you to join ${input.teamName ?? "the CTR Sports organisation"} as ${input.roleLabel}.\n\nSet a password to activate your account:\n${input.acceptUrl}\n\nExpires in ${input.expiresInDays} days, single use.`,
+  };
+}

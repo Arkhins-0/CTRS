@@ -49,7 +49,7 @@ export function MediaPicker({
         onClick={() => setOpen(true)}
         className={
           triggerClassName ??
-          "chamfer-tr inline-flex items-center gap-2 border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon"
+          "chamfer-tr inline-flex items-center gap-2 border border-line bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
         }
       >
         <ImageIcon size={14} /> {triggerLabel}
@@ -114,31 +114,31 @@ function PickerOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-carbon/70 p-4 sm:p-10"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-panel/70 p-4 sm:p-10"
       onClick={onClose}
     >
       <div
-        className="chamfer-tr flex max-h-[85vh] w-full max-w-3xl flex-col border border-warm-grey bg-white shadow-xl"
+        className="chamfer-tr flex max-h-[85vh] w-full max-w-3xl flex-col border border-line bg-surface shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-warm-grey p-4">
+        <div className="flex items-center gap-3 border-b border-line p-4">
           <h2 className="text-sm font-black uppercase tracking-wide">Media library</h2>
           <div className="relative ml-auto w-64">
-            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-f1-grey" />
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-muted" />
             <input
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search filename or alt text…"
               autoFocus
-              className="w-full border border-warm-grey bg-white py-1.5 pl-8 pr-2 text-sm outline-none focus:border-f1-red"
+              className="w-full border border-line bg-surface py-1.5 pl-8 pr-2 text-sm outline-none focus:border-f1-red"
             />
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-f1-grey transition-colors hover:text-f1-red"
+            className="text-fg-muted transition-colors hover:text-f1-red"
           >
             <X size={18} />
           </button>
@@ -146,11 +146,11 @@ function PickerOverlay({
 
         <div className="flex-1 overflow-y-auto p-4">
           {error ? (
-            <p className="border border-f1-red bg-white p-3 text-sm font-bold text-f1-red">{error}</p>
+            <p className="border border-f1-red bg-surface p-3 text-sm font-bold text-f1-red">{error}</p>
           ) : null}
 
           {!error && items.length === 0 && !loading ? (
-            <p className="p-6 text-center text-sm text-f1-grey">
+            <p className="p-6 text-center text-sm text-fg-muted">
               No media found{q ? ` for “${q}”` : ""}.
             </p>
           ) : null}
@@ -162,7 +162,7 @@ function PickerOverlay({
                 type="button"
                 onClick={() => onPick(item)}
                 title={item.filename}
-                className="group border border-warm-grey bg-off-white text-left transition-colors hover:border-f1-red"
+                className="group border border-line bg-page text-left transition-colors hover:border-f1-red"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -171,7 +171,7 @@ function PickerOverlay({
                   loading="lazy"
                   className="aspect-4/3 w-full object-cover"
                 />
-                <span className="block truncate px-1.5 py-1 text-[11px] text-f1-grey group-hover:text-carbon">
+                <span className="block truncate px-1.5 py-1 text-[11px] text-fg-muted group-hover:text-fg">
                   {item.filename}
                 </span>
               </button>
@@ -179,7 +179,7 @@ function PickerOverlay({
           </div>
 
           {loading ? (
-            <p className="flex items-center justify-center gap-2 p-4 text-sm text-f1-grey">
+            <p className="flex items-center justify-center gap-2 p-4 text-sm text-fg-muted">
               <Loader2 size={14} className="animate-spin" /> Loading…
             </p>
           ) : null}
@@ -189,7 +189,7 @@ function PickerOverlay({
               <button
                 type="button"
                 onClick={() => void load(q, page + 1, true)}
-                className="chamfer-tr border border-warm-grey bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide hover:border-carbon"
+                className="chamfer-tr border border-line bg-surface px-4 py-2 text-xs font-bold uppercase tracking-wide hover:border-fg-faint"
               >
                 Load more
               </button>
@@ -225,12 +225,12 @@ export function MediaPickerInput({
     <div>
       <input type="hidden" name={name} value={selected?.id ?? ""} />
       {selected ? (
-        <div className="mb-2 border border-warm-grey bg-off-white p-1">
+        <div className="mb-2 border border-line bg-page p-1">
           {selected.url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={selected.url} alt="" className="max-h-40 w-full object-cover" />
           ) : (
-            <p className="p-3 text-center text-xs text-f1-grey">Image selected</p>
+            <p className="p-3 text-center text-xs text-fg-muted">Image selected</p>
           )}
         </div>
       ) : null}
@@ -243,7 +243,7 @@ export function MediaPickerInput({
           <button
             type="button"
             onClick={() => setSelected(null)}
-            className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-f1-grey transition-colors hover:text-f1-red"
+            className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-fg-muted transition-colors hover:text-f1-red"
           >
             <X size={12} /> Clear
           </button>

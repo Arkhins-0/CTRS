@@ -44,7 +44,7 @@ export default async function NewDriverPage() {
           <Field label="Headshot" className="sm:col-span-2">
             <MediaPickerInput name="headshotMediaId" />
           </Field>
-          <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-carbon">
+          <label className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-fg">
             <input type="checkbox" name="isActive" defaultChecked className="size-4 accent-f1-red" />
             Active driver
           </label>
