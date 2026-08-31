@@ -31,6 +31,21 @@ export function middleware(req: NextRequest) {
 
   if (PUBLIC_PREFIXES.some((p) => isUnder(pathname, p))) return NextResponse.next();
 
+  /*
+   * Every /api/* route handler already does its own auth check
+   * (getAdminSession/getMemberSession/checkPermission — verified across all
+   * of them) and returns a proper 401/403 JSON or text response. Gating them
+   * here too was actively wrong, not just redundant: a fetch() or a plain
+   * <a href> hitting a member-only endpoint like /api/export/roster or
+   * /api/member-push falls outside the /m prefix, so it fell through to the
+   * ADMIN cookie check below and got redirected to the ADMIN /login page —
+   * an HTML page where the caller expected CSV or JSON. That is exactly the
+   * "asking to log in with an admin account" bug on the roster download.
+   * Skipping API routes here entirely removes this whole bug class rather
+   * than patching one path at a time.
+   */
+  if (isUnder(pathname, "/api")) return NextResponse.next();
+
   // Member area — gated by the member cookie, never the admin one.
   if (isUnder(pathname, "/m")) {
     if (!req.cookies.has("ctr_member_session")) {
