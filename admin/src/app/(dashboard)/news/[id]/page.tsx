@@ -16,7 +16,7 @@ import { variantKey } from "@/components/media/variants";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { MediaPickerInput } from "@/components/media/media-picker";
 import { Card, Field, Input, PageHeader, Select, StatusPill, Textarea } from "@/components/ui";
-import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
+import { ConfirmSubmit, IntentSubmitButton, SubmitButton } from "@/components/ui-client";
 import { deleteArticleAction, saveArticleAction } from "../actions";
 import { RelatedPicker } from "../related-picker";
 
@@ -154,13 +154,13 @@ export default async function ArticleEditorPage({
             ) : null}
 
             <div className="mt-4 flex flex-col gap-2">
-              <SubmitButton name="intent" value="save" variant="secondary">
+              <IntentSubmitButton intent="save" variant="secondary">
                 {article.status === "draft" ? "Save draft" : "Save changes"}
-              </SubmitButton>
+              </IntentSubmitButton>
               {article.status !== "published" ? (
-                <SubmitButton name="intent" value="publish">
+                <IntentSubmitButton intent="publish">
                   Publish now
-                </SubmitButton>
+                </IntentSubmitButton>
               ) : null}
               <div className="border-t border-line pt-3">
                 <Field label="Schedule for">
@@ -172,19 +172,19 @@ export default async function ArticleEditorPage({
                     }
                   />
                 </Field>
-                <SubmitButton name="intent" value="schedule" variant="secondary" className="mt-2 w-full">
+                <IntentSubmitButton intent="schedule" variant="secondary" className="mt-2 w-full">
                   Schedule
-                </SubmitButton>
+                </IntentSubmitButton>
               </div>
               {article.status === "published" || article.status === "scheduled" ? (
-                <SubmitButton name="intent" value="unpublish" variant="danger">
+                <IntentSubmitButton intent="unpublish" variant="danger">
                   Unpublish → draft
-                </SubmitButton>
+                </IntentSubmitButton>
               ) : null}
               {article.status !== "archived" ? (
-                <SubmitButton name="intent" value="archive" variant="danger">
+                <IntentSubmitButton intent="archive" variant="danger">
                   Archive
-                </SubmitButton>
+                </IntentSubmitButton>
               ) : null}
             </div>
           </Card>

@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import type { media, videos } from "@ctr/db";
 import { Card, Field, Input, StatusPill, Textarea } from "@/components/ui";
-import { SubmitButton } from "@/components/ui-client";
+import { IntentSubmitButton, SubmitButton } from "@/components/ui-client";
 import { MediaPickerInput } from "@/components/media/media-picker";
 import { saveVideoAction } from "./actions";
 import { VideoSourceFields } from "./video-source-fields";
@@ -90,23 +90,23 @@ export function VideoForm({
             </p>
           ) : null}
           <div className="mt-4 flex flex-col gap-2">
-            <SubmitButton name="intent" value="save" variant="secondary">
+            <IntentSubmitButton intent="save" variant="secondary">
               {video ? "Save changes" : "Save draft"}
-            </SubmitButton>
+            </IntentSubmitButton>
             {status !== "published" ? (
-              <SubmitButton name="intent" value="publish">
+              <IntentSubmitButton intent="publish">
                 Publish now
-              </SubmitButton>
+              </IntentSubmitButton>
             ) : null}
             {status === "published" || status === "scheduled" ? (
-              <SubmitButton name="intent" value="unpublish" variant="danger">
+              <IntentSubmitButton intent="unpublish" variant="danger">
                 Unpublish → draft
-              </SubmitButton>
+              </IntentSubmitButton>
             ) : null}
             {video && status !== "archived" ? (
-              <SubmitButton name="intent" value="archive" variant="danger">
+              <IntentSubmitButton intent="archive" variant="danger">
                 Archive
-              </SubmitButton>
+              </IntentSubmitButton>
             ) : null}
           </div>
         </Card>

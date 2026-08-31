@@ -8,7 +8,7 @@ import { publicUrl } from "@/lib/storage";
 import { variantKey } from "@/components/media/variants";
 import { MediaPickerInput } from "@/components/media/media-picker";
 import { Card, EmptyState, Field, Input, PageHeader, StatusPill, Textarea } from "@/components/ui";
-import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
+import { ConfirmSubmit, IntentSubmitButton, SubmitButton } from "@/components/ui-client";
 import {
   addGalleryItemAction,
   deleteGalleryAction,
@@ -175,23 +175,23 @@ export default async function GalleryEditorPage({
                 </Field>
               </div>
               <div className="mt-4 flex flex-col gap-2">
-                <SubmitButton name="intent" value="save" variant="secondary">
+                <IntentSubmitButton intent="save" variant="secondary">
                   Save changes
-                </SubmitButton>
+                </IntentSubmitButton>
                 {gallery.status !== "published" ? (
-                  <SubmitButton name="intent" value="publish">
+                  <IntentSubmitButton intent="publish">
                     Publish now
-                  </SubmitButton>
+                  </IntentSubmitButton>
                 ) : null}
                 {gallery.status === "published" || gallery.status === "scheduled" ? (
-                  <SubmitButton name="intent" value="unpublish" variant="danger">
+                  <IntentSubmitButton intent="unpublish" variant="danger">
                     Unpublish → draft
-                  </SubmitButton>
+                  </IntentSubmitButton>
                 ) : null}
                 {gallery.status !== "archived" ? (
-                  <SubmitButton name="intent" value="archive" variant="danger">
+                  <IntentSubmitButton intent="archive" variant="danger">
                     Archive
-                  </SubmitButton>
+                  </IntentSubmitButton>
                 ) : null}
               </div>
             </Card>

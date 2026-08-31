@@ -71,3 +71,52 @@ export function ConfirmSubmit({
     </button>
   );
 }
+
+/**
+ * Submit button for forms whose action branches on which button was pressed
+ * (Save / Publish / Schedule / Archive).
+ *
+ * Relying on the submitter's own name/value has proved fragile: anything that
+ * makes the button non-submittable at the moment the form is serialised — a
+ * `disabled` attribute, a re-render, a stale build — drops the value silently,
+ * and the action then falls back to its default and reports success. That is
+ * how publish/schedule/archive all quietly saved drafts.
+ *
+ * So the intent is ALSO written into a hidden field on click. Both entries
+ * carry the same value, so whichever survives, the action reads the same
+ * thing, and it no longer depends on how the runtime serialises submitters.
+ */
+export function IntentSubmitButton({
+  intent,
+  children,
+  variant = "primary",
+  className = "",
+}: {
+  intent: string;
+  children: React.ReactNode;
+  variant?: "primary" | "secondary" | "danger";
+  className?: string;
+}) {
+  return (
+    <SubmitButton
+      name="intent"
+      value={intent}
+      variant={variant}
+      className={className}
+      onClick={(e) => {
+        const form = e.currentTarget.form;
+        if (!form) return;
+        let field = form.querySelector<HTMLInputElement>('input[type="hidden"][name="intent"]');
+        if (!field) {
+          field = document.createElement("input");
+          field.type = "hidden";
+          field.name = "intent";
+          form.appendChild(field);
+        }
+        field.value = intent;
+      }}
+    >
+      {children}
+    </SubmitButton>
+  );
+}
