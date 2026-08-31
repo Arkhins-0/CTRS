@@ -85,6 +85,13 @@
       "when": 1788172700311,
       "tag": "0011_small_secret_warriors",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788173028518,
+      "tag": "0012_faithful_silvermane",
+      "breakpoints": true
     }
   ]
 }

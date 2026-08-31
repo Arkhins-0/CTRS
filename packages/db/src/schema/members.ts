@@ -5,13 +5,14 @@ import {
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 import { adminUsers } from "./auth";
-import { teams } from "./racing";
+import { rounds, teams } from "./racing";
 
 /*
  * ── Organisation members ─────────────────────────────────────────────────
@@ -128,7 +129,46 @@ export const memberNotificationPrefs = pgTable("member_notification_prefs", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * Race-weekend availability.
+ *
+ * Separate from `round_rsvps`, which is the public fan-facing "I'm going to
+ * watch" signal. This one is operational: it tells a team admin who from their
+ * crew will actually be at the circuit, which is a different question with a
+ * different audience and different privacy expectations.
+ */
+export const memberRsvpStatusEnum = pgEnum("member_rsvp_status", [
+  "going",
+  "maybe",
+  "not_going",
+]);
+
+export const memberRoundRsvps = pgTable(
+  "member_round_rsvps",
+  {
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "cascade" }),
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => rounds.id, { onDelete: "cascade" }),
+    status: memberRsvpStatusEnum("status").notNull(),
+    // e.g. "arriving Saturday morning" — operational context for the team
+    note: varchar("note", { length: 280 }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.memberId, t.roundId] }),
+    index("member_round_rsvps_round_idx").on(t.roundId),
+  ],
+);
+
 /* ── Relations ───────────────────────────────────────────────────────────── */
+
+export const memberRoundRsvpsRelations = relations(memberRoundRsvps, ({ one }) => ({
+  member: one(members, { fields: [memberRoundRsvps.memberId], references: [members.id] }),
+  round: one(rounds, { fields: [memberRoundRsvps.roundId], references: [rounds.id] }),
+}));
 
 export const membersRelations = relations(members, ({ one, many }) => ({
   team: one(teams, { fields: [members.teamId], references: [teams.id] }),

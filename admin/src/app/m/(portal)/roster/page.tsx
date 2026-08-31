@@ -1,10 +1,16 @@
-import { and, eq, isNull } from "drizzle-orm";
-import { db, memberInvitations, members } from "@ctr/db";
+import { and, asc, eq, gte, inArray, isNull } from "drizzle-orm";
+import { db, memberInvitations, memberRoundRsvps, members, rounds } from "@ctr/db";
 import { requireTeamAdmin } from "@/lib/member-auth";
 import { ROLE_HINTS, ROLE_LABELS, TEAM_ASSIGNABLE_ROLES } from "@/lib/member-roles";
 import { Card, EmptyState, Field, Input, PageHeader, Select } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
 import { inviteMemberAction, revokeInviteAction, setMemberActiveAction } from "./actions";
+
+const RSVP_LABELS: Record<string, string> = {
+  going: "Going",
+  maybe: "Maybe",
+  not_going: "Can't make it",
+};
 
 export const metadata = { title: "Roster" };
 
@@ -58,6 +64,35 @@ export default async function RosterPage({
     }),
   ]);
 
+  /*
+   * Attendance for the next few rounds. Answers are fetched for this team's
+   * members only — a team admin must never see another team's availability.
+   */
+  const today = new Date().toISOString().slice(0, 10);
+  const nextRounds = await db.query.rounds.findMany({
+    where: gte(rounds.startDate, today),
+    orderBy: asc(rounds.startDate),
+    limit: 3,
+    columns: { id: true, round: true, name: true, startDate: true },
+  });
+
+  const memberIds = roster.map((m) => m.id);
+  const answers =
+    nextRounds.length && memberIds.length
+      ? await db.query.memberRoundRsvps.findMany({
+          where: and(
+            inArray(memberRoundRsvps.memberId, memberIds),
+            inArray(
+              memberRoundRsvps.roundId,
+              nextRounds.map((r) => r.id),
+            ),
+          ),
+          columns: { memberId: true, roundId: true, status: true, note: true },
+        })
+      : [];
+
+  const nameById = new Map(roster.map((m) => [m.id, m.displayName]));
+
   return (
     <>
       <PageHeader title="Roster" sub={session.team?.name ?? undefined} />
@@ -110,6 +145,61 @@ export default async function RosterPage({
             </div>
           </form>
         </Card>
+
+        {/* ── Attendance ──────────────────────────────────────────────── */}
+        {nextRounds.length ? (
+          <Card>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-fg">
+              Crew availability
+            </h2>
+            <p className="mt-1 text-xs text-fg-muted">
+              Who has confirmed for the next race weekends. Members answer from their own
+              Schedule.
+            </p>
+            <div className="mt-4 grid gap-4">
+              {nextRounds.map((round) => {
+                const forRound = answers.filter((a) => a.roundId === round.id);
+                const byStatus = (s: string) => forRound.filter((a) => a.status === s);
+                const answered = new Set(forRound.map((a) => a.memberId));
+                const noReply = roster.filter((m) => !answered.has(m.id));
+
+                return (
+                  <div key={round.id} className="border-t border-line pt-3 first:border-0 first:pt-0">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <p className="text-sm font-bold text-fg">
+                        R{round.round} · {round.name}
+                      </p>
+                      <p className="font-numeric text-[11px] text-fg-faint">{round.startDate}</p>
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap gap-3 font-numeric text-xs">
+                      <span className="text-emerald-300">{byStatus("going").length} going</span>
+                      <span className="text-amber-300">{byStatus("maybe").length} maybe</span>
+                      <span className="text-red-300">{byStatus("not_going").length} can&apos;t</span>
+                      <span className="text-fg-faint">{noReply.length} no reply</span>
+                    </div>
+
+                    {forRound.length ? (
+                      <ul className="mt-2 space-y-1">
+                        {forRound.map((a) => (
+                          <li key={a.memberId} className="flex flex-wrap gap-x-2 text-xs">
+                            <span className="font-bold text-fg">{nameById.get(a.memberId)}</span>
+                            <span className="text-fg-muted">{RSVP_LABELS[a.status]}</span>
+                            {a.note ? (
+                              <span className="text-fg-faint">— {a.note}</span>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-xs text-fg-faint">Nobody has answered yet.</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        ) : null}
 
         {/* ── Pending invitations ─────────────────────────────────────── */}
         {pending.length ? (
