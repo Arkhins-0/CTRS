@@ -12,8 +12,14 @@ function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-/** Enable announcement push notifications on this admin device. */
-export function NotificationsToggle() {
+/**
+ * Enable announcement push notifications on this device.
+ *
+ * `api` selects which subscription store the device is registered against —
+ * /api/push for CMS staff, /api/member-push for the member area. Both accept
+ * the same body; only the session they authenticate differs.
+ */
+export function NotificationsToggle({ api = "/api/push" }: { api?: string } = {}) {
   const [state, setState] = useState<PushState>("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -59,7 +65,7 @@ export function NotificationsToggle() {
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
-      const res = await fetch("/api/push", {
+      const res = await fetch(api, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(subscription.toJSON()),
@@ -79,7 +85,7 @@ export function NotificationsToggle() {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       if (subscription) {
-        await fetch("/api/push", {
+        await fetch(api, {
           method: "DELETE",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ endpoint: subscription.endpoint }),
@@ -94,7 +100,7 @@ export function NotificationsToggle() {
   };
 
   const btn =
-    "chamfer-tr border border-line bg-surface px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint disabled:cursor-not-allowed disabled:opacity-50";
+    "chamfer-tr min-h-11 border border-line bg-surface px-3 text-xs font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint disabled:cursor-not-allowed disabled:opacity-50";
 
   if (state === "loading") return null;
   if (state === "unsupported") {
@@ -112,7 +118,7 @@ export function NotificationsToggle() {
     <div className="flex flex-col gap-2">
       {state === "on" ? (
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs font-bold uppercase tracking-wide text-emerald-700">
+          <span className="text-xs font-bold uppercase tracking-wide text-emerald-300">
             Enabled on this device
           </span>
           <button type="button" onClick={() => void disable()} className={btn}>
@@ -124,7 +130,7 @@ export function NotificationsToggle() {
           type="button"
           onClick={() => void enable()}
           disabled={state === "busy"}
-          className="chamfer-tr inline-flex items-center justify-center bg-f1-red px-4 py-2 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-f1-red-dark disabled:cursor-not-allowed disabled:opacity-50"
+          className="chamfer-tr inline-flex min-h-11 items-center justify-center bg-accent px-4 text-sm font-bold uppercase tracking-wide text-accent-fg transition-colors hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-50"
         >
           {state === "busy" ? "Working…" : "Enable on this device"}
         </button>

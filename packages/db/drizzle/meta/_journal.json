@@ -78,6 +78,13 @@
       "when": 1788171845024,
       "tag": "0010_fair_marvel_boy",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788172700311,
+      "tag": "0011_small_secret_warriors",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,7 @@ export {
   adminPasswordChangedNoticeEmail,
   adminPasswordResetEmail,
   escapeHtml,
+  memberInviteEmail,
   newsletterConfirmEmail,
   roundReminderEmail,
   rsvpConfirmationEmail,

@@ -2,21 +2,43 @@ import { NextResponse, type NextRequest } from "next/server";
 
 /**
  * Fast cookie-presence check only (no DB on the edge). The authoritative
- * permission checks live in requirePermission() inside every server action,
- * route handler and section layout.
+ * permission checks live in requirePermission()/requireMember() inside every
+ * server action, route handler and section layout.
+ *
+ * Two principals share this app: CMS staff (ctr_admin_session) everywhere, and
+ * organisation members (ctr_member_session) under /m. They are separate
+ * cookies against separate tables — holding one never satisfies the other.
  */
-/**
- * Routes reachable without a session. These are the account-recovery flows:
- * by definition the caller cannot sign in yet, so gating them would make
- * recovery impossible. Each one authenticates by single-use emailed token.
- */
-const PUBLIC_PREFIXES = ["/login", "/forgot-password", "/reset-password", "/confirm-email"];
+
+/** Reachable with no session at all. */
+const PUBLIC_PREFIXES = [
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/confirm-email",
+  "/m/login",
+  "/m/join",
+];
+
+function isUnder(pathname: string, prefix: string) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+
+  if (PUBLIC_PREFIXES.some((p) => isUnder(pathname, p))) return NextResponse.next();
+
+  // Member area — gated by the member cookie, never the admin one.
+  if (isUnder(pathname, "/m")) {
+    if (!req.cookies.has("ctr_member_session")) {
+      const login = new URL("/m/login", req.url);
+      if (pathname !== "/m") login.searchParams.set("next", pathname);
+      return NextResponse.redirect(login);
+    }
     return NextResponse.next();
   }
+
   if (!req.cookies.has("ctr_admin_session")) {
     const login = new URL("/login", req.url);
     if (pathname !== "/") login.searchParams.set("next", pathname);

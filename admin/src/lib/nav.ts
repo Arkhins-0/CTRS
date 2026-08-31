@@ -76,6 +76,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "System",
     items: [
+      { href: "/members", label: "Members", icon: UsersRound, permission: PERMISSIONS.MEMBERS_MANAGE },
       { href: "/admins", label: "Admin Users", icon: Shield, permission: PERMISSIONS.ADMINS_MANAGE },
       { href: "/audit", label: "Audit Log", icon: ScrollText, permission: PERMISSIONS.AUDIT_VIEW },
       { href: "/settings", label: "Site Settings", icon: Settings, permission: PERMISSIONS.SETTINGS_MANAGE },

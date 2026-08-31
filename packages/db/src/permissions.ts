@@ -17,6 +17,7 @@ export const PERMISSIONS = {
   FANS_VIEW: "fans.view",
   NEWSLETTER_VIEW: "newsletter.view",
   NEWSLETTER_EXPORT: "newsletter.export",
+  MEMBERS_MANAGE: "members.manage",
   ADMINS_MANAGE: "admins.manage",
   SETTINGS_MANAGE: "settings.manage",
   AUDIT_VIEW: "audit.view",
@@ -40,6 +41,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   "fans.view": "View fan accounts",
   "newsletter.view": "View newsletter subscribers",
   "newsletter.export": "Export newsletter subscribers as CSV",
+  "members.manage": "Manage organisation members, team rosters and invitations",
   "admins.manage": "Manage admin users and their roles",
   "settings.manage": "Edit site settings",
   "audit.view": "View the audit log",
@@ -73,7 +75,10 @@ export const ROLE_DEFINITIONS: Record<RoleKey, { name: string; permissions: Perm
     name: "Race Editor",
     permissions: [P.RACES_MANAGE, P.RESULTS_MANAGE, P.MEDIA_READ],
   },
-  team_manager: { name: "Team Manager", permissions: [P.TEAMS_MANAGE, P.MEDIA_READ] },
+  team_manager: {
+    name: "Team Manager",
+    permissions: [P.TEAMS_MANAGE, P.MEMBERS_MANAGE, P.MEDIA_READ],
+  },
   driver_manager: { name: "Driver Manager", permissions: [P.DRIVERS_MANAGE, P.MEDIA_READ] },
   media_manager: {
     name: "Media Manager",

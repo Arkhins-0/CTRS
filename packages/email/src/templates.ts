@@ -230,3 +230,38 @@ export function adminPasswordChangedNoticeEmail(input: {
     text: `Hi ${input.displayName},\n\nThe password on your CTR Sports admin account was just changed and every other session was signed out.\n\nIf this wasn't you, contact a Super Admin immediately at ${input.supportEmail}.`,
   };
 }
+
+/* ── Member invitations ──────────────────────────────────────────────────── */
+
+export function memberInviteEmail(input: {
+  displayName: string;
+  inviterName: string;
+  teamName: string | null;
+  roleLabel: string;
+  acceptUrl: string;
+  expiresInDays: number;
+}): Omit<EmailMessage, "to"> {
+  const where = input.teamName
+    ? `<strong>${escapeHtml(input.teamName)}</strong>`
+    : "the CTR Sports organisation";
+  const html = layout(
+    "You're invited",
+    paragraph(`Hi ${escapeHtml(input.displayName)},`) +
+      paragraph(
+        `${escapeHtml(input.inviterName)} has invited you to join ${where} on the CTR Sports console as <strong>${escapeHtml(input.roleLabel)}</strong>.`,
+      ) +
+      paragraph(
+        "Set a password to activate your account. You can then install the console to your home screen for race-day announcements.",
+      ) +
+      paragraph(button(input.acceptUrl, "Accept invitation")) +
+      paragraph(
+        `Or open this link: <a href="${input.acceptUrl}" style="color:#15151E;">${input.acceptUrl}</a>`,
+      ),
+    `This invitation expires in ${input.expiresInDays} days and can only be used once. If you weren't expecting it, ignore this email.`,
+  );
+  return {
+    subject: `You're invited to ${input.teamName ?? "CTR Sports"}`,
+    html,
+    text: `Hi ${input.displayName},\n\n${input.inviterName} invited you to join ${input.teamName ?? "the CTR Sports organisation"} as ${input.roleLabel}.\n\nSet a password to activate your account:\n${input.acceptUrl}\n\nExpires in ${input.expiresInDays} days, single use.`,
+  };
+}
