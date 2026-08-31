@@ -88,7 +88,7 @@ function DesktopRail({
 }) {
   return (
     <aside
-      className={`safe-l fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-line bg-page lg:flex ${
+      className={`safe-l safe-b fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-line bg-page lg:flex ${
         collapsed ? "w-16" : "w-60"
       } transition-[width] duration-200`}
     >
@@ -115,7 +115,7 @@ function DesktopRail({
         <NavList groups={groups} collapsed={collapsed} />
       </nav>
 
-      <div className="safe-b border-t border-line p-3">
+      <div className="border-t border-line p-3">
         {!collapsed && (
           <Link href="/account" className="block truncate hover:underline">
             <p className="truncate text-xs font-bold text-fg">{user.displayName}</p>
@@ -304,7 +304,9 @@ export function AdminShell({
         onToggle={toggle}
       />
       <main
-        className={`safe-b safe-r min-h-dvh px-4 py-5 transition-[margin] duration-200 sm:px-6 lg:py-7 ${
+        /* Bottom inset is folded into the padding value rather than applied
+           via .safe-b, which would override py-5 entirely. */
+        className={`min-h-dvh px-4 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] transition-[margin] duration-200 sm:px-6 lg:pt-7 lg:pb-[calc(1.75rem+env(safe-area-inset-bottom))] ${
           collapsed ? "lg:ml-16" : "lg:ml-60"
         }`}
       >

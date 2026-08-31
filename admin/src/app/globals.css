@@ -38,8 +38,25 @@ body {
   outline-offset: 2px;
 }
 
-/* Honour the iOS safe area when installed as a standalone PWA. */
+/*
+ * Safe-area insets.
+ *
+ * WARNING: these set `padding-*` outright, and because they are unlayered CSS
+ * while Tailwind's utilities live in `@layer utilities`, they BEAT any Tailwind
+ * padding on the same side regardless of source order. Combining `.safe-r` with
+ * `px-4` silently produced `padding-right: 0` on every phone with no notch.
+ *
+ * So: only put these on elements that set no other padding on that side —
+ * in practice the fixed and sticky chrome (rail, drawer, sticky header, bottom
+ * nav). Flow content gets its horizontal inset from `body` below and keeps
+ * using ordinary Tailwind padding.
+ */
 @supports (padding: env(safe-area-inset-left)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
   .safe-l {
     padding-left: env(safe-area-inset-left);
   }

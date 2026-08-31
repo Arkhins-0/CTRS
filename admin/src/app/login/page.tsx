@@ -23,7 +23,7 @@ export default async function LoginPage({
   const notice = status ? LOGIN_NOTICES[status] : undefined;
 
   return (
-    <main className="safe-t safe-b flex min-h-dvh items-center justify-center bg-carbon-fibre px-4 py-8">
+    <main className="flex min-h-dvh items-center justify-center bg-carbon-fibre px-4 py-[calc(2rem+env(safe-area-inset-bottom))]">
       <div className="w-full max-w-sm">
         <div className="chamfer-tr-lg border-t-4 border-accent bg-surface p-6 sm:p-8">
           <Image
