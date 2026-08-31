@@ -1,10 +1,16 @@
 import { and, asc, eq, gte, inArray, isNull } from "drizzle-orm";
+import { Download, Upload } from "lucide-react";
 import { db, memberInvitations, memberRoundRsvps, members, rounds } from "@ctr/db";
 import { requireTeamAdmin } from "@/lib/member-auth";
 import { ROLE_HINTS, ROLE_LABELS, TEAM_ASSIGNABLE_ROLES } from "@/lib/member-roles";
 import { Card, EmptyState, Field, Input, PageHeader, Select } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
-import { inviteMemberAction, revokeInviteAction, setMemberActiveAction } from "./actions";
+import {
+  bulkInviteAction,
+  inviteMemberAction,
+  revokeInviteAction,
+  setMemberActiveAction,
+} from "./actions";
 
 const RSVP_LABELS: Record<string, string> = {
   going: "Going",
@@ -25,15 +31,20 @@ const STATUS: Record<string, { tone: "ok" | "error"; message: string }> = {
   "rate-limited": { tone: "error", message: "Too many invitations. Try again later." },
   "not-found": { tone: "error", message: "That record is not on your roster." },
   self: { tone: "error", message: "You cannot deactivate your own account." },
+  "no-file": { tone: "error", message: "Choose a CSV file to upload." },
+  "empty-file": { tone: "error", message: "That file had no usable rows." },
+  "file-too-big": { tone: "error", message: "That file is too large (max 512 KB)." },
+  "too-many-rows": { tone: "error", message: "Too many rows — split into batches of 100." },
 };
 
 export default async function RosterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; invited?: string; skipped?: string; failed?: string }>;
 }) {
   const session = await requireTeamAdmin();
-  const { status } = await searchParams;
+  const sp = await searchParams;
+  const status = sp.status;
   const banner = status ? STATUS[status] : undefined;
   const teamId = session.member.teamId!;
 
@@ -97,7 +108,16 @@ export default async function RosterPage({
     <>
       <PageHeader title="Roster" sub={session.team?.name ?? undefined} />
 
-      {banner ? (
+      {status === "bulk" ? (
+        <p
+          role="status"
+          className="mb-5 border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300"
+        >
+          {sp.invited ?? 0} invitation{sp.invited === "1" ? "" : "s"} sent
+          {sp.skipped && sp.skipped !== "0" ? `, ${sp.skipped} already had accounts` : ""}
+          {sp.failed && sp.failed !== "0" ? `, ${sp.failed} row(s) could not be read` : ""}.
+        </p>
+      ) : banner ? (
         <p
           role="status"
           className={`mb-5 border px-3 py-2 text-xs font-bold ${
@@ -143,6 +163,40 @@ export default async function RosterPage({
                 {ROLE_HINTS.team_admin}
               </p>
             </div>
+          </form>
+        </Card>
+
+        {/* ── Import / export ─────────────────────────────────────────── */}
+        <Card>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-fg">Import & export</h2>
+          <p className="mt-1 text-xs text-fg-muted">
+            Download the roster with everyone&apos;s availability, or invite a whole crew at once
+            from a spreadsheet.
+          </p>
+
+          <a
+            href="/api/export/roster"
+            className="chamfer-tr mt-3 inline-flex min-h-11 items-center gap-2 border border-line px-4 text-sm font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
+          >
+            <Download size={15} /> Download roster CSV
+          </a>
+
+          <form action={bulkInviteAction} className="mt-5 border-t border-line pt-4">
+            <Field
+              label="Bulk invite from CSV"
+              hint="Columns: name, email, and optionally role (team_member / team_admin) and position. Max 100 rows."
+            >
+              <input
+                type="file"
+                name="file"
+                accept=".csv,text/csv"
+                required
+                className="w-full text-sm text-fg-muted file:mr-3 file:min-h-11 file:cursor-pointer file:border-0 file:bg-panel file:px-4 file:text-xs file:font-bold file:uppercase file:tracking-wide file:text-fg hover:file:bg-line"
+              />
+            </Field>
+            <SubmitButton variant="secondary" className="mt-3">
+              <Upload size={15} /> Send invitations
+            </SubmitButton>
           </form>
         </Card>
 

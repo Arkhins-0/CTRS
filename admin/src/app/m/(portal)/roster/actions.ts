@@ -8,6 +8,7 @@ import { db, memberInvitations, members } from "@ctr/db";
 import { memberInviteEmail, sendEmail } from "@ctr/email";
 import { writeAudit } from "@/lib/audit";
 import { evictAllMemberSessions, requireTeamAdmin } from "@/lib/member-auth";
+import { parseCsvRecords } from "@/lib/csv";
 import { issueInvitation, revokeInvitation } from "@/lib/member-invites";
 import { ROLE_LABELS, TEAM_ASSIGNABLE_ROLES } from "@/lib/member-roles";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -84,6 +85,87 @@ export async function inviteMemberAction(formData: FormData) {
 
   revalidatePath("/m/roster");
   back("invited");
+}
+
+/**
+ * Bulk-invites a crew list from a CSV.
+ *
+ * Every row is validated independently and the outcome is counted rather than
+ * aborting the batch: a single malformed line in a 40-row crew list should not
+ * discard the other 39. Rows that are already members or already invited are
+ * skipped rather than treated as errors — re-uploading a corrected sheet is
+ * the normal way people use this.
+ */
+export async function bulkInviteAction(formData: FormData) {
+  const session = await requireTeamAdmin();
+  const teamId = session.member.teamId!;
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) back("no-file");
+  if (file.size > 512 * 1024) back("file-too-big");
+
+  const limit = await checkRateLimit(`invite:bulk:${session.member.id}`, 5, 60 * 60 * 1000);
+  if (!limit.allowed) back("rate-limited");
+
+  const records = parseCsvRecords(await file.text());
+  if (!records.length) back("empty-file");
+  if (records.length > 100) back("too-many-rows");
+
+  let invited = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  for (const record of records) {
+    const parsed = inviteSchema.safeParse({
+      email: record.email,
+      displayName: record.name || record.displayname || record["full name"],
+      // Default to the least-privileged role when the column is absent.
+      role: record.role === "team_admin" ? "team_admin" : "team_member",
+      jobTitle: record.position || record.jobtitle || undefined,
+    });
+    if (!parsed.success) {
+      failed += 1;
+      continue;
+    }
+
+    const existing = await db.query.members.findFirst({
+      where: eq(members.email, parsed.data.email),
+      columns: { id: true },
+    });
+    if (existing) {
+      skipped += 1;
+      continue;
+    }
+
+    try {
+      const token = await issueInvitation({
+        email: parsed.data.email,
+        displayName: parsed.data.displayName,
+        role: parsed.data.role,
+        teamId,
+        jobTitle: parsed.data.jobTitle ?? null,
+        invitedByMemberId: session.member.id,
+      });
+      await sendEmail({
+        to: parsed.data.email,
+        ...memberInviteEmail({
+          displayName: parsed.data.displayName,
+          inviterName: session.member.displayName,
+          teamName: session.team?.name ?? null,
+          roleLabel: ROLE_LABELS[parsed.data.role],
+          acceptUrl: adminUrl(`/m/join/${token}`),
+          expiresInDays: INVITE_TTL_DAYS,
+        }),
+      });
+      invited += 1;
+    } catch (err) {
+      console.error("[roster] bulk invite row failed", err);
+      failed += 1;
+    }
+  }
+
+  revalidatePath("/m/roster");
+  redirect(`/m/roster?status=bulk&invited=${invited}&skipped=${skipped}&failed=${failed}`);
 }
 
 /** Withdraws an invitation that has not been accepted. */

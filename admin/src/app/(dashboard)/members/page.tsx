@@ -1,4 +1,5 @@
 import { asc, isNull } from "drizzle-orm";
+import { Download } from "lucide-react";
 import { PERMISSIONS, db, memberInvitations, members, teams } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { ADMIN_ASSIGNABLE_ROLES, ROLE_LABELS } from "@/lib/member-roles";
@@ -60,6 +61,14 @@ export default async function MembersPage({
       <PageHeader
         title="Members"
         sub="Team crew, drivers and officials who sign in to the member area."
+        actions={
+          <a
+            href="/api/export/members"
+            className="chamfer-tr inline-flex min-h-11 items-center gap-2 border border-line px-4 text-sm font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
+          >
+            <Download size={15} /> Export CSV
+          </a>
+        }
       />
 
       {banner ? (

@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { BookOpen } from "lucide-react";
 import { eq } from "drizzle-orm";
 import { db, memberNotificationPrefs, members } from "@ctr/db";
 import { requireMember } from "@/lib/member-auth";
@@ -164,6 +166,19 @@ export default async function MemberAccountPage({
             </p>
             <MemberNotificationsToggle />
           </div>
+        </Card>
+
+        <Card>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-fg">Help</h2>
+          <p className="mt-1 mb-3 text-xs text-fg-muted">
+            How to install the console, confirm availability and manage your crew.
+          </p>
+          <Link
+            href="/m/docs"
+            className="chamfer-tr inline-flex min-h-11 items-center gap-2 border border-line px-4 text-sm font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
+          >
+            <BookOpen size={15} /> Open the user guide
+          </Link>
         </Card>
 
         <Card>
