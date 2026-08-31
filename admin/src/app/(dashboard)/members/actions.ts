@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { and, eq, isNull } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { PERMISSIONS, db, memberInvitations, members, teams } from "@ctr/db";
-import { memberInviteEmail, sendEmail } from "@ctr/email";
+import { memberInviteEmail, memberPasswordChangedNoticeEmail, sendEmail } from "@ctr/email";
 import { requirePermission } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { evictAllMemberSessions } from "@/lib/member-auth";
@@ -143,4 +144,65 @@ export async function adminSetMemberActiveAction(formData: FormData) {
 
   revalidatePath("/members");
   back(active ? "reactivated" : "deactivated");
+}
+
+const resetPasswordSchema = z.object({
+  memberId: z.string().uuid(),
+  newPassword: z.string().min(10, "Use at least 10 characters."),
+});
+
+/**
+ * Manual override: a Super Admin sets a member's password directly, rather
+ * than waiting on the self-service email flow.
+ *
+ * Deliberately gated on admins.manage, not members.manage — the same
+ * permission that gates resetting an admin_user's password in
+ * admin/src/app/(dashboard)/admins/actions.ts. members.manage is held by
+ * team managers on the CMS side too (see ROLE_DEFINITIONS), which is right
+ * for roster administration but too broad for setting someone else's
+ * credential directly; only super_admin holds admins.manage.
+ */
+export async function resetMemberPasswordAction(formData: FormData) {
+  const session = await requirePermission(PERMISSIONS.ADMINS_MANAGE);
+
+  const parsed = resetPasswordSchema.safeParse({
+    memberId: formData.get("memberId"),
+    newPassword: formData.get("newPassword"),
+  });
+  if (!parsed.success) {
+    redirect(`/members/${String(formData.get("memberId") ?? "")}/reset-password?error=invalid`);
+  }
+
+  const target = await db.query.members.findFirst({
+    where: eq(members.id, parsed.data.memberId),
+    columns: { id: true, email: true, displayName: true },
+  });
+  if (!target) back("not-found");
+
+  await db
+    .update(members)
+    .set({ passwordHash: bcrypt.hashSync(parsed.data.newPassword, 12), failedLogins: 0 })
+    .where(eq(members.id, target.id));
+
+  // A reset is meaningless if a stolen session survives it.
+  await evictAllMemberSessions(target.id);
+
+  await writeAudit({
+    actorId: session.user.id,
+    action: "member.password-reset",
+    entityType: "member",
+    entityId: target.id,
+  });
+
+  try {
+    await sendEmail({
+      to: target.email,
+      ...memberPasswordChangedNoticeEmail({ displayName: target.displayName }),
+    });
+  } catch (err) {
+    console.error("[members] password-changed notice failed", err);
+  }
+
+  revalidatePath("/members");
+  redirect(`/members?status=password-reset`);
 }

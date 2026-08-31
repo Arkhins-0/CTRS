@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
@@ -28,7 +29,15 @@ export default async function ConfirmSubscriptionPage({
     if (subscriber) {
       await db
         .update(newsletterSubscribers)
-        .set({ status: "confirmed", confirmedAt: new Date(), confirmToken: null })
+        .set({
+          status: "confirmed",
+          confirmedAt: new Date(),
+          confirmToken: null,
+          // Every confirmed subscriber needs a working one-click unsubscribe
+          // link before the first issue can reach them; mint one now rather
+          // than leaving it to the sender to notice it's missing.
+          unsubscribeToken: subscriber.unsubscribeToken ?? randomBytes(24).toString("hex"),
+        })
         .where(eq(newsletterSubscribers.id, subscriber.id));
       confirmedEmail = subscriber.email;
     }

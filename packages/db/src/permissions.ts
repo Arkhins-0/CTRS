@@ -16,6 +16,7 @@ export const PERMISSIONS = {
   FANZONE_MANAGE: "fanzone.manage",
   FANS_VIEW: "fans.view",
   NEWSLETTER_VIEW: "newsletter.view",
+  NEWSLETTER_MANAGE: "newsletter.manage",
   NEWSLETTER_EXPORT: "newsletter.export",
   MEMBERS_MANAGE: "members.manage",
   ADMINS_MANAGE: "admins.manage",
@@ -40,6 +41,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   "fanzone.manage": "Manage polls and predictions",
   "fans.view": "View fan accounts",
   "newsletter.view": "View newsletter subscribers",
+  "newsletter.manage": "Compose and send newsletter issues",
   "newsletter.export": "Export newsletter subscribers as CSV",
   "members.manage": "Manage organisation members, team rosters and invitations",
   "admins.manage": "Manage admin users and their roles",
@@ -87,6 +89,6 @@ export const ROLE_DEFINITIONS: Record<RoleKey, { name: string; permissions: Perm
   page_editor: { name: "Page Editor", permissions: [P.PAGES_MANAGE, P.MEDIA_READ] },
   fanzone_editor: {
     name: "Fan Zone Editor",
-    permissions: [P.FANZONE_MANAGE, P.FANS_VIEW, P.NEWSLETTER_VIEW],
+    permissions: [P.FANZONE_MANAGE, P.FANS_VIEW, P.NEWSLETTER_VIEW, P.NEWSLETTER_MANAGE],
   },
 };

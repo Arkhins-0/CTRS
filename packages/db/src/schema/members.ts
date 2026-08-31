@@ -89,6 +89,27 @@ export const memberSessions = pgTable(
 );
 
 /**
+ * Self-service password reset for members. Same discipline as
+ * admin_verification_tokens: only the sha256 of the token is stored, single
+ * use, claimed by a conditional UPDATE. A separate table rather than a
+ * shared one because it FKs to members, not admin_users — the two account
+ * types stay structurally disjoint end to end (see membersRelations doc).
+ */
+export const memberPasswordResetTokens = pgTable(
+  "member_password_reset_tokens",
+  {
+    tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("member_password_reset_tokens_member_idx").on(t.memberId)],
+);
+
+/**
  * Invitations are how members are created — there is no open signup. The
  * invite proves control of the inbox, so an accepted invitation starts the
  * account already email-verified.

@@ -18,6 +18,8 @@ const PUBLIC_PREFIXES = [
   "/confirm-email",
   "/m/login",
   "/m/join",
+  "/m/forgot-password",
+  "/m/reset-password",
 ];
 
 function isUnder(pathname: string, prefix: string) {

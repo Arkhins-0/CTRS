@@ -7,8 +7,20 @@ export {
   adminPasswordResetEmail,
   escapeHtml,
   memberInviteEmail,
+  memberPasswordChangedNoticeEmail,
+  memberPasswordResetEmail,
   newsletterConfirmEmail,
   roundReminderEmail,
   rsvpConfirmationEmail,
 } from "./templates";
 export { buildIcs, type IcsEvent } from "./ics";
+export {
+  emailifyBodyHtml,
+  newsletterBroadcastEmail,
+  newsletterDigestEmail,
+  type NewsletterBroadcastInput,
+  type NewsletterDigestInput,
+  type NewsCard,
+  type SponsorLogo,
+  type StandingRow,
+} from "./newsletter";

@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   char,
   index,
@@ -8,6 +8,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -27,6 +28,14 @@ export const subscriberStatusEnum = pgEnum("subscriber_status", [
   "unsubscribed",
 ]);
 export const rsvpStatusEnum = pgEnum("rsvp_status", ["going", "maybe", "not_going"]);
+
+export const newsletterIssueKindEnum = pgEnum("newsletter_issue_kind", ["digest", "broadcast"]);
+export const newsletterIssueStatusEnum = pgEnum("newsletter_issue_status", [
+  "draft",
+  "sending",
+  "sent",
+  "failed",
+]);
 
 /* ── Fan accounts ────────────────────────────────────────────────────────── */
 
@@ -196,9 +205,61 @@ export const newsletterSubscribers = pgTable("newsletter_subscribers", {
   status: subscriberStatusEnum("status").notNull().default("pending"),
   confirmToken: varchar("confirm_token", { length: 64 }),
   confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+  /**
+   * One-click unsubscribe token. Stable per subscriber (not rotated on use)
+   * so the same emailed link keeps working and can drive a Resubscribe
+   * action afterwards. Nullable because subscribers created before this
+   * column existed have none yet; the newsletter senders backfill it lazily
+   * for any row missing one right before a send.
+   */
+  unsubscribeToken: varchar("unsubscribe_token", { length: 64 }).unique(),
   source: varchar("source", { length: 60 }), // "footer", "account", ...
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * One row per newsletter send — both the automated weekly digest and an
+ * admin-composed one-off broadcast. Doubles as the send history shown in the
+ * admin UI and as the idempotency record for the digest cron.
+ */
+export const newsletterIssues = pgTable(
+  "newsletter_issues",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    kind: newsletterIssueKindEnum("kind").notNull(),
+    subject: varchar("subject", { length: 200 }).notNull(),
+    /** Broadcast only — TipTap JSON is the source of truth, mirroring articles. */
+    bodyJson: text("body_json"),
+    /** Broadcast only — the editor's own client-rendered HTML, cached so a
+     *  draft has something to preview before the first send. */
+    bodyHtml: text("body_html"),
+    /**
+     * The final rendered HTML actually sent, captured at send time so the
+     * admin can review a past issue exactly as recipients saw it — not
+     * reconstructed from live data, which may have since changed.
+     */
+    sentHtml: text("sent_html"),
+    /**
+     * Digest only. An ISO week key ("2026-W36") claimed via unique-constraint
+     * insert BEFORE the send starts, so a cron re-triggered by an overlapping
+     * schedule (Vercel + GitHub Actions + cron-job.org, as round-reminders
+     * documents) cannot send the same week's digest twice.
+     */
+    periodKey: varchar("period_key", { length: 20 }),
+    status: newsletterIssueStatusEnum("status").notNull().default("draft"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    sentCount: integer("sent_count").notNull().default(0),
+    failedCount: integer("failed_count").notNull().default(0),
+    createdBy: uuid("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("newsletter_issues_period_key_uq")
+      .on(t.periodKey)
+      .where(sql`${t.kind} = 'digest' AND ${t.periodKey} IS NOT NULL`),
+    index("newsletter_issues_created_idx").on(t.createdAt),
+  ],
+);
 
 /* ── Relations ───────────────────────────────────────────────────────────── */
 
@@ -220,6 +281,10 @@ export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one })
 
 export const announcementsRelations = relations(announcements, ({ one }) => ({
   author: one(adminUsers, { fields: [announcements.createdBy], references: [adminUsers.id] }),
+}));
+
+export const newsletterIssuesRelations = relations(newsletterIssues, ({ one }) => ({
+  author: one(adminUsers, { fields: [newsletterIssues.createdBy], references: [adminUsers.id] }),
 }));
 
 export const fanSessionsRelations = relations(fanSessions, ({ one }) => ({

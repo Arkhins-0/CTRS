@@ -265,3 +265,49 @@ export function memberInviteEmail(input: {
     text: `Hi ${input.displayName},\n\n${input.inviterName} invited you to join ${input.teamName ?? "the CTR Sports organisation"} as ${input.roleLabel}.\n\nSet a password to activate your account:\n${input.acceptUrl}\n\nExpires in ${input.expiresInDays} days, single use.`,
   };
 }
+
+/* ── Member account lifecycle ────────────────────────────────────────────── */
+
+export function memberPasswordResetEmail(input: {
+  displayName: string;
+  resetUrl: string;
+  expiresInMinutes: number;
+}): Omit<EmailMessage, "to"> {
+  const html = layout(
+    "Reset your password",
+    paragraph(`Hi ${escapeHtml(input.displayName)},`) +
+      paragraph(
+        `Someone asked to reset the password on your CTR Sports member account. This link expires in ${input.expiresInMinutes} minutes and can only be used once.`,
+      ) +
+      paragraph(button(input.resetUrl, "Reset password")) +
+      paragraph(
+        `Or open this link: <a href="${input.resetUrl}" style="color:#15151E;">${input.resetUrl}</a>`,
+      ),
+    "If you didn't request this, ignore this email — your password will not change.",
+  );
+  return {
+    subject: "Reset your CTR Sports member password",
+    html,
+    text: `Hi ${input.displayName},\n\nReset your CTR Sports member password (expires in ${input.expiresInMinutes} minutes, single use):\n${input.resetUrl}\n\nIf you didn't request this, ignore this email.`,
+  };
+}
+
+/** Sent after any member password change so a silent takeover cannot go unnoticed. */
+export function memberPasswordChangedNoticeEmail(input: {
+  displayName: string;
+}): Omit<EmailMessage, "to"> {
+  const html = layout(
+    "Your password changed",
+    paragraph(`Hi ${escapeHtml(input.displayName)},`) +
+      paragraph(
+        "The password on your CTR Sports member account was just changed, and every other session was signed out.",
+      ) +
+      paragraph("If this wasn't you, contact your team admin or CTR staff immediately."),
+    "This is a security notification.",
+  );
+  return {
+    subject: "Your CTR Sports member password changed",
+    html,
+    text: `Hi ${input.displayName},\n\nThe password on your CTR Sports member account was just changed and every other session was signed out.\n\nIf this wasn't you, contact your team admin or CTR staff immediately.`,
+  };
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { memberLoginAction } from "./actions";
 
@@ -42,6 +43,14 @@ export function MemberLoginForm({ next }: { next: string }) {
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>
+      <p className="pt-1 text-center">
+        <Link
+          href="/m/forgot-password"
+          className="text-xs font-bold uppercase tracking-wide text-fg-faint transition-colors hover:text-fg"
+        >
+          Forgot password?
+        </Link>
+      </p>
     </form>
   );
 }

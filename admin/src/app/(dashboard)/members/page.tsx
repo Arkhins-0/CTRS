@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { asc, isNull } from "drizzle-orm";
 import { Download } from "lucide-react";
 import { PERMISSIONS, db, memberInvitations, members, teams } from "@ctr/db";
@@ -18,6 +19,7 @@ const STATUS: Record<string, { tone: "ok" | "error"; message: string }> = {
   "invite-revoked": { tone: "ok", message: "Invitation withdrawn." },
   deactivated: { tone: "ok", message: "Member deactivated and signed out." },
   reactivated: { tone: "ok", message: "Member reactivated." },
+  "password-reset": { tone: "ok", message: "Password reset — the member was signed out and notified by email." },
   invalid: { tone: "error", message: "Check the details — team roles need a team." },
   exists: { tone: "error", message: "That address already has an account." },
   "send-failed": { tone: "error", message: "Could not send the invitation email." },
@@ -29,7 +31,8 @@ export default async function MembersPage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
-  await requirePermission(PERMISSIONS.MEMBERS_MANAGE);
+  const session = await requirePermission(PERMISSIONS.MEMBERS_MANAGE);
+  const canResetPassword = session.permissions.has(PERMISSIONS.ADMINS_MANAGE);
   const { status } = await searchParams;
   const banner = status ? STATUS[status] : undefined;
 
@@ -196,17 +199,27 @@ export default async function MembersPage({
                     {m.lastLoginAt ? m.lastLoginAt.toISOString().slice(0, 10) : "never"}
                   </td>
                   <td className="text-right">
-                    <form action={adminSetMemberActiveAction}>
-                      <input type="hidden" name="memberId" value={m.id} />
-                      <input type="hidden" name="active" value={m.isActive ? "false" : "true"} />
-                      {m.isActive ? (
-                        <ConfirmSubmit message="Deactivate this member? They'll be signed out everywhere immediately.">
-                          Deactivate
-                        </ConfirmSubmit>
-                      ) : (
-                        <SubmitButton variant="secondary">Reactivate</SubmitButton>
-                      )}
-                    </form>
+                    <div className="flex items-center justify-end gap-2">
+                      {canResetPassword ? (
+                        <Link
+                          href={`/members/${m.id}/reset-password`}
+                          className="text-xs font-bold uppercase text-fg-faint hover:text-fg"
+                        >
+                          Reset password
+                        </Link>
+                      ) : null}
+                      <form action={adminSetMemberActiveAction}>
+                        <input type="hidden" name="memberId" value={m.id} />
+                        <input type="hidden" name="active" value={m.isActive ? "false" : "true"} />
+                        {m.isActive ? (
+                          <ConfirmSubmit message="Deactivate this member? They'll be signed out everywhere immediately.">
+                            Deactivate
+                          </ConfirmSubmit>
+                        ) : (
+                          <SubmitButton variant="secondary">Reactivate</SubmitButton>
+                        )}
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))}

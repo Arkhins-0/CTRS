@@ -80,7 +80,7 @@ export const DOC_SECTIONS: DocSection[] = [
         items: [
           "Forgot your password? Use the 'Forgot password?' link on the sign-in page. The reset link lasts one hour.",
           "Changing your password signs out every other device you are signed in on.",
-          "After ten failed attempts an account locks. A team manager (for members) or a Super Admin (for staff) can restore access.",
+          "After ten failed attempts an account locks. Resetting your password (self-service, or by a Super Admin) clears the lock.",
         ],
       },
       {

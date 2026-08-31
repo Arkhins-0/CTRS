@@ -1,9 +1,9 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { and, eq, gte, inArray, isNull, lt } from "drizzle-orm";
 import { db, fans, raceSessions, roundRsvps, rounds } from "@ctr/db";
 import { roundReminderEmail, sendEmail } from "@ctr/email";
 import { formatDate } from "@/components/racing/meta";
+import { authorizedCronRequest } from "@/lib/cron-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -25,18 +25,8 @@ export const dynamic = "force-dynamic";
 
 const LOOKAHEAD_HOURS = 48;
 
-function authorized(req: Request): boolean | null {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return null; // not configured — refuse
-  const header = req.headers.get("authorization") ?? "";
-  const presented = header.startsWith("Bearer ") ? header.slice(7) : "";
-  const a = Buffer.from(presented);
-  const b = Buffer.from(secret);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function GET(req: Request) {
-  const auth = authorized(req);
+  const auth = authorizedCronRequest(req);
   if (auth === null) {
     return NextResponse.json({ error: "CRON_SECRET not configured." }, { status: 500 });
   }
