@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { format } from "date-fns";
 import { z } from "zod";
-import { db, newsletterIssues, PERMISSIONS, sponsors } from "@ctr/db";
-import { newsletterBroadcastEmail, type SponsorLogo } from "@ctr/email";
+import { db, newsletterIssues, PERMISSIONS, siteSettings, sponsors } from "@ctr/db";
+import { newsletterBroadcastEmail, type SocialLink, type SponsorLogo } from "@ctr/email";
 import { requirePermission } from "@/lib/auth";
 import { publicUrl } from "@/lib/storage";
 import { variantKey } from "@/components/media/variants";
@@ -80,13 +80,18 @@ export default async function NewsletterIssuePage({
     );
   }
 
-  const sponsorLogos = await loadSponsorLogos();
+  const [sponsorLogos, [socialRow]] = await Promise.all([
+    loadSponsorLogos(),
+    db.select().from(siteSettings).where(eq(siteSettings.key, "social_links")),
+  ]);
+  const socialLinks = (socialRow?.value as SocialLink[] | undefined) ?? [];
   const previewHtml = issue.bodyHtml
     ? newsletterBroadcastEmail({
         editionLine,
         subject: issue.subject,
         bodyHtml: issue.bodyHtml,
         sponsors: sponsorLogos,
+        socialLinks,
         unsubscribeUrl: "#unsubscribe-preview",
       }).html
     : null;

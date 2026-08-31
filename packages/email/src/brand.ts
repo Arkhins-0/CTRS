@@ -111,3 +111,50 @@ export function brandMark(width = 132): string {
   const h = Math.round((width * 9) / 16);
   return `<img src="${logoUrl()}" width="${width}" height="${h}" alt="CTR Sports" style="display:block;width:${px(width)};height:${px(h)};" />`;
 }
+
+export type SocialLink = { platform: string; url: string };
+
+/**
+ * Short glyph/initials per platform for the footer badges below — chosen
+ * over hosted icon images on purpose. An email footer icon row is the one
+ * place a broken/blocked image is most likely (image-blocking is the email
+ * client default), and a whole row of empty boxes reads worse than no row at
+ * all. A table cell with a real glyph always renders, in every client, with
+ * no network fetch — the same reasoning that makes hazardStripe() a table
+ * instead of a background-image.
+ */
+const SOCIAL_GLYPH: Record<string, string> = {
+  instagram: "IG",
+  twitter: "𝕏",
+  x: "𝕏",
+  facebook: "f",
+  youtube: "▶",
+  tiktok: "TT",
+  discord: "DC",
+  twitch: "TW",
+  linkedin: "in",
+};
+
+function socialGlyph(platform: string): string {
+  return SOCIAL_GLYPH[platform.trim().toLowerCase()] ?? platform.trim().slice(0, 2).toUpperCase();
+}
+
+/**
+ * A row of small square badges linking out to the org's social accounts,
+ * read from the same site_settings.social_links the admin console's Settings
+ * page manages — so the footer never drifts from what's actually live.
+ * Renders nothing when no links are configured.
+ */
+export function socialBadges(links: SocialLink[]): string {
+  const usable = links.filter((l) => l.platform && l.url);
+  if (!usable.length) return "";
+  const cells = usable
+    .map(
+      (l) =>
+        `<td style="padding:0 6px;">
+           <a href="${l.url}" style="display:block;width:30px;height:30px;line-height:30px;text-align:center;background:${COLOR.panel};border:1px solid ${COLOR.line};border-radius:2px;font-family:${FONT.display};font-weight:600;font-size:12px;color:${COLOR.fg};text-decoration:none;">${socialGlyph(l.platform)}</a>
+         </td>`,
+    )
+    .join("");
+  return `<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:14px auto 0;"><tr>${cells}</tr></table>`;
+}

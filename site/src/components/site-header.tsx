@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getFanSession } from "@/lib/fan-auth";
 import { getSetting } from "@/lib/settings";
@@ -28,16 +29,28 @@ const SECONDARY_LINKS = [
   { label: "Newsletter", href: "/newsletter" },
 ];
 
-export function CtrLogo({ className = "" }: { className?: string }) {
+/** Intrinsic size of /public/ctr-logo.webp — the same mark admin and email use. */
+const LOGO_W = 1024;
+const LOGO_H = 576;
+
+export function CtrLogo({
+  className = "",
+  height = 32,
+  priority = false,
+}: {
+  className?: string;
+  height?: number;
+  priority?: boolean;
+}) {
   return (
-    <span className={`flex items-center gap-1.5 ${className}`}>
-      <span className="rounded-sm bg-brand px-1.5 py-0.5 font-display text-base font-black italic leading-5 text-brand-fg">
-        CTR
-      </span>
-      <span className="font-display text-base font-medium uppercase leading-5 tracking-wide">
-        Sports
-      </span>
-    </span>
+    <Image
+      src="/ctr-logo.webp"
+      alt="CTR Sports"
+      width={Math.round((height * LOGO_W) / LOGO_H)}
+      height={height}
+      priority={priority}
+      className={className}
+    />
   );
 }
 
@@ -164,8 +177,8 @@ export async function SiteHeader() {
             }}
           />
           <div className="f1-inner relative flex min-h-[54px] items-center justify-between gap-8 md:min-h-[58px] lg:min-h-[64px]">
-            <Link href="/" aria-label="CTR Sports home" className="shrink-0 text-white">
-              <CtrLogo />
+            <Link href="/" aria-label="CTR Sports home" className="shrink-0">
+              <CtrLogo height={36} priority />
             </Link>
             <HeaderNav links={links} secondary={SECONDARY_LINKS} fanName={fanName} />
           </div>

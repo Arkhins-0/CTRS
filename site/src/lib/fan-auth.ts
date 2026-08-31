@@ -37,6 +37,12 @@ export async function destroyFanSession() {
   store.delete(COOKIE);
 }
 
+/** Signs out every device — called after a password reset or change so a
+ *  stolen session can't outlive the credential that granted it. */
+export async function evictAllFanSessions(fanId: string) {
+  await db.delete(fanSessions).where(eq(fanSessions.fanId, fanId));
+}
+
 export const getFanSession = cache(async (): Promise<FanSession | null> => {
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;

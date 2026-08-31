@@ -63,6 +63,27 @@ export const fanSessions = pgTable(
   (t) => [index("fan_sessions_fan_idx").on(t.fanId)],
 );
 
+/**
+ * Self-service password reset for fans. Same discipline as
+ * member_password_reset_tokens / admin_verification_tokens: only the sha256
+ * of the token is stored, single use, claimed by a conditional UPDATE. A
+ * separate table rather than a shared one because it FKs to fans, not
+ * members or admin_users — three structurally disjoint account types.
+ */
+export const fanPasswordResetTokens = pgTable(
+  "fan_password_reset_tokens",
+  {
+    tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
+    fanId: uuid("fan_id")
+      .notNull()
+      .references(() => fans.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("fan_password_reset_tokens_fan_idx").on(t.fanId)],
+);
+
 export const fanFavourites = pgTable(
   "fan_favourites",
   {
@@ -289,6 +310,10 @@ export const newsletterIssuesRelations = relations(newsletterIssues, ({ one }) =
 
 export const fanSessionsRelations = relations(fanSessions, ({ one }) => ({
   fan: one(fans, { fields: [fanSessions.fanId], references: [fans.id] }),
+}));
+
+export const fanPasswordResetTokensRelations = relations(fanPasswordResetTokens, ({ one }) => ({
+  fan: one(fans, { fields: [fanPasswordResetTokens.fanId], references: [fans.id] }),
 }));
 
 export const fanFavouritesRelations = relations(fanFavourites, ({ one }) => ({

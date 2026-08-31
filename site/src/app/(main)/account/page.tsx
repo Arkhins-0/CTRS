@@ -12,6 +12,7 @@ import { Chip } from "@/components/fanzone/chip";
 import { DevNote } from "@/components/fanzone/dev-note";
 import { SubmitButton } from "@/components/fanzone/submit-button";
 import { signOut, subscribeNewsletter, unsubscribeNewsletter } from "./actions";
+import { PasswordForm } from "./password-form";
 import { ProfileForm } from "./profile-form";
 
 export const dynamic = "force-dynamic";
@@ -166,6 +167,12 @@ export default async function AccountPage() {
             defaultDisplayName={fan.displayName}
             defaultCountryCode={fan.countryCode}
           />
+        </div>
+
+        {/* security */}
+        <h2 className="display-l mt-12 font-black uppercase text-text-5">Security</h2>
+        <div className="mt-4 max-w-xl rounded-md bg-surface-1 p-6">
+          <PasswordForm />
         </div>
 
         {/* push notifications */}

@@ -2,10 +2,17 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { compareSync, hashSync } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, fans, newsletterSubscribers } from "@ctr/db";
-import { destroyFanSession, requireFan } from "@/lib/fan-auth";
+import { fanPasswordChangedNoticeEmail, sendEmail } from "@ctr/email";
+import {
+  createFanSession,
+  destroyFanSession,
+  evictAllFanSessions,
+  requireFan,
+} from "@/lib/fan-auth";
 import { sendConfirmationEmail, upsertPendingSubscription } from "@/components/fanzone/newsletter-db";
 
 /* ── Profile ─────────────────────────────────────────────────────────────── */
@@ -50,6 +57,71 @@ export async function updateProfile(
       countryCode: parsed.data.countryCode ?? null,
     })
     .where(eq(fans.id, session.fan.id));
+
+  revalidatePath("/account");
+  return { error: null, ok: true };
+}
+
+/* ── Password ────────────────────────────────────────────────────────────── */
+
+export type PasswordState = { error: string | null; ok: boolean };
+
+const passwordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password."),
+    newPassword: z
+      .string()
+      .min(8, "Your new password must be at least 8 characters.")
+      .max(72, "Your new password must be 72 characters or fewer."),
+    confirmPassword: z.string(),
+  })
+  .refine((v) => v.newPassword === v.confirmPassword, {
+    message: "New password and confirmation don't match.",
+    path: ["confirmPassword"],
+  });
+
+export async function changePassword(
+  _prev: PasswordState,
+  formData: FormData,
+): Promise<PasswordState> {
+  const session = await requireFan();
+
+  const parsed = passwordSchema.safeParse({
+    currentPassword: formData.get("currentPassword"),
+    newPassword: formData.get("newPassword"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Please check the form and try again.",
+      ok: false,
+    };
+  }
+
+  const [fan] = await db.select().from(fans).where(eq(fans.id, session.fan.id));
+  if (!fan || !compareSync(parsed.data.currentPassword, fan.passwordHash)) {
+    return { error: "Your current password is incorrect.", ok: false };
+  }
+
+  await db
+    .update(fans)
+    .set({ passwordHash: hashSync(parsed.data.newPassword, 12) })
+    .where(eq(fans.id, fan.id));
+
+  // Every session (including this one) is invalidated, then this device is
+  // signed straight back in — a stolen cookie dies here even though the fan
+  // who just typed their password notices nothing.
+  await evictAllFanSessions(fan.id);
+  await createFanSession(fan.id);
+
+  try {
+    await sendEmail({
+      to: fan.email,
+      ...fanPasswordChangedNoticeEmail({ displayName: fan.displayName }),
+    });
+  } catch (err) {
+    console.error("[account] password-changed notice failed", err);
+  }
 
   revalidatePath("/account");
   return { error: null, ok: true };

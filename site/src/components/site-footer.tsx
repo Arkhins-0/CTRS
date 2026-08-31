@@ -119,7 +119,7 @@ export async function SiteFooter() {
                 className="chequer pointer-events-none absolute -bottom-10 -left-10 h-64 w-64 text-black opacity-[0.04]"
               />
               <div className="relative flex h-full flex-col gap-4">
-                <CtrLogo className="text-text-5" />
+                <CtrLogo height={40} />
                 <p className="display-xl font-black uppercase text-text-5">
                   Join the CTR Fan Zone
                 </p>
@@ -169,7 +169,7 @@ export async function SiteFooter() {
           {/* Racing-line separator */}
           <div role="separator" className="flex items-center gap-6 pb-8 pt-12 lg:pt-16">
             <RacingLine className="text-brand" />
-            <CtrLogo className="shrink-0 text-text-5" />
+            <CtrLogo height={24} className="shrink-0" />
           </div>
 
           {/* Bottom controls */}

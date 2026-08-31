@@ -6,8 +6,8 @@ import { format } from "date-fns";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { db, newsletterIssues, newsletterSubscribers, PERMISSIONS, sponsors } from "@ctr/db";
-import { newsletterBroadcastEmail, sendEmail, type SponsorLogo } from "@ctr/email";
+import { db, newsletterIssues, newsletterSubscribers, PERMISSIONS, siteSettings, sponsors } from "@ctr/db";
+import { newsletterBroadcastEmail, sendEmail, type SocialLink, type SponsorLogo } from "@ctr/email";
 import { requirePermission } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { sanitizeBodyHtml } from "@/components/editor/sanitize";
@@ -192,6 +192,8 @@ export async function sendBroadcastAction(formData: FormData) {
 
   const base = (process.env.SITE_URL ?? "").replace(/\/$/, "");
   const editionLine = `SPECIAL BULLETIN · ${format(new Date(), "d MMM yyyy")}`;
+  const [socialRow] = await db.select().from(siteSettings).where(eq(siteSettings.key, "social_links"));
+  const socialLinks = (socialRow?.value as SocialLink[] | undefined) ?? [];
 
   let sent = 0;
   let failed = 0;
@@ -200,6 +202,7 @@ export async function sendBroadcastAction(formData: FormData) {
     subject: parsed.data.subject,
     bodyHtml,
     sponsors: sponsorLogos,
+    socialLinks,
     unsubscribeUrl: `${base}/newsletter/unsubscribe/{token}`,
   }).html;
 
@@ -209,6 +212,7 @@ export async function sendBroadcastAction(formData: FormData) {
       subject: parsed.data.subject,
       bodyHtml,
       sponsors: sponsorLogos,
+      socialLinks,
       unsubscribeUrl: `${base}/newsletter/unsubscribe/${r.token}`,
     });
     try {

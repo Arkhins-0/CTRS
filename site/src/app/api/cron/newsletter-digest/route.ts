@@ -14,10 +14,17 @@ import {
   rounds,
   sponsors,
 } from "@ctr/db";
-import { newsletterDigestEmail, sendEmail, type NewsCard, type StandingRow } from "@ctr/email";
+import {
+  newsletterDigestEmail,
+  sendEmail,
+  type NewsCard,
+  type SocialLink,
+  type StandingRow,
+} from "@ctr/email";
 import { formatDate } from "@/components/racing/meta";
 import { mediaUrl } from "@/lib/media";
 import { authorizedCronRequest } from "@/lib/cron-auth";
+import { getSetting } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -186,6 +193,8 @@ export async function GET(req: Request) {
     .filter((s): s is typeof s & { logo: { path: string } } => Boolean(s.logo))
     .map((s) => ({ name: s.name, url: s.url ?? base, logoUrl: cardVariant(s.logo.path) }));
 
+  const socialLinks = await getSetting<SocialLink[]>("social_links", []);
+
   const isEmpty = !currentRound && news.length === 0 && driverRows.length === 0 && constructorRows.length === 0;
 
   let sent = 0;
@@ -240,6 +249,7 @@ export async function GET(req: Request) {
       driverStandings: driverRows,
       constructorStandings: constructorRows,
       sponsors: sponsorLogos,
+      socialLinks,
       webUrl: base,
     };
 

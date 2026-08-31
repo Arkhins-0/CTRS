@@ -1,6 +1,16 @@
 import type { EmailMessage } from "./client";
 import { escapeHtml } from "./templates";
-import { brandMark, COLOR, ctaButton, eyebrow, FONT, FONT_FACES, hazardStripe } from "./brand";
+import {
+  brandMark,
+  COLOR,
+  ctaButton,
+  eyebrow,
+  FONT,
+  FONT_FACES,
+  hazardStripe,
+  socialBadges,
+  type SocialLink,
+} from "./brand";
 
 /**
  * "The Pit Wall" — CTR's editorial newsletter shell.
@@ -116,11 +126,15 @@ function masthead(editionLine: string): string {
 <tr><td>${hazardStripe(WIDTH)}</td></tr>`;
 }
 
-function footer(unsubscribeUrl: string): string {
+function footer(unsubscribeUrl: string, socialLinks: SocialLink[] = []): string {
   return `
 <tr><td>${hazardStripe(WIDTH)}</td></tr>
-<tr><td style="padding:22px 32px;" bgcolor="${COLOR.page}">
-  <p style="margin:0 0 6px;font-family:${FONT.body};font-size:11.5px;line-height:1.6;color:${COLOR.fgFaint};">
+<tr><td style="padding:26px 32px 22px;text-align:center;" bgcolor="${COLOR.page}">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+    ${brandMark(96)}
+  </td></tr></table>
+  ${socialBadges(socialLinks)}
+  <p style="margin:18px 0 6px;font-family:${FONT.body};font-size:11.5px;line-height:1.6;color:${COLOR.fgFaint};">
     You're receiving this because you subscribed to CTR Sports race-week updates.
   </p>
   <p style="margin:0;font-family:${FONT.body};font-size:11.5px;">
@@ -168,6 +182,7 @@ export type NewsletterDigestInput = {
   driverStandings: StandingRow[];
   constructorStandings: StandingRow[];
   sponsors: SponsorLogo[];
+  socialLinks?: SocialLink[];
   unsubscribeUrl: string;
   webUrl: string;
 };
@@ -209,7 +224,7 @@ ${
       newsBlock +
       standingsBlock +
       sponsorStrip(input.sponsors) +
-      footer(input.unsubscribeUrl),
+      footer(input.unsubscribeUrl, input.socialLinks),
   );
 
   const textParts: string[] = ["THE PIT WALL — " + input.editionLine, ""];
@@ -314,6 +329,7 @@ export type NewsletterBroadcastInput = {
   subject: string;
   bodyHtml: string; // already sanitized (sanitizeBodyHtml) — this function only adds styling
   sponsors: SponsorLogo[];
+  socialLinks?: SocialLink[];
   unsubscribeUrl: string;
 };
 
@@ -326,7 +342,7 @@ export function newsletterBroadcastEmail(input: NewsletterBroadcastInput): Omit<
        </td></tr>
        <tr><td style="padding:16px 32px 4px;">${styledBody}</td></tr>` +
       sponsorStrip(input.sponsors) +
-      footer(input.unsubscribeUrl),
+      footer(input.unsubscribeUrl, input.socialLinks),
   );
 
   // Plain-text: strip tags crudely — good enough as a fallback, matching how

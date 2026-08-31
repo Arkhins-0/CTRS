@@ -6,6 +6,8 @@ export {
   adminPasswordChangedNoticeEmail,
   adminPasswordResetEmail,
   escapeHtml,
+  fanPasswordChangedNoticeEmail,
+  fanPasswordResetEmail,
   memberInviteEmail,
   memberPasswordChangedNoticeEmail,
   memberPasswordResetEmail,
@@ -24,3 +26,4 @@ export {
   type SponsorLogo,
   type StandingRow,
 } from "./newsletter";
+export { type SocialLink } from "./brand";
