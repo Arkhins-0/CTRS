@@ -15,7 +15,7 @@ export const MEMBER_NAV: MemberNavItem[] = [
   { href: "/m", label: "Home", icon: LayoutDashboard, roles: null },
   { href: "/m/schedule", label: "Schedule", icon: CalendarDays, roles: null },
   { href: "/m/announcements", label: "Announcements", icon: Bell, roles: null },
-  { href: "/m/roster", label: "Roster", icon: Users, roles: ["team_admin"] },
+  { href: "/m/roster", label: "Roster", icon: Users, roles: ["team_manager", "manager"] },
   { href: "/m/account", label: "Account", icon: UserCog, roles: null },
 ];
 

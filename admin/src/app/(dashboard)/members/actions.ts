@@ -10,7 +10,7 @@ import { requirePermission } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { evictAllMemberSessions } from "@/lib/member-auth";
 import { issueInvitation, revokeInvitation } from "@/lib/member-invites";
-import { ADMIN_ASSIGNABLE_ROLES, ROLE_LABELS } from "@/lib/member-roles";
+import { ADMIN_ASSIGNABLE_ROLES, ROLE_LABELS, isMemberRole, isTeamRole } from "@/lib/member-roles";
 import { adminUrl } from "@/lib/urls";
 
 const INVITE_TTL_DAYS = 14;
@@ -23,11 +23,11 @@ const inviteSchema = z
   .object({
     email: z.string().trim().toLowerCase().email(),
     displayName: z.string().trim().min(2).max(120),
-    role: z.enum(["team_admin", "team_member", "official"]),
+    role: z.string().refine(isMemberRole),
     teamId: z.string().uuid().optional().or(z.literal("")),
     jobTitle: z.string().trim().max(120).optional(),
   })
-  .refine((v) => (v.role === "official" ? true : Boolean(v.teamId)), {
+  .refine((v) => (isMemberRole(v.role) && isTeamRole(v.role) ? Boolean(v.teamId) : true), {
     // Officials are organisation-wide; everyone else belongs to exactly one team.
     message: "Team roles require a team",
     path: ["teamId"],
@@ -53,7 +53,7 @@ export async function adminInviteMemberAction(formData: FormData) {
   });
   if (existing) back("exists");
 
-  const teamId = parsed.data.role === "official" ? null : (parsed.data.teamId as string);
+  const teamId = isTeamRole(parsed.data.role) ? (parsed.data.teamId as string) : null;
   const team = teamId
     ? await db.query.teams.findFirst({ where: eq(teams.id, teamId), columns: { name: true } })
     : null;

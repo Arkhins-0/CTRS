@@ -2,12 +2,12 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import { db, memberRoundRsvps, members, rounds } from "@ctr/db";
 import { getMemberSession } from "@/lib/member-auth";
 import { csvResponse, toCsv } from "@/lib/csv";
-import { ROLE_LABELS } from "@/lib/member-roles";
+import { ROLE_LABELS, canManageRoster } from "@/lib/member-roles";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Team roster + availability export for a team admin.
+ * Team roster + availability export for a team manager or manager.
  *
  * Scoped hard to the caller's own team — the team id comes from the session
  * and there is no parameter to override it, so this endpoint cannot be walked
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   const session = await getMemberSession();
-  if (!session || session.member.role !== "team_admin" || !session.member.teamId) {
+  if (!session || !canManageRoster(session.member.role) || !session.member.teamId) {
     return new Response("Forbidden", { status: 403 });
   }
   const teamId = session.member.teamId;

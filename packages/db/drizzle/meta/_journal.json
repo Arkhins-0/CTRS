@@ -92,6 +92,13 @@
       "when": 1788173028518,
       "tag": "0012_faithful_silvermane",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788175624692,
+      "tag": "0013_glossy_owl",
+      "breakpoints": true
     }
   ]
 }

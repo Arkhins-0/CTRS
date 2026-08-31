@@ -64,7 +64,7 @@ export const DOC_SECTIONS: DocSection[] = [
         items: [
           "Forgot your password? Use the 'Forgot password?' link on the sign-in page. The reset link lasts one hour.",
           "Changing your password signs out every other device you are signed in on.",
-          "After ten failed attempts an account locks. A team admin (for members) or a Super Admin (for staff) can restore access.",
+          "After ten failed attempts an account locks. A team manager (for members) or a Super Admin (for staff) can restore access.",
         ],
       },
       {
@@ -90,7 +90,32 @@ export const DOC_SECTIONS: DocSection[] = [
       },
       {
         kind: "p",
-        text: "Your team admin sees the running headcount for the next three weekends on their Roster page. Only your own team sees your answer.",
+        text: "Your team manager and managers see the running headcount for the next three weekends on their Roster page. Only your own team sees your answer.",
+      },
+    ],
+  },
+  {
+    slug: "roles",
+    title: "Who can do what",
+    audience: "member",
+    summary: "The team hierarchy, and which roles can add people.",
+    blocks: [
+      {
+        kind: "p",
+        text: "Every team has its own hierarchy. Authority is scoped to your team — nobody sees or changes another team's roster.",
+      },
+      {
+        kind: "list",
+        items: [
+          "Team manager — runs the team. Can appoint managers, and add drivers, media and crew.",
+          "Manager — appointed by the team manager. Can add drivers, media and crew to this team, but cannot appoint other managers.",
+          "Driver, Media, Crew — take part in race weekends and confirm their own availability. No roster access.",
+          "Official — organisation-wide (stewards, marshals, race control). Not attached to a team; only CTR staff can create one.",
+        ],
+      },
+      {
+        kind: "note",
+        text: "You can only add or deactivate people whose role you could grant yourself. That is why a manager cannot deactivate the team manager who appointed them.",
       },
     ],
   },
@@ -98,16 +123,16 @@ export const DOC_SECTIONS: DocSection[] = [
     slug: "roster",
     title: "Managing your team roster",
     audience: "member",
-    summary: "For team admins: inviting crew, bulk imports and removing access.",
+    summary: "For team managers and managers: inviting people, bulk imports and removing access.",
     blocks: [
       {
         kind: "p",
-        text: "Team admins manage their own crew from the Roster tab. You can only see and change your own team.",
+        text: "Team managers and managers work from the Roster tab. The Role dropdown only ever offers roles you are allowed to grant, so what you see there is exactly what you can do.",
       },
       {
         kind: "steps",
         items: [
-          "To invite one person, fill in the Invite someone form. They get an email to set their password.",
+          "To invite one person, fill in the Invite someone form. They get an email to set their own password.",
           "To invite many, prepare a CSV with columns: name, email, and optionally role and position. Upload it under Import & export. Up to 100 rows at a time.",
           "To remove access, use Deactivate. That signs them out of every device immediately — it does not delete their history.",
           "To withdraw an invitation that has not been accepted yet, use Withdraw.",
@@ -115,7 +140,7 @@ export const DOC_SECTIONS: DocSection[] = [
       },
       {
         kind: "note",
-        text: "You can grant Team member or Team admin. Only CTR staff can create Officials, who work across all teams.",
+        text: "A CSV row naming a role you cannot grant is not rejected — it is quietly downgraded to your lowest grantable role, so a spreadsheet can never be used to promote someone.",
       },
     ],
   },
@@ -149,17 +174,17 @@ export const DOC_SECTIONS: DocSection[] = [
     slug: "members-staff",
     title: "Managing members as staff",
     audience: "staff",
-    summary: "Seeding a team's first admin, officials, and the full export.",
+    summary: "Seeding a team's first team manager, officials, and the full export.",
     blocks: [
       {
         kind: "p",
-        text: "The Members page lists everyone across every team. Use it to seed a new team's first admin — after that, they build out their own roster themselves.",
+        text: "The Members page lists everyone across every team. Use it to seed a new team's first team manager — after that, they appoint their own managers and build out the roster themselves.",
       },
       {
         kind: "list",
         items: [
           "Officials are organisation-wide and are not attached to a team.",
-          "Team roles require a team to be chosen.",
+          "Team roles (team manager, manager, driver, media, crew) require a team to be chosen.",
           "Export CSV downloads every member, including phone numbers. It is recorded in the audit log.",
         ],
       },

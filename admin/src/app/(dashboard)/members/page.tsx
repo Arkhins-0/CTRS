@@ -88,8 +88,8 @@ export default async function MembersPage({
         <Card>
           <h2 className="text-sm font-bold uppercase tracking-wide text-fg">Invite a member</h2>
           <p className="mt-1 text-xs text-fg-muted">
-            Team admins can invite their own crew. Use this for officials, or to seed a team&apos;s
-            first admin.
+            Team managers invite their own crew. Use this for officials, or to seed a team&apos;s
+            first team manager.
           </p>
           <form action={adminInviteMemberAction} className="mt-4 grid gap-4 sm:grid-cols-2">
             <Field label="Full name">
@@ -99,7 +99,7 @@ export default async function MembersPage({
               <Input name="email" type="email" required />
             </Field>
             <Field label="Role">
-              <Select name="role" defaultValue="team_admin">
+              <Select name="role" defaultValue="team_manager">
                 {ADMIN_ASSIGNABLE_ROLES.map((r) => (
                   <option key={r} value={r}>
                     {ROLE_LABELS[r]}

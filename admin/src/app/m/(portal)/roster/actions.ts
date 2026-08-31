@@ -7,10 +7,10 @@ import { z } from "zod";
 import { db, memberInvitations, members } from "@ctr/db";
 import { memberInviteEmail, sendEmail } from "@ctr/email";
 import { writeAudit } from "@/lib/audit";
-import { evictAllMemberSessions, requireTeamAdmin } from "@/lib/member-auth";
+import { evictAllMemberSessions, requireRosterManager } from "@/lib/member-auth";
 import { parseCsvRecords } from "@/lib/csv";
 import { issueInvitation, revokeInvitation } from "@/lib/member-invites";
-import { ROLE_LABELS, TEAM_ASSIGNABLE_ROLES } from "@/lib/member-roles";
+import { ASSIGNABLE_BY, ROLE_LABELS, canActOnRole, canAssignRole, isMemberRole } from "@/lib/member-roles";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { adminUrl } from "@/lib/urls";
 
@@ -23,9 +23,9 @@ function back(status: string): never {
 const inviteSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
   displayName: z.string().trim().min(2).max(120),
-  // A team admin may only grant team roles — never `official`, which is
-  // organisation-wide and is not theirs to hand out.
-  role: z.enum(["team_admin", "team_member"]),
+  // Any member role is accepted by the shape; whether THIS caller may grant it
+  // is checked against ASSIGNABLE_BY below, which is the real gate.
+  role: z.string().refine(isMemberRole),
   jobTitle: z.string().trim().max(120).optional(),
 });
 
@@ -36,7 +36,7 @@ const inviteSchema = z.object({
  * hidden input must not be able to seed another team's roster.
  */
 export async function inviteMemberAction(formData: FormData) {
-  const session = await requireTeamAdmin();
+  const session = await requireRosterManager();
   const teamId = session.member.teamId!;
 
   const parsed = inviteSchema.safeParse({
@@ -46,7 +46,12 @@ export async function inviteMemberAction(formData: FormData) {
     jobTitle: formData.get("jobTitle") || undefined,
   });
   if (!parsed.success) back("invalid");
-  if (!TEAM_ASSIGNABLE_ROLES.includes(parsed.data.role)) back("invalid");
+  /*
+   * The authority check. A manager may add drivers, media and crew but must
+   * not be able to mint another manager — or a team manager — by posting a
+   * different role value than the form offered them.
+   */
+  if (!canAssignRole(session.member.role, parsed.data.role)) back("forbidden-role");
 
   const limit = await checkRateLimit(`invite:send:${session.member.id}`, 20, 60 * 60 * 1000);
   if (!limit.allowed) back("rate-limited");
@@ -97,7 +102,7 @@ export async function inviteMemberAction(formData: FormData) {
  * the normal way people use this.
  */
 export async function bulkInviteAction(formData: FormData) {
-  const session = await requireTeamAdmin();
+  const session = await requireRosterManager();
   const teamId = session.member.teamId!;
 
   const file = formData.get("file");
@@ -119,8 +124,15 @@ export async function bulkInviteAction(formData: FormData) {
     const parsed = inviteSchema.safeParse({
       email: record.email,
       displayName: record.name || record.displayname || record["full name"],
-      // Default to the least-privileged role when the column is absent.
-      role: record.role === "team_admin" ? "team_admin" : "team_member",
+      /*
+       * A CSV row may name a role, but only one this caller may actually
+       * grant; anything else falls back to their least-privileged option so a
+       * spreadsheet can never be used to escalate.
+       */
+      role:
+        isMemberRole(record.role) && canAssignRole(session.member.role, record.role)
+          ? record.role
+          : (ASSIGNABLE_BY[session.member.role].at(-1) ?? "crew"),
       jobTitle: record.position || record.jobtitle || undefined,
     });
     if (!parsed.success) {
@@ -170,7 +182,7 @@ export async function bulkInviteAction(formData: FormData) {
 
 /** Withdraws an invitation that has not been accepted. */
 export async function revokeInviteAction(formData: FormData) {
-  const session = await requireTeamAdmin();
+  const session = await requireRosterManager();
   const tokenHash = String(formData.get("tokenHash") ?? "");
 
   // Scope the delete to this team so a crafted hash cannot clear someone
@@ -191,7 +203,7 @@ export async function revokeInviteAction(formData: FormData) {
 
 /** Deactivates a roster member and signs out every device they hold. */
 export async function setMemberActiveAction(formData: FormData) {
-  const session = await requireTeamAdmin();
+  const session = await requireRosterManager();
   const memberId = String(formData.get("memberId") ?? "");
   const active = formData.get("active") === "true";
 
@@ -199,9 +211,12 @@ export async function setMemberActiveAction(formData: FormData) {
 
   const target = await db.query.members.findFirst({
     where: and(eq(members.id, memberId), eq(members.teamId, session.member.teamId!)),
-    columns: { id: true, email: true, isActive: true },
+    columns: { id: true, email: true, isActive: true, role: true },
   });
   if (!target) back("not-found");
+  // You may only act on people whose role you could have granted — otherwise a
+  // manager could deactivate the team manager who appointed them.
+  if (!canActOnRole(session.member.role, target.role)) back("forbidden-role");
 
   await db.update(members).set({ isActive: active }).where(eq(members.id, target.id));
   // Deactivating must take effect immediately, not whenever their cookie

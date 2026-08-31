@@ -36,9 +36,14 @@ import { rounds, teams } from "./racing";
  * about when team admins (not staff) are the ones granting it.
  */
 export const memberRoleEnum = pgEnum("member_role", [
-  "team_admin", // manages their own team's roster; cannot see other teams
-  "team_member", // crew, driver or engineer on one team
-  "official", // organisation-level: stewards, marshals, race control
+  // ── Team hierarchy, highest authority first ──────────────────────────────
+  "team_manager", // runs the team; appoints managers and every role below
+  "manager", // appointed by the team manager; creates accounts for this team only
+  "driver", // races for the team
+  "media", // press/media for the team
+  "crew", // mechanics, engineers, general crew
+  // ── Organisation-wide ────────────────────────────────────────────────────
+  "official", // stewards, marshals, race control — not attached to a team
 ]);
 
 export const members = pgTable(
@@ -49,7 +54,7 @@ export const members = pgTable(
     passwordHash: text("password_hash").notNull(),
     displayName: varchar("display_name", { length: 120 }).notNull(),
     phone: varchar("phone", { length: 40 }),
-    role: memberRoleEnum("role").notNull().default("team_member"),
+    role: memberRoleEnum("role").notNull().default("crew"),
     /*
      * Null for organisation-level officials, who are not attached to a team.
      * Team admins and team members must have one — enforced in the actions
@@ -96,7 +101,7 @@ export const memberInvitations = pgTable(
     tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
     email: varchar("email", { length: 255 }).notNull(),
     displayName: varchar("display_name", { length: 120 }).notNull(),
-    role: memberRoleEnum("role").notNull().default("team_member"),
+    role: memberRoleEnum("role").notNull().default("crew"),
     teamId: uuid("team_id").references(() => teams.id, { onDelete: "cascade" }),
     jobTitle: varchar("job_title", { length: 120 }),
     /* Exactly one of these is set — whoever issued the invite. */

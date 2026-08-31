@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { and, eq, gt, ne } from "drizzle-orm";
 import { db, memberSessions, members, teams } from "@ctr/db";
+import { canManageRoster } from "./member-roles";
 
 /*
  * Member sessions.
@@ -20,7 +21,13 @@ const SESSION_MS = 30 * 24 * 3600 * 1000; // 30 days, matching the admin session
 
 const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
 
-export type MemberRole = "team_admin" | "team_member" | "official";
+export type MemberRole =
+  | "team_manager"
+  | "manager"
+  | "driver"
+  | "media"
+  | "crew"
+  | "official";
 
 export type MemberSession = {
   member: {
@@ -130,13 +137,17 @@ export async function requireMember(): Promise<MemberSession> {
 /**
  * Gate for managing a team roster.
  *
- * Team admins are scoped to their OWN team — the caller must pass the team it
- * is about to act on, and a mismatch is refused. Without that check a team
- * admin could edit any roster by changing an id in the form.
+ * Admits any role the hierarchy says may grant something — currently team
+ * managers and managers — rather than testing a single role string, so adding
+ * a tier to ASSIGNABLE_BY does not require touching this guard.
+ *
+ * Roster managers are scoped to their OWN team: the caller may pass the team
+ * it is about to act on and a mismatch is refused. Without that check a
+ * manager could edit any roster by changing an id in the form.
  */
-export async function requireTeamAdmin(teamId?: string): Promise<MemberSession> {
+export async function requireRosterManager(teamId?: string): Promise<MemberSession> {
   const session = await requireMember();
-  if (session.member.role !== "team_admin") redirect("/m");
+  if (!canManageRoster(session.member.role)) redirect("/m");
   if (!session.member.teamId) redirect("/m");
   if (teamId && teamId !== session.member.teamId) redirect("/m");
   return session;

@@ -1,8 +1,8 @@
 import { and, asc, eq, gte, inArray, isNull } from "drizzle-orm";
 import { Download, Upload } from "lucide-react";
 import { db, memberInvitations, memberRoundRsvps, members, rounds } from "@ctr/db";
-import { requireTeamAdmin } from "@/lib/member-auth";
-import { ROLE_HINTS, ROLE_LABELS, TEAM_ASSIGNABLE_ROLES } from "@/lib/member-roles";
+import { requireRosterManager } from "@/lib/member-auth";
+import { ASSIGNABLE_BY, ROLE_HINTS, ROLE_LABELS, canActOnRole } from "@/lib/member-roles";
 import { Card, EmptyState, Field, Input, PageHeader, Select } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
 import {
@@ -30,6 +30,10 @@ const STATUS: Record<string, { tone: "ok" | "error"; message: string }> = {
   "send-failed": { tone: "error", message: "Could not send the invitation email. Try again." },
   "rate-limited": { tone: "error", message: "Too many invitations. Try again later." },
   "not-found": { tone: "error", message: "That record is not on your roster." },
+  "forbidden-role": {
+    tone: "error",
+    message: "That role is above your own — only a team manager can grant it.",
+  },
   self: { tone: "error", message: "You cannot deactivate your own account." },
   "no-file": { tone: "error", message: "Choose a CSV file to upload." },
   "empty-file": { tone: "error", message: "That file had no usable rows." },
@@ -42,11 +46,13 @@ export default async function RosterPage({
 }: {
   searchParams: Promise<{ status?: string; invited?: string; skipped?: string; failed?: string }>;
 }) {
-  const session = await requireTeamAdmin();
+  const session = await requireRosterManager();
   const sp = await searchParams;
   const status = sp.status;
   const banner = status ? STATUS[status] : undefined;
   const teamId = session.member.teamId!;
+  // Drives both the invite form and which rows show management controls.
+  const grantable = ASSIGNABLE_BY[session.member.role];
 
   const [roster, pending] = await Promise.all([
     db.query.members.findMany({
@@ -146,8 +152,10 @@ export default async function RosterPage({
               <Input name="email" type="email" required placeholder="alex@example.com" />
             </Field>
             <Field label="Role">
-              <Select name="role" defaultValue="team_member">
-                {TEAM_ASSIGNABLE_ROLES.map((r) => (
+              {/* Only roles this caller may actually grant — a manager never
+                  sees "Manager" or "Team manager" here. */}
+              <Select name="role" defaultValue={grantable.at(-1) ?? "crew"}>
+                {grantable.map((r) => (
                   <option key={r} value={r}>
                     {ROLE_LABELS[r]}
                   </option>
@@ -159,9 +167,14 @@ export default async function RosterPage({
             </Field>
             <div className="sm:col-span-2">
               <SubmitButton>Send invitation</SubmitButton>
-              <p className="mt-2 text-xs text-fg-faint">
-                {ROLE_HINTS.team_admin}
-              </p>
+              <ul className="mt-3 space-y-1">
+                {grantable.map((r) => (
+                  <li key={r} className="text-xs text-fg-faint">
+                    <span className="font-bold text-fg-muted">{ROLE_LABELS[r]}</span>{" "}
+                    {ROLE_HINTS[r]}
+                  </li>
+                ))}
+              </ul>
             </div>
           </form>
         </Card>
@@ -184,7 +197,7 @@ export default async function RosterPage({
           <form action={bulkInviteAction} className="mt-5 border-t border-line pt-4">
             <Field
               label="Bulk invite from CSV"
-              hint="Columns: name, email, and optionally role (team_member / team_admin) and position. Max 100 rows."
+              hint={`Columns: name, email, and optionally role (${grantable.join(" / ")}) and position. Max 100 rows.`}
             >
               <input
                 type="file"
@@ -313,7 +326,8 @@ export default async function RosterPage({
                       {m.isActive ? "" : " · deactivated"}
                     </p>
                   </div>
-                  {m.id === session.member.id ? null : (
+                  {m.id === session.member.id ||
+                  !canActOnRole(session.member.role, m.role) ? null : (
                     <form action={setMemberActiveAction}>
                       <input type="hidden" name="memberId" value={m.id} />
                       <input type="hidden" name="active" value={m.isActive ? "false" : "true"} />

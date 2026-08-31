@@ -4,7 +4,7 @@ import { CalendarDays, Megaphone, Users } from "lucide-react";
 import { announcements, db, rounds } from "@ctr/db";
 import { requireMember } from "@/lib/member-auth";
 import { Card, PageHeader } from "@/components/ui";
-import { ROLE_LABELS } from "@/lib/member-roles";
+import { ROLE_LABELS, canManageRoster } from "@/lib/member-roles";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { MemberNotificationsToggle } from "@/components/member/notifications-toggle";
 
@@ -101,7 +101,7 @@ export default async function MemberHome() {
           <MemberNotificationsToggle />
         </Card>
 
-        {session.member.role === "team_admin" ? (
+        {canManageRoster(session.member.role) ? (
           <Card>
             <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-fg">
               <Users size={15} /> Your roster
