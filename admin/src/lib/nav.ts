@@ -2,6 +2,7 @@
 import { PERMISSIONS, type Permission } from "@ctr/db/permissions";
 import {
   BarChart3,
+  Bell,
   CalendarDays,
   Flag,
   Image as ImageIcon,
@@ -44,6 +45,7 @@ export const NAV_GROUPS: NavGroup[] = [
     title: "Editorial",
     items: [
       { href: "/news", label: "News", icon: Newspaper, permission: PERMISSIONS.NEWS_MANAGE },
+      { href: "/announcements", label: "Announcements", icon: Bell, permission: PERMISSIONS.NEWS_MANAGE },
       { href: "/media", label: "Media Library", icon: ImageIcon, permission: PERMISSIONS.MEDIA_MANAGE },
       { href: "/videos", label: "Videos", icon: Video, permission: PERMISSIONS.VIDEOS_MANAGE },
       { href: "/pages", label: "Pages", icon: FileText, permission: PERMISSIONS.PAGES_MANAGE },

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { count, desc, ilike, or, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
 import { format } from "date-fns";
 import { db, media, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
@@ -22,10 +22,12 @@ export default async function MediaLibraryPage({
   const { q = "", page: pageParam, error } = await searchParams;
   const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
 
-  let where: SQL | undefined;
+  // the library grid renders image thumbnails — documents (declaration PDFs)
+  // are managed from their owning pages, not listed here
+  let where: SQL | undefined = eq(media.kind, "image");
   const query = q.trim();
   if (query) {
-    where = or(ilike(media.filename, `%${query}%`), ilike(media.alt, `%${query}%`));
+    where = and(where, or(ilike(media.filename, `%${query}%`), ilike(media.alt, `%${query}%`)));
   }
 
   const [rows, totals] = await Promise.all([

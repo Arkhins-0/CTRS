@@ -14,6 +14,7 @@ import {
   sessionResults,
 } from "@ctr/db";
 import { requireAdmin } from "@/lib/auth";
+import { NotificationsToggle } from "@/components/notifications-toggle";
 import { Card, PageHeader, StatusPill } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -116,6 +117,18 @@ export default async function Dashboard() {
           </Link>
         </Card>
       </div>
+
+      <Card className="mt-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-wide">Push notifications</h2>
+            <p className="mt-1 text-xs text-f1-grey">
+              Receive site announcements on this device — sent from Editorial → Announcements.
+            </p>
+          </div>
+          <NotificationsToggle />
+        </div>
+      </Card>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card>

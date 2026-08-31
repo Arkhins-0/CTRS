@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { desc, ilike, or, type SQL } from "drizzle-orm";
+import { and, desc, eq, ilike, or, type SQL } from "drizzle-orm";
 import { db, media, PERMISSIONS } from "@ctr/db";
 import { checkPermission, getAdminSession } from "@/lib/auth";
 import { publicUrl } from "@/lib/storage";
@@ -24,9 +24,10 @@ export async function GET(req: Request) {
   const q = (url.searchParams.get("q") ?? "").trim().slice(0, 200);
   const page = Math.max(1, Number.parseInt(url.searchParams.get("page") ?? "1", 10) || 1);
 
-  let where: SQL | undefined;
+  // the picker is image-only — documents (e.g. declaration PDFs) have no thumbs
+  let where: SQL | undefined = eq(media.kind, "image");
   if (q) {
-    where = or(ilike(media.filename, `%${q}%`), ilike(media.alt, `%${q}%`));
+    where = and(where, or(ilike(media.filename, `%${q}%`), ilike(media.alt, `%${q}%`)));
   }
 
   // Fetch one extra row to compute hasMore without a count query.

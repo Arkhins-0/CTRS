@@ -1,0 +1,35 @@
+# OPTIONAL scheduled jobs for the public site (pattern from OpenLeague/Spartan).
+# The reminder route is idempotent (rounds are claimed via reminder_sent_at),
+# so this can run alongside — or instead of — the once-daily Vercel Hobby cron
+# in site/vercel.json without double-sending. Hourly here just tightens the
+# send timing; if you rely on the Vercel cron alone, delete this file.
+#
+# Required repo settings:
+#   secrets.CRON_SECRET — must match CRON_SECRET in the site's environment
+#   vars.SITE_URL       — the deployed site origin, e.g. https://ctrsports.example.com
+name: cron-jobs
+
+on:
+  schedule:
+    - cron: "0 * * * *" # hourly — round reminders use a 47-48h window
+  workflow_dispatch: {}
+
+permissions: {}
+
+concurrency:
+  group: cron-jobs
+  cancel-in-progress: false
+
+jobs:
+  round-reminders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger round reminders
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$SITE_URL/api/cron/round-reminders"
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ vars.SITE_URL }}

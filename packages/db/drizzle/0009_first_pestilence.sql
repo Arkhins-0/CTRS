@@ -1,0 +1,2 @@
+ALTER TABLE "push_subscriptions" ADD COLUMN "admin_user_id" uuid;--> statement-breakpoint
+ALTER TABLE "push_subscriptions" ADD CONSTRAINT "push_subscriptions_admin_user_id_admin_users_id_fk" FOREIGN KEY ("admin_user_id") REFERENCES "public"."admin_users"("id") ON DELETE cascade ON UPDATE no action;

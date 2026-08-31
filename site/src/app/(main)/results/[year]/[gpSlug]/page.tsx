@@ -17,6 +17,7 @@ import {
   SESSION_ORDER,
   sessionDisplayLabel,
 } from "@/components/racing/meta";
+import { mediaUrl } from "@/lib/media";
 import { ResultsHub } from "@/components/racing/results-hub";
 import { FilterDropdown, ResultsTable } from "@/components/racing/results-table";
 
@@ -149,7 +150,29 @@ export default async function RoundResultsPage({ params, searchParams }: Props) 
       </div>
 
       {selected ? (
-        <ResultsTable rows={rows} sessionType={selected.type} />
+        <>
+          <ResultsTable rows={rows} sessionType={selected.type} />
+          {/* Official signed classification — the authentic letterhead declaration */}
+          {selected.declaration ? (
+            <div className="mt-6 flex flex-wrap items-center gap-4 rounded-md bg-surface-1 px-6 py-5">
+              <div className="min-w-0">
+                <p className="body-s font-bold uppercase text-text-5">Official declaration</p>
+                <p className="body-xs truncate text-text-3">
+                  Signed classification issued by the race organisers —{" "}
+                  {selected.declaration.filename}
+                </p>
+              </div>
+              <a
+                href={mediaUrl(selected.declaration.path) ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-md btn-stroke ml-auto shrink-0"
+              >
+                Download PDF <span aria-hidden>↓</span>
+              </a>
+            </div>
+          ) : null}
+        </>
       ) : (
         /* Empty state: no classifications yet — countdown to lights out */
         <div className="flex flex-col items-start gap-4 rounded-md bg-surface-1 px-6 py-8 md:px-8 md:py-10">

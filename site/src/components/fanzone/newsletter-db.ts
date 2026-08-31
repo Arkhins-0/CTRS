@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db, newsletterSubscribers } from "@ctr/db";
+import { newsletterConfirmEmail, sendEmail } from "@ctr/email";
 
 export type SubscriptionResult = {
   status: "pending" | "confirmed";
@@ -53,4 +54,29 @@ export async function upsertPendingSubscription(
   }
 
   return { status: "pending", token };
+}
+
+/**
+ * Send the double-opt-in confirmation email for a pending subscription.
+ * Returns true when a real email went out; false when the subscription is
+ * already confirmed (`token` null) or no provider is configured (dev "log"
+ * mode — callers may then surface the confirm link on-screen instead).
+ * Never throws: subscribing must survive a mail outage.
+ */
+export async function sendConfirmationEmail(
+  email: string,
+  token: string | null,
+): Promise<boolean> {
+  if (!token) return false;
+  try {
+    const base = (process.env.SITE_URL ?? "").replace(/\/$/, "");
+    const { delivered } = await sendEmail({
+      to: email,
+      ...newsletterConfirmEmail({ confirmUrl: `${base}/newsletter/confirm/${token}` }),
+    });
+    return delivered;
+  } catch (err) {
+    console.error("newsletter confirmation email failed", err);
+    return false;
+  }
 }

@@ -25,6 +25,7 @@ export const subscriberStatusEnum = pgEnum("subscriber_status", [
   "confirmed",
   "unsubscribed",
 ]);
+export const rsvpStatusEnum = pgEnum("rsvp_status", ["going", "maybe", "not_going"]);
 
 /* ── Fan accounts ────────────────────────────────────────────────────────── */
 
@@ -79,6 +80,30 @@ export const savedArticles = pgTable(
   (t) => [primaryKey({ columns: [t.fanId, t.articleId] })],
 );
 
+/* ── Race-weekend RSVPs ──────────────────────────────────────────────────── */
+
+/** One attendance response per fan per round (adapted from OpenLeague's RSVP
+ *  model — the composite PK sidesteps its nullable-member unique-index gotcha
+ *  because fans only ever answer for themselves). */
+export const roundRsvps = pgTable(
+  "round_rsvps",
+  {
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => rounds.id, { onDelete: "cascade" }),
+    fanId: uuid("fan_id")
+      .notNull()
+      .references(() => fans.id, { onDelete: "cascade" }),
+    status: rsvpStatusEnum("status").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.roundId, t.fanId] }),
+    index("round_rsvps_round_idx").on(t.roundId),
+  ],
+);
+
 /* ── Polls & predictions ─────────────────────────────────────────────────── */
 
 export const polls = pgTable("polls", {
@@ -121,6 +146,41 @@ export const pollVotes = pgTable(
   (t) => [primaryKey({ columns: [t.pollId, t.fanId] })], // one vote per fan per poll
 );
 
+/* ── Web push ────────────────────────────────────────────────────────────── */
+
+/** One browser push endpoint (VAPID Web Push). Anonymous visitors may
+ *  subscribe too — fanId is optional and only links the device to an account. */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    endpoint: text("endpoint").notNull().unique(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    fanId: uuid("fan_id").references(() => fans.id, { onDelete: "set null" }),
+    /** set when the device subscribed from the admin dashboard */
+    adminUserId: uuid("admin_user_id").references(() => adminUsers.id, { onDelete: "cascade" }),
+    userAgent: varchar("user_agent", { length: 300 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("push_subscriptions_fan_idx").on(t.fanId)],
+);
+
+/** Admin-authored announcements pushed to every subscribed device; the row is
+ *  the send history (sentAt + delivery counts). */
+export const announcements = pgTable("announcements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: varchar("title", { length: 120 }).notNull(),
+  body: varchar("body", { length: 500 }).notNull(),
+  /** click-through target, absolute or site-relative ("/results/2026/...") */
+  url: varchar("url", { length: 300 }),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  sentCount: integer("sent_count").notNull().default(0),
+  failedCount: integer("failed_count").notNull().default(0),
+  createdBy: uuid("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /* ── Newsletter ──────────────────────────────────────────────────────────── */
 
 export const newsletterSubscribers = pgTable("newsletter_subscribers", {
@@ -140,6 +200,20 @@ export const fansRelations = relations(fans, ({ many }) => ({
   favourites: many(fanFavourites),
   saved: many(savedArticles),
   votes: many(pollVotes),
+  rsvps: many(roundRsvps),
+}));
+
+export const roundRsvpsRelations = relations(roundRsvps, ({ one }) => ({
+  fan: one(fans, { fields: [roundRsvps.fanId], references: [fans.id] }),
+  round: one(rounds, { fields: [roundRsvps.roundId], references: [rounds.id] }),
+}));
+
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  fan: one(fans, { fields: [pushSubscriptions.fanId], references: [fans.id] }),
+}));
+
+export const announcementsRelations = relations(announcements, ({ one }) => ({
+  author: one(adminUsers, { fields: [announcements.createdBy], references: [adminUsers.id] }),
 }));
 
 export const fanSessionsRelations = relations(fanSessions, ({ one }) => ({

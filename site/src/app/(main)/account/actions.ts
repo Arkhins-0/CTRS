@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, fans, newsletterSubscribers } from "@ctr/db";
 import { destroyFanSession, requireFan } from "@/lib/fan-auth";
-import { upsertPendingSubscription } from "@/components/fanzone/newsletter-db";
+import { sendConfirmationEmail, upsertPendingSubscription } from "@/components/fanzone/newsletter-db";
 
 /* ── Profile ─────────────────────────────────────────────────────────────── */
 
@@ -66,7 +66,8 @@ export async function signOut(): Promise<void> {
 
 export async function subscribeNewsletter(): Promise<void> {
   const session = await requireFan();
-  await upsertPendingSubscription(session.fan.email, session.fan.id, "account");
+  const result = await upsertPendingSubscription(session.fan.email, session.fan.id, "account");
+  await sendConfirmationEmail(session.fan.email, result.token);
   revalidatePath("/account");
 }
 

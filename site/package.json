@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ctr/db": "*",
+    "@ctr/email": "*",
     "@ctr/ui": "*",
     "bcryptjs": "^3.0.2",
     "date-fns": "^4.1.0",

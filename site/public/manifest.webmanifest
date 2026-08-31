@@ -1,0 +1,17 @@
+{
+  "name": "CTR Sports",
+  "short_name": "CTR Sports",
+  "description": "The home of the CTR-JK Tyre FMSCI Indian National Car Racing Championship - news, schedule, results and standings.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#15151E",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

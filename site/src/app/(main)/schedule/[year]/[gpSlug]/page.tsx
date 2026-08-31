@@ -12,6 +12,7 @@ import {
   type GpSessionInfo,
 } from "@/components/racing/data";
 import { LocalTime } from "@/components/racing/local-time";
+import { RsvpPanel } from "@/components/racing/rsvp-panel";
 import {
   formatDate,
   formatDateRange,
@@ -129,6 +130,46 @@ export default async function GrandPrixPage({ params }: Props) {
               {circuitLine}
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* ── Attend band: venue line, RSVP, calendar export ───────────────── */}
+      <section className="bg-surface-1">
+        <div className="f1-inner flex flex-col gap-6 py-10 md:flex-row md:items-end md:justify-between lg:py-12">
+          <div className="max-w-xl">
+            <h2 className="display-l font-black uppercase text-text-5">Going to the race?</h2>
+            <p className="body-s mt-2 text-text-3">
+              {circuitLine}
+              {dates ? ` · ${dates}` : ""}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+              {gp.circuit.website ? (
+                <a
+                  href={gp.circuit.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="body-xs font-semibold text-text-5 underline decoration-1 underline-offset-2 hover:decoration-[3px]"
+                >
+                  Circuit website
+                </a>
+              ) : null}
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(circuitLine)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="body-xs font-semibold text-text-5 underline decoration-1 underline-offset-2 hover:decoration-[3px]"
+              >
+                Directions
+              </a>
+              <a
+                href={`/api/schedule.ics?year=${gp.seasonYear}&round=${gp.slug}`}
+                className="body-xs font-semibold text-text-5 underline decoration-1 underline-offset-2 hover:decoration-[3px]"
+              >
+                Add to calendar (.ics)
+              </a>
+            </div>
+          </div>
+          <RsvpPanel roundId={gp.id} />
         </div>
       </section>
 

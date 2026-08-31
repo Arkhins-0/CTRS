@@ -152,6 +152,9 @@ export const rounds = pgTable(
     hasSprint: boolean("has_sprint").notNull().default(false),
     status: roundStatusEnum("status").notNull().default("scheduled"),
     heroMediaId: uuid("hero_media_id").references(() => media.id, { onDelete: "set null" }),
+    /** When the pre-weekend RSVP reminder email went out — claimed with a
+     *  conditional update so the cron is idempotent under any trigger cadence. */
+    reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
   },
   (t) => [
     unique("round_season_number_uq").on(t.championshipSeasonId, t.round),
@@ -174,6 +177,11 @@ export const raceSessions = pgTable(
     startsAt: timestamp("starts_at", { withTimezone: true }),
     endsAt: timestamp("ends_at", { withTimezone: true }),
     status: sessionStatusEnum("status").notNull().default("scheduled"),
+    /** Signed official classification PDF (media.kind "file") — the authentic
+     *  letterhead declaration published alongside the stored results. */
+    declarationMediaId: uuid("declaration_media_id").references(() => media.id, {
+      onDelete: "set null",
+    }),
   },
   (t) => [unique("session_round_cat_type_seq_uq").on(t.roundId, t.categoryId, t.type, t.sequence)],
 );
@@ -412,6 +420,10 @@ export const raceSessionsRelations = relations(raceSessions, ({ one, many }) => 
     references: [raceCategories.id],
   }),
   results: many(sessionResults),
+  declarationDocument: one(media, {
+    fields: [raceSessions.declarationMediaId],
+    references: [media.id],
+  }),
 }));
 
 export const teamsRelations = relations(teams, ({ one, many }) => ({

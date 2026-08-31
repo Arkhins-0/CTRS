@@ -6,7 +6,7 @@
 > - **`championships`** (slug/name/shortName/type/description/logoMediaId/primaryColor/secondaryColor/isActive/sort) — INCRC is the first row (slug "incrc").
 > - **`championshipSeasons`** (championshipId, year, isCurrent, `pointsSystem` jsonb {race:[], sprint:[], fastestLapPoint?}, `standingsTypes` text[] e.g. ["overall","team","rookie","gentlemen"]) — unique (championshipId, year). **`seasons` table is GONE.** Points arrays live here now.
 > - **`rounds`** replaces `grandsPrix` (championshipSeasonId FK instead of seasonYear; uniques (championshipSeasonId, round) and (…, slug)). Everything else same shape.
-> - **`raceSessions`**: `roundId` (was grandPrixId) + **`sequence` int default 1** — Race 1/Race 2 = type "race" sequence 1/2 (the "race2" enum value is retired; never write it). Unique (roundId, categoryId, type, sequence). `label` still wins for display.
+> - **`raceSessions`**: `roundId` (was grandPrixId) + **`sequence` int default 1** — Race 1/Race 2 = type "race" sequence 1/2 (the "race2" enum value is retired; never write it). Unique (roundId, categoryId, type, sequence). `label` still wins for display. Also **`declarationMediaId`** → media.id (set null): the signed official classification PDF (media `kind: "file"`), uploaded via `POST/DELETE /api/session-declaration` in the admin and shown as "Official declaration" on the public session results page (relation `declarationDocument`).
 > - **`raceCategories`** + `championshipId`. **`teamSeasonEntries`/`driverSeasonEntries`**: `championshipSeasonId` (seasonYear GONE); driver entries + **`classification`** varchar (e.g. "rookie"/"gentlemen" — Levitas placeholder grid is tagged).
 > - **`driverStandings`/`constructorStandings`**: `championshipSeasonId` + **`standingsType`** ("overall"/"team" plus sub-types from the season's standingsTypes); unique (championshipSeasonId, categoryId, standingsType, driverId|teamSeasonEntryId).
 > - `polls.grandPrixId` → **`polls.roundId`**.
@@ -36,6 +36,27 @@
 > `page` (#000), `surface` (#0C0E11), `panel` (#1B2027), `line` (#39414D borders), white text +
 > `fg-muted`/`fg-faint`. Do NOT use f1-red in new/restyled code — use `accent`. Example:
 > `bg-accent text-accent-fg hover:bg-accent-dark`. Chamfer utilities unchanged.
+>
+> **Fan RSVPs + email (2026-08):** `roundRsvps` (roundId+fanId PK, status going|maybe|not_going)
+> powers the attend widget on `/schedule/[year]/[gpSlug]` via `/api/rsvp` (page stays cached; the
+> widget is client-side). `packages/email` (`@ctr/email`) is the mail seam — `sendEmail` (Brevo via
+> `BREVO_API_KEY`, or "log" in dev which surfaces confirm links on-screen), templates, and `buildIcs`
+> (season/round calendars at `/api/schedule.ics?year=&round=`). Newsletter double-opt-in emails are
+> real now (`sendConfirmationEmail` in newsletter-db). Round reminders:
+> `/api/cron/round-reminders` (Bearer `CRON_SECRET`, fail-closed) — IDEMPOTENT via a conditional
+> claim on `rounds.reminder_sent_at` (48h look-ahead), so any trigger cadence is safe: the daily
+> Vercel Hobby cron in `site/vercel.json` suffices, and `.github/workflows/cron-jobs.yml` (hourly)
+> is optional for tighter timing. RSVP counts show on the admin Race Weekends list; fans see
+> "My race weekends" on /account. Portions adapted from OpenLeague (Apache-2.0 — see NOTICE).
+>
+> **PWA + push announcements (2026-08):** the site is an installable PWA (`site/public/`
+> manifest.webmanifest + sw.js + icons, registered by `PwaRegister` in the root layout).
+> `pushSubscriptions` stores VAPID Web Push endpoints (fanId optional — anonymous OK) via
+> `/api/push`; fans toggle it on /account ("Notifications"). Admin → Announcements
+> (`NEWS_MANAGE`) creates an `announcements` row and fans out via `admin/src/lib/push.ts`
+> (web-push, per-device sends, prunes 404/410 endpoints, delivery counts in history). Env:
+> NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (falls back to SITE_URL).
+> iOS requires the installed (home-screen) PWA for push.
 >
 > `TAGS.categories` exists for category reads. Current season = 2026; rounds are all `scheduled`
 > (championship starts 11 Sep 2026) so results/standings tables are seeded but empty of points —

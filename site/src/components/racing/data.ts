@@ -279,6 +279,8 @@ export type GpSessionInfo = {
   endsAt: string | null;
   hasResults: boolean;
   category: SessionCategoryRef | null;
+  /** Official signed classification PDF (S3 key + display name), when published. */
+  declaration: { path: string; filename: string } | null;
 };
 
 export type GpDetail = {
@@ -349,6 +351,7 @@ export async function getGpDetail(year: number, gpSlug: string): Promise<GpDetai
             with: {
               category: true,
               results: { columns: { id: true }, limit: 1 },
+              declarationDocument: { columns: { path: true, filename: true } },
             },
           },
         },
@@ -377,6 +380,9 @@ export async function getGpDetail(year: number, gpSlug: string): Promise<GpDetai
                   color: s.category.color,
                   sort: s.category.sort,
                 }
+              : null,
+            declaration: s.declarationDocument
+              ? { path: s.declarationDocument.path, filename: s.declarationDocument.filename }
               : null,
           }),
         )

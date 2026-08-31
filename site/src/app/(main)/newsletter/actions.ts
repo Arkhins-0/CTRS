@@ -2,14 +2,14 @@
 
 import { z } from "zod";
 import { getFanSession } from "@/lib/fan-auth";
-import { upsertPendingSubscription } from "@/components/fanzone/newsletter-db";
+import { sendConfirmationEmail, upsertPendingSubscription } from "@/components/fanzone/newsletter-db";
 
 export type NewsletterState = {
   error: string | null;
   done: boolean;
   email: string | null;
   status: "pending" | "confirmed" | null;
-  /** confirm token surfaced on-screen — no real email sending exists */
+  /** confirm token surfaced on-screen only when no email provider is configured (dev) */
   token: string | null;
 };
 
@@ -43,6 +43,8 @@ export async function subscribeToNewsletter(
   const fanId = session && session.fan.email === email ? session.fan.id : null;
 
   const result = await upsertPendingSubscription(email, fanId, "newsletter");
+  const delivered = await sendConfirmationEmail(email, result.token);
 
-  return { error: null, done: true, email, status: result.status, token: result.token };
+  // only surface the on-screen confirm link when no email actually went out (dev)
+  return { error: null, done: true, email, status: result.status, token: delivered ? null : result.token };
 }

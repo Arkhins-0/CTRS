@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { Bookmark, ChevronRight, Heart, LogOut, Mail, Trophy } from "lucide-react";
-import { db, newsletterSubscribers } from "@ctr/db";
+import { Bookmark, CalendarCheck, ChevronRight, Heart, LogOut, Mail, Trophy } from "lucide-react";
+import { db, newsletterSubscribers, roundRsvps } from "@ctr/db";
 import { CountryFlag } from "@ctr/ui";
+import { formatDateRange } from "@/components/racing/meta";
+import { NotificationsToggle } from "@/components/push/notifications-toggle";
 import { requireFan } from "@/lib/fan-auth";
 import { AccountNav } from "@/components/fanzone/account-nav";
 import { Chip } from "@/components/fanzone/chip";
@@ -40,6 +42,12 @@ const CARDS = [
   },
 ] as const;
 
+const RSVP_LABELS = {
+  going: { label: "Going", tone: "green" },
+  maybe: { label: "Maybe", tone: "amber" },
+  not_going: { label: "Not going", tone: "faint" },
+} as const;
+
 export default async function AccountPage() {
   const { fan } = await requireFan();
 
@@ -48,6 +56,23 @@ export default async function AccountPage() {
     .from(newsletterSubscribers)
     .where(eq(newsletterSubscribers.email, fan.email));
   const subStatus = subscription?.status ?? "none";
+
+  // race weekends this fan responded to, soonest first (undated rounds last)
+  const rsvps = await db.query.roundRsvps.findMany({
+    where: eq(roundRsvps.fanId, fan.id),
+    with: {
+      round: {
+        with: {
+          circuit: { columns: { name: true, locality: true } },
+          championshipSeason: { columns: { year: true } },
+        },
+      },
+    },
+  });
+  rsvps.sort((a, b) =>
+    (a.round.startDate ?? "9999").localeCompare(b.round.startDate ?? "9999"),
+  );
+  const todayKey = new Date().toISOString().slice(0, 10);
 
   return (
     <main className="bg-surface-3 pb-16">
@@ -89,6 +114,51 @@ export default async function AccountPage() {
           ))}
         </div>
 
+        {/* my race weekends */}
+        <h2 className="display-l mt-12 font-black uppercase text-text-5">My race weekends</h2>
+        {rsvps.length ? (
+          <ul className="mt-4 max-w-3xl divide-y divide-surface-3 rounded-md bg-surface-1">
+            {rsvps.map((r) => {
+              const { label, tone } = RSVP_LABELS[r.status];
+              const past = (r.round.endDate ?? r.round.startDate ?? "9999") < todayKey;
+              return (
+                <li
+                  key={r.roundId}
+                  className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4"
+                >
+                  <CalendarCheck size={18} aria-hidden className="shrink-0 text-brand" />
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/schedule/${r.round.championshipSeason.year}/${r.round.slug}`}
+                      className="body-s block truncate font-bold text-text-5 hover:underline"
+                    >
+                      Round {r.round.round} · {r.round.name}
+                    </Link>
+                    <p className="body-xs mt-0.5 truncate text-text-3">
+                      {[r.round.circuit.name, r.round.circuit.locality].filter(Boolean).join(", ")}
+                      {formatDateRange(r.round.startDate, r.round.endDate)
+                        ? ` · ${formatDateRange(r.round.startDate, r.round.endDate)}`
+                        : ""}
+                      {past ? " · past" : ""}
+                    </p>
+                  </div>
+                  <Chip tone={tone}>{label}</Chip>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className="mt-4 max-w-3xl rounded-md bg-surface-1 p-6">
+            <p className="body-s text-text-3">
+              You haven&apos;t RSVP&apos;d to any race weekend yet — pick a round on the{" "}
+              <Link href="/schedule" className="font-bold text-text-5 underline">
+                schedule
+              </Link>{" "}
+              and tell us you&apos;re coming.
+            </p>
+          </div>
+        )}
+
         {/* profile */}
         <h2 className="display-l mt-12 font-black uppercase text-text-5">Profile</h2>
         <div className="mt-4 max-w-xl rounded-md bg-surface-1 p-6">
@@ -96,6 +166,20 @@ export default async function AccountPage() {
             defaultDisplayName={fan.displayName}
             defaultCountryCode={fan.countryCode}
           />
+        </div>
+
+        {/* push notifications */}
+        <h2 className="display-l mt-12 font-black uppercase text-text-5">Notifications</h2>
+        <div className="mt-4 max-w-xl rounded-md bg-surface-1 p-6">
+          <p className="display-m font-medium uppercase text-text-5">Race announcements</p>
+          <p className="body-xs mt-1 text-text-3">
+            Get push notifications on this device for official announcements — schedule changes,
+            results and breaking news. Works on desktop and Android; on iPhone, add the site to
+            your home screen first.
+          </p>
+          <div className="mt-4">
+            <NotificationsToggle />
+          </div>
         </div>
 
         {/* newsletter */}

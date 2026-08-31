@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   compareRows,
   isPractice,
@@ -11,6 +11,7 @@ import {
   type GridRow,
   type SessionKind,
 } from "./types";
+import { buildTemplateCsv, importResultsCsv } from "./csv-import";
 
 const cell = "px-2 py-1.5 align-middle";
 const inputBase =
@@ -65,6 +66,8 @@ export function ResultsGrid({
   sprintPoints: number[];
 }) {
   const [rows, setRows] = useState<GridRow[]>(initialRows);
+  const [importNote, setImportNote] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const raceLike = isRaceLike(sessionType);
   const qualiLike = isQualiLike(sessionType);
@@ -98,6 +101,33 @@ export function ResultsGrid({
   const setFastestLap = (entryId: string, checked: boolean) =>
     setRows((prev) => prev.map((r) => ({ ...r, fastestLap: checked && r.entryId === entryId })));
 
+  const importCsvFile = async (file: File) => {
+    try {
+      const outcome = importResultsCsv(await file.text(), rows, sessionType, scheme);
+      if ("error" in outcome) {
+        setImportNote({ tone: "error", text: outcome.error });
+        return;
+      }
+      setRows(outcome.rows);
+      const parts = [`Imported ${outcome.matched} of ${rows.length} drivers from ${file.name}.`];
+      if (outcome.unmatched.length) parts.push(`No driver match for ${outcome.unmatched.join(", ")}.`);
+      parts.push(...outcome.warnings);
+      parts.push("Review below, then publish or save.");
+      setImportNote({ tone: "ok", text: parts.join(" ") });
+    } catch {
+      setImportNote({ tone: "error", text: "Could not read that file — is it a plain CSV?" });
+    }
+  };
+
+  const downloadTemplate = () => {
+    const blob = new Blob([buildTemplateCsv(rows, sessionType)], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `results-template-${sessionType}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
   return (
     <div>
       {/* everything the surrounding <form> needs, in one field */}
@@ -120,6 +150,32 @@ export function ResultsGrid({
             Re-apply points
           </button>
         ) : null}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="chamfer-tr border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon"
+        >
+          Import CSV
+        </button>
+        <button
+          type="button"
+          onClick={downloadTemplate}
+          className="chamfer-tr border border-warm-grey bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-carbon transition-colors hover:border-carbon"
+        >
+          CSV template
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          aria-label="Import results from a CSV file"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void importCsvFile(file);
+            e.target.value = ""; // allow re-importing the same file
+          }}
+        />
         <span className="text-xs text-f1-grey">
           {raceLike
             ? 'Times: winner "1:26:33.291", gaps "+5.848" or "+2 laps". Points auto-fill from the season scheme — edit for penalties.'
@@ -128,6 +184,18 @@ export function ResultsGrid({
               : 'Best lap like "1:26.204".'}
         </span>
       </div>
+
+      {importNote ? (
+        <div
+          className={`chamfer-tr mb-3 border px-3 py-2 text-xs font-bold ${
+            importNote.tone === "ok"
+              ? "border-emerald-600 bg-emerald-50 text-emerald-800"
+              : "border-f1-red bg-white text-f1-red"
+          }`}
+        >
+          {importNote.text}
+        </div>
+      ) : null}
 
       <div className="chamfer-tr overflow-x-auto border border-warm-grey bg-white shadow-sm">
         <table className="w-full min-w-760px text-sm">

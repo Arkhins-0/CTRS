@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { eq } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { format, parseISO } from "date-fns";
 import { Badge } from "@ctr/ui";
-import { db, rounds, PERMISSIONS } from "@ctr/db";
+import { db, roundRsvps, rounds, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { EmptyState, LinkButton, PageHeader, StatusPill, Table } from "@/components/ui";
 import { loadSeasonTabs, pickSeason, SeasonTabs } from "@/components/racing/season-tabs";
@@ -42,6 +42,26 @@ export default async function RacesPage({
     },
   });
 
+  // fan attendance per round: "12 going · 3 maybe"
+  const rsvpRows = roundRows.length
+    ? await db
+        .select({
+          roundId: roundRsvps.roundId,
+          status: roundRsvps.status,
+          n: sql<number>`count(*)::int`,
+        })
+        .from(roundRsvps)
+        .where(inArray(roundRsvps.roundId, roundRows.map((r) => r.id)))
+        .groupBy(roundRsvps.roundId, roundRsvps.status)
+    : [];
+  const rsvpByRound = new Map<string, { going: number; maybe: number }>();
+  for (const row of rsvpRows) {
+    const entry = rsvpByRound.get(row.roundId) ?? { going: 0, maybe: 0 };
+    if (row.status === "going") entry.going = row.n;
+    if (row.status === "maybe") entry.maybe = row.n;
+    rsvpByRound.set(row.roundId, entry);
+  }
+
   return (
     <>
       <PageHeader
@@ -63,6 +83,7 @@ export default async function RacesPage({
               <th>Format</th>
               <th>Status</th>
               <th className="w-20 text-right">Sessions</th>
+              <th className="w-32 text-right">RSVPs</th>
               <th className="w-16" />
             </>
           }
@@ -87,6 +108,22 @@ export default async function RacesPage({
                 <StatusPill status={r.status} />
               </td>
               <td className="text-right font-bold">{r.sessions.length}</td>
+              <td className="whitespace-nowrap text-right">
+                {(() => {
+                  const c = rsvpByRound.get(r.id);
+                  return c && (c.going || c.maybe) ? (
+                    <>
+                      <span className="font-bold">{c.going}</span>
+                      <span className="text-f1-grey"> going</span>
+                      {c.maybe ? (
+                        <span className="text-f1-grey"> · {c.maybe} maybe</span>
+                      ) : null}
+                    </>
+                  ) : (
+                    <span className="text-f1-grey-light">—</span>
+                  );
+                })()}
+              </td>
               <td className="text-right">
                 <Link
                   href={`/races/${r.id}`}

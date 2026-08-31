@@ -11,8 +11,10 @@ import {
   PERMISSIONS,
 } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
+import { publicUrl } from "@/lib/storage";
 import { EmptyState, LinkButton, PageHeader, StatusPill } from "@/components/ui";
 import { SubmitButton } from "@/components/ui-client";
+import { DeclarationPanel } from "@/components/results/declaration-panel";
 import { ResultsGrid } from "@/components/results/results-grid";
 import { compareRows, isRaceLike, type GridRow, type SessionKind } from "@/components/results/types";
 import { publishResultsAction, saveResultsDraftAction } from "./actions";
@@ -54,6 +56,7 @@ export default async function SessionResultsPage({
       },
       category: { columns: { id: true, name: true, shortName: true, color: true } },
       results: true,
+      declarationDocument: true,
     },
   });
   if (!session) notFound();
@@ -188,6 +191,19 @@ export default async function SessionResultsPage({
           } (Drivers → season entries) before entering results.`}
         />
       )}
+
+      <DeclarationPanel
+        sessionId={session.id}
+        current={
+          session.declarationDocument
+            ? {
+                url: publicUrl(session.declarationDocument.path),
+                filename: session.declarationDocument.filename,
+                sizeBytes: session.declarationDocument.sizeBytes,
+              }
+            : null
+        }
+      />
     </>
   );
 }

@@ -6,7 +6,7 @@ import { hashSync } from "bcryptjs";
 import { z } from "zod";
 import { db, fans } from "@ctr/db";
 import { createFanSession } from "@/lib/fan-auth";
-import { upsertPendingSubscription } from "@/components/fanzone/newsletter-db";
+import { sendConfirmationEmail, upsertPendingSubscription } from "@/components/fanzone/newsletter-db";
 
 export type RegisterState = { error: string | null };
 
@@ -74,7 +74,8 @@ export async function registerFan(
   await createFanSession(fan.id);
 
   if (data.newsletter) {
-    await upsertPendingSubscription(data.email, fan.id, "register");
+    const sub = await upsertPendingSubscription(data.email, fan.id, "register");
+    await sendConfirmationEmail(data.email, sub.token);
   }
 
   redirect("/account");
