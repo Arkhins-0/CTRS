@@ -2,10 +2,13 @@ import { format } from "date-fns";
 import { desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { db, TAGS, videos } from "@ctr/db";
 import { VideoRailBand } from "@/components/home/video-rail";
+import { ConsentGatedEmbed } from "@/components/consent/consent-gated-embed";
 import { formatDuration, videoThumbUrl } from "@/components/news/video-card";
 import { cached } from "@/lib/cache";
+import { CONSENT_COOKIE, parseConsent } from "@/lib/consent";
 import { mediaUrl } from "@/lib/media";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -76,6 +79,8 @@ export default async function VideoPage({ params }: Props) {
   const fileUrl = mediaUrl(video.file?.path);
   const poster = mediaUrl(video.thumbnail?.path);
   const duration = formatDuration(video.durationSeconds);
+  const mediaConsent =
+    parseConsent((await cookies()).get(CONSENT_COOKIE)?.value)?.media === true;
 
   return (
     <main>
@@ -85,13 +90,22 @@ export default async function VideoPage({ params }: Props) {
           <div className="relative mx-auto aspect-video w-full max-w-[1100px] overflow-hidden bg-black md:rounded-md">
             {video.provider === "youtube" ? (
               video.externalId ? (
-                <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${video.externalId}`}
-                  title={video.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="absolute inset-0 h-full w-full border-0"
-                />
+                /* youtube-nocookie still contacts Google on load, so the
+                   embed is withheld entirely until media consent exists. */
+                mediaConsent ? (
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${video.externalId}`}
+                    title={video.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="absolute inset-0 h-full w-full border-0"
+                  />
+                ) : (
+                  <ConsentGatedEmbed
+                    src={`https://www.youtube-nocookie.com/embed/${video.externalId}`}
+                    title={video.title}
+                  />
+                )
               ) : (
                 <UnavailablePlayer />
               )

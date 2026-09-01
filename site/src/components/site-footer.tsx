@@ -4,6 +4,7 @@ import Image from "next/image";
 import { asc, eq } from "drizzle-orm";
 import { db, newsletterSubscribers, sponsors, TAGS } from "@ctr/db";
 import { cached } from "@/lib/cache";
+import { CookieSettingsLink } from "@/components/consent/cookie-settings-link";
 import { getFanSession } from "@/lib/fan-auth";
 import { mediaUrl } from "@/lib/media";
 import { getSetting } from "@/lib/settings";
@@ -229,10 +230,14 @@ export async function SiteFooter() {
               </ul>
             ) : null}
           </div>
-          <p className="body-2xs mt-4 text-right font-semibold text-text-3">
-            © {new Date().getFullYear()} CTR–JK Tyre FMSCI Indian National Car Racing
-            Championship · CTR Unified
-          </p>
+          <div className="body-2xs mt-4 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 font-semibold text-text-3">
+            <CookieSettingsLink className="underline hover:text-text-5" />
+            <span aria-hidden>·</span>
+            <p>
+              © {new Date().getFullYear()} CTR–JK Tyre FMSCI Indian National Car Racing
+              Championship · CTR Unified
+            </p>
+          </div>
         </div>
       </div>
     </footer>

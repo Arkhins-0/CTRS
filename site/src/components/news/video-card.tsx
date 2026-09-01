@@ -12,13 +12,22 @@ export type VideoCardData = {
   thumbnail?: { path: string; alt: string | null } | null;
 };
 
-/** Uploaded thumbnail → YouTube thumbnail → null (caller falls back to gradient). */
+/**
+ * Uploaded thumbnail → YouTube thumbnail → null (caller falls back to
+ * gradient).
+ *
+ * `allowThirdParty` is the media consent answer. The YouTube branch is a
+ * request to img.youtube.com, which hands Google the viewer's IP and
+ * referrer, so without consent it is skipped and the card uses its
+ * gradient. Our own uploaded thumbnails are first-party and unaffected.
+ */
 export function videoThumbUrl(
   v: Pick<VideoCardData, "provider" | "externalId" | "thumbnail">,
+  allowThirdParty = true,
 ): string | null {
   const uploaded = mediaUrl(v.thumbnail?.path);
   if (uploaded) return uploaded;
-  if (v.provider === "youtube" && v.externalId) {
+  if (allowThirdParty && v.provider === "youtube" && v.externalId) {
     return `https://img.youtube.com/vi/${v.externalId}/hqdefault.jpg`;
   }
   return null;
