@@ -22,29 +22,49 @@ function ordinalSuffix(n: number): string {
   return ORDINALS[(v - 20) % 10] ?? ORDINALS[v] ?? ORDINALS[0];
 }
 
-/** Podium chip — position numeral, category disc, driver code and gap. */
+/** Stepped row widths — a literal podium: the winner's row is the widest,
+ *  3rd's the narrowest, and the freed corner holds the circuit map. */
+const PODIUM_WIDTH: Record<number, string> = {
+  1: "w-full",
+  2: "w-[88%]",
+  3: "w-[76%]",
+};
+
+/** Podium chip — position numeral, headshot in a team-colour roundel,
+ *  driver code and gap. */
 function PodiumChip({
   position,
   code,
   gap,
+  headshotPath,
   color,
 }: {
   position: number;
   code: string;
   gap: string;
+  headshotPath: string | null;
   color: string;
 }) {
+  const headshot = mediaUrl(headshotPath);
   return (
-    <li className="flex min-h-12 items-center gap-2 rounded-md bg-surface-3 p-2 md:grow md:basis-0">
+    <li
+      className={`flex min-h-12 items-center gap-2 rounded-md bg-surface-3 p-2 ${
+        PODIUM_WIDTH[position] ?? "w-full"
+      }`}
+    >
       <span className="font-display min-w-5 shrink-0 font-medium uppercase leading-none text-text-4">
         <span className="text-[0.625rem]">{position}</span>
         <span className="text-[0.375rem] align-super">{ordinalSuffix(position)}</span>
       </span>
       <span
         aria-hidden
-        className="h-5 w-5 shrink-0 rounded-full"
+        className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full"
         style={{ backgroundColor: color }}
-      />
+      >
+        {headshot ? (
+          <Image src={headshot} alt="" fill sizes="24px" className="object-cover object-top" />
+        ) : null}
+      </span>
       <span className="flex min-w-0 flex-col gap-1">
         <span className="display-s font-medium uppercase text-text-5">{code}</span>
         <span className="technical-2xs truncate text-text-3">{gap}</span>
@@ -69,7 +89,8 @@ export function RoundCard({
   const highlight = next && !cancelled && !completed;
 
   const podium = completed && gp.podium?.lines.length ? gp.podium : null;
-  const mapUrl = !completed && !highlight ? mediaUrl(gp.circuit.mapPath) : null;
+  // Every variant carries the circuit map — no card is left imageless.
+  const mapUrl = mediaUrl(gp.circuit.mapPath);
   const photoUrl = !completed && !highlight && !mapUrl ? mediaUrl(gp.circuit.photoPath) : null;
 
   const subtitle =
@@ -151,32 +172,60 @@ export function RoundCard({
           </p>
 
           {podium ? (
-            <div className="mt-3">
+            <div className="relative mt-3">
+              {/* the circuit map sits in the staircase corner the stepped
+                  rows free up */}
+              {mapUrl ? (
+                <Image
+                  aria-hidden
+                  src={mapUrl}
+                  alt=""
+                  width={240}
+                  height={100}
+                  className="pointer-events-none absolute bottom-1 right-0 z-0 h-20 w-auto max-w-[36%] object-contain object-right-bottom opacity-90"
+                />
+              ) : null}
               <p className="body-2xs mb-1 font-bold uppercase text-text-3">
                 {podium.categoryShortName ? `${podium.categoryShortName} podium` : "Podium"}
               </p>
-              <ul className="flex flex-col gap-0.5 md:flex-row">
+              <ul className="relative z-10 flex flex-col gap-0.5">
                 {podium.lines.map((line) => (
                   <PodiumChip
                     key={line.position}
                     position={line.position}
                     code={line.code}
                     gap={line.gap}
-                    color={podium.categoryColor}
+                    headshotPath={line.headshotPath}
+                    color={line.teamColor ?? podium.categoryColor}
                   />
                 ))}
               </ul>
             </div>
           ) : highlight ? (
-            <div className="mt-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
-              {dateLine}
-              {gp.firstRaceStartsAt ? (
-                <InlineCountdown
-                  targetIso={gp.firstRaceStartsAt}
-                  className="body-xs font-bold text-white"
-                />
+            <>
+              {mapUrl ? (
+                <span className="my-2 flex flex-1 items-center justify-center">
+                  {/* black line art flattened to a white silhouette so the
+                      map holds on the solid live-blue card */}
+                  <Image
+                    src={mapUrl}
+                    alt={`${gp.circuit.name} track map`}
+                    width={240}
+                    height={100}
+                    className="h-24 w-auto max-w-[70%] object-contain brightness-0 invert opacity-90 md:h-28"
+                  />
+                </span>
               ) : null}
-            </div>
+              <div className="mt-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+                {dateLine}
+                {gp.firstRaceStartsAt ? (
+                  <InlineCountdown
+                    targetIso={gp.firstRaceStartsAt}
+                    className="body-xs font-bold text-white"
+                  />
+                ) : null}
+              </div>
+            </>
           ) : mapUrl ? (
             <div className="mt-3 flex items-end justify-between gap-3">
               {dateLine}

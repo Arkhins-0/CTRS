@@ -139,6 +139,8 @@ export type PodiumLine = {
   code: string;
   driverSlug: string;
   gap: string;
+  headshotPath: string | null;
+  teamColor: string | null;
 };
 
 export type ScheduleGp = {
@@ -186,7 +188,11 @@ export function getScheduleForSeason(year: number): Promise<ScheduleGp[]> {
               results: {
                 where: (r, { and: whereAnd, isNotNull, lte }) =>
                   whereAnd(isNotNull(r.position), lte(r.position, 3)),
-                with: { entry: { with: { driver: true } } },
+                with: {
+                  entry: {
+                    with: { driver: { with: { headshot: true } }, teamSeasonEntry: true },
+                  },
+                },
               },
             },
           },
@@ -224,6 +230,8 @@ export function getScheduleForSeason(year: number): Promise<ScheduleGp[]> {
                     position: r.position ?? 0,
                     code: r.entry.driver.code,
                     driverSlug: r.entry.driver.slug,
+                    headshotPath: r.entry.driver.headshot?.path ?? null,
+                    teamColor: r.entry.teamSeasonEntry.primaryColor,
                     gap: formatGap({
                       position: r.position,
                       status: r.status,
