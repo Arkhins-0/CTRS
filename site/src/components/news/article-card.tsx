@@ -106,7 +106,7 @@ export function OverlayArticleCard({
 }) {
   return (
     <article
-      className={`group relative h-full overflow-clip rounded-md bg-surface-3 ${heightClass}`}
+      className={`group relative overflow-clip rounded-md bg-surface-3 ${heightClass}`}
     >
       <CardImage article={article} sizes={sizes} priority={priority} />
       <span
