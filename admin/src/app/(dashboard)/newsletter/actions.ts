@@ -12,7 +12,7 @@ import { requirePermission } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
 import { sanitizeBodyHtml } from "@/components/editor/sanitize";
 import { publicUrl } from "@/lib/storage";
-import { variantKey } from "@/components/media/variants";
+import { emailVariantKey } from "@/components/media/variants";
 
 const idSchema = z.object({ subscriberId: z.string().uuid() });
 
@@ -187,7 +187,8 @@ export async function sendBroadcastAction(formData: FormData) {
     .map((s) => ({
       name: s.name,
       url: s.url ?? "",
-      logoUrl: publicUrl(variantKey(s.logo.path, "card")),
+      // PNG email variant, not the webp "card" — see variants.ts.
+      logoUrl: publicUrl(emailVariantKey(s.logo.path)),
     }));
 
   const base = (process.env.SITE_URL ?? "").replace(/\/$/, "");

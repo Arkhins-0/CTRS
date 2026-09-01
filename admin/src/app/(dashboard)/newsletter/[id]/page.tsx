@@ -6,7 +6,7 @@ import { db, newsletterIssues, PERMISSIONS, siteSettings, sponsors } from "@ctr/
 import { newsletterBroadcastEmail, type SocialLink, type SponsorLogo } from "@ctr/email";
 import { requirePermission } from "@/lib/auth";
 import { publicUrl } from "@/lib/storage";
-import { variantKey } from "@/components/media/variants";
+import { emailVariantKey } from "@/components/media/variants";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { Card, Field, Input, LinkButton, PageHeader } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
@@ -30,7 +30,7 @@ async function loadSponsorLogos(): Promise<SponsorLogo[]> {
   });
   return rows
     .filter((s): s is typeof s & { logo: { path: string } } => Boolean(s.logo))
-    .map((s) => ({ name: s.name, url: s.url ?? "", logoUrl: publicUrl(variantKey(s.logo.path, "card")) }));
+    .map((s) => ({ name: s.name, url: s.url ?? "", logoUrl: publicUrl(emailVariantKey(s.logo.path)) }));
 }
 
 export default async function NewsletterIssuePage({

@@ -7,10 +7,12 @@ import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { db, media } from "@ctr/db";
 import { putObject } from "@/lib/storage";
-import { variantKey } from "./variants";
+import { emailVariantKey, variantKey } from "./variants";
 
 const VARIANT_WIDTHS = { hero: 1600, card: 800, thumb: 320 } as const;
 const WEBP_QUALITY = 82;
+/** Matches the "card" tier — the size every email template actually uses. */
+const EMAIL_VARIANT_WIDTH = 800;
 
 export type StoredImage = typeof media.$inferSelect;
 
@@ -55,6 +57,16 @@ export async function processAndStoreImage(opts: {
       .toBuffer();
     await putObject(variantKey(key, variant), rendition, "image/webp");
   }
+
+  // Fourth rendition: PNG, for email only — see variants.ts. Same source
+  // buffer, same EXIF-rotate, resized to the "card" tier since that's the
+  // only size any email template asks for.
+  const emailRendition = await sharp(opts.buffer)
+    .rotate()
+    .resize({ width: EMAIL_VARIANT_WIDTH, withoutEnlargement: true })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  await putObject(emailVariantKey(key), emailRendition, "image/png");
 
   const [row] = await db
     .insert(media)

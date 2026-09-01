@@ -145,12 +145,24 @@ export type SocialLink = { platform: string; url: string };
  * no network fetch — the same reasoning that makes hazardStripe() a table
  * instead of a background-image.
  */
+/*
+ * Plain ASCII only — no exceptions. "▶" (U+25B6) looked fine here, but
+ * that codepoint has emoji presentation on several platforms' default mail
+ * fonts (Segoe UI Emoji, Noto Color Emoji), so what actually reached a real
+ * inbox was a glossy orange play-button emoji sitting next to plain flat
+ * letters — visibly wrong, and inconsistent with the other three badges in
+ * the same row. "𝕏" (U+1D54F, mathematical double-struck capital X) is the
+ * same risk class from the other direction: it happened to render, but it
+ * depends on the recipient's font actually covering that specific Unicode
+ * block, which body fonts are not guaranteed to. ASCII letters can't fail
+ * either way — every font has them.
+ */
 const SOCIAL_GLYPH: Record<string, string> = {
   instagram: "IG",
-  twitter: "𝕏",
-  x: "𝕏",
+  twitter: "X",
+  x: "X",
   facebook: "f",
-  youtube: "▶",
+  youtube: "YT",
   tiktok: "TT",
   discord: "DC",
   twitch: "TW",

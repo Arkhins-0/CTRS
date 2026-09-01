@@ -40,13 +40,19 @@ export const dynamic = "force-dynamic";
  * Actions + cron-job.org trigger can only ever produce one issue per week.
  */
 
-/** 800px derived rendition — see admin/src/components/media/variants.ts. The
- *  admin app owns that helper; this is the same 4-line algorithm, kept local
- *  rather than pulled into a shared package for one call site. */
-function cardVariant(path: string): string {
+/**
+ * The email-safe PNG rendition — see admin/src/components/media/variants.ts
+ * (emailVariantKey). NOT the webp "card" variant: Gmail's (and other
+ * providers') image proxy has a real history of mangling webp when it
+ * re-encodes a remote image before display — confirmed on a real send, both
+ * the CTR mark and a sponsor logo came through visibly corrupted. The admin
+ * app owns the canonical helper; this is the same 3-line algorithm, kept
+ * local rather than pulled into a shared package for one call site.
+ */
+function emailImageVariant(path: string): string {
   const dot = path.lastIndexOf(".");
-  const suffixed = dot === -1 ? `${path}_card` : `${path.slice(0, dot)}_card${path.slice(dot)}`;
-  return mediaUrl(suffixed) ?? "";
+  const base = dot === -1 ? path : path.slice(0, dot);
+  return mediaUrl(`${base}_email.png`) ?? "";
 }
 
 export async function GET(req: Request) {
@@ -177,7 +183,7 @@ export async function GET(req: Request) {
   const news: NewsCard[] = latest.map((a) => ({
     title: a.title,
     url: `${base}/latest/article/${a.slug}`,
-    imageUrl: a.hero ? cardVariant(a.hero.path) : null,
+    imageUrl: a.hero ? emailImageVariant(a.hero.path) : null,
     category: a.category?.name ?? null,
     standfirst: (a.standfirst ?? "").slice(0, 140),
   }));
@@ -191,7 +197,7 @@ export async function GET(req: Request) {
   });
   const sponsorLogos = activeSponsors
     .filter((s): s is typeof s & { logo: { path: string } } => Boolean(s.logo))
-    .map((s) => ({ name: s.name, url: s.url ?? base, logoUrl: cardVariant(s.logo.path) }));
+    .map((s) => ({ name: s.name, url: s.url ?? base, logoUrl: emailImageVariant(s.logo.path) }));
 
   const socialLinks = await getSetting<SocialLink[]>("social_links", []);
 
@@ -241,7 +247,7 @@ export async function GET(req: Request) {
                   : ` ${formatDate(currentRound.startDate, "yyyy")}`)
               : "Date TBC",
             teaser: "Race week is here — here's what's on the line before lights out.",
-            imageUrl: currentRound.heroImage ? cardVariant(currentRound.heroImage.path) : null,
+            imageUrl: currentRound.heroImage ? emailImageVariant(currentRound.heroImage.path) : null,
             scheduleUrl: `${base}/schedule/${currentRound.championshipSeason.year}/${currentRound.slug}`,
           }
         : null,
