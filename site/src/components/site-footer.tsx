@@ -2,8 +2,9 @@ import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { asc, eq } from "drizzle-orm";
-import { db, sponsors, TAGS } from "@ctr/db";
+import { db, newsletterSubscribers, sponsors, TAGS } from "@ctr/db";
 import { cached } from "@/lib/cache";
+import { getFanSession } from "@/lib/fan-auth";
 import { mediaUrl } from "@/lib/media";
 import { getSetting } from "@/lib/settings";
 import { CtrLogo } from "./site-header";
@@ -65,6 +66,24 @@ export async function SiteFooter() {
     ),
   ]);
 
+  /*
+   * The promo card used to pitch "Register free" and "Newsletter" to
+   * everyone, including people already signed in and already subscribed.
+   * Both reads are deliberately UNCACHED and per-request: getFanSession is
+   * React-cached for this request only, and the subscription lookup runs
+   * just for signed-in fans — putting either behind unstable_cache would
+   * share one visitor's state with every other visitor.
+   */
+  const session = await getFanSession();
+  const fan = session?.fan ?? null;
+  const [subscription] = fan
+    ? await db
+        .select({ status: newsletterSubscribers.status })
+        .from(newsletterSubscribers)
+        .where(eq(newsletterSubscribers.email, fan.email))
+    : [];
+  const subscribed = subscription?.status === "confirmed" || subscription?.status === "pending";
+
   return (
     <footer>
       {/* Sponsor tier — always dark */}
@@ -115,18 +134,27 @@ export async function SiteFooter() {
               <div className="relative flex h-full flex-col gap-4">
                 <CtrLogo height={40} />
                 <p className="display-xl font-black uppercase text-text-5">
-                  Join the CTR Fan Zone
+                  {fan ? "Your CTR Fan Zone" : "Join the CTR Fan Zone"}
                 </p>
                 <p className="display-s uppercase text-text-3">
-                  Predictions · Polls · Favourites · Newsletter
+                  Predictions · Polls · Favourites{subscribed ? "" : " · Newsletter"}
                 </p>
                 <div className="mt-auto flex flex-wrap items-center gap-3 pt-4">
-                  <Link href="/register" className="btn btn-sm btn-brand">
-                    Register free
-                  </Link>
-                  <Link href="/newsletter" className="btn btn-sm btn-stroke">
-                    Newsletter
-                  </Link>
+                  {fan ? (
+                    <Link href="/account" className="btn btn-sm btn-brand">
+                      My account
+                    </Link>
+                  ) : (
+                    <Link href="/register" className="btn btn-sm btn-brand">
+                      Register free
+                    </Link>
+                  )}
+                  {/* Nothing to pitch to someone already subscribed. */}
+                  {subscribed ? null : (
+                    <Link href="/newsletter" className="btn btn-sm btn-stroke">
+                      Newsletter
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
