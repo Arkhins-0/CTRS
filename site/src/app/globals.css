@@ -15,74 +15,6 @@
      admin theme to #e10600 for the exact F1 hot-red look.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Self-hosted display faces (Titillium Web loads via next/font) ───────── */
-
-@font-face {
-  font-family: "Formula1";
-  src: url("/fonts/formula1/Formula1-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Formula1";
-  src: url("/fonts/formula1/Formula1-Bold.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Formula1";
-  src: url("/fonts/formula1/Formula1-Black.woff2") format("woff2");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Formula1";
-  src: url("/fonts/formula1/Formula1-Italic.woff2") format("woff2");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Formula1Wide";
-  src: url("/fonts/formula1/Formula1-Wide.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-/* Handwritten script accent (driver-hero first names) */
-@font-face {
-  font-family: "Northwell";
-  src: url("/fonts/northwell/northwell.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Northwell Clean";
-  src: url("/fonts/northwell/northwell-clean.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-/* Timing/numeric face ("technical-*" roles) */
-@font-face {
-  font-family: "Formula1Digits";
-  src: url("/fonts/kh-interference-f1/KHInterferenceF1-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Formula1Digits";
-  src: url("/fonts/kh-interference-f1/KHInterferenceF1-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* ── Semantic surface/text variables (light default; .dark-section forces the
       dark chrome palette on any subtree — header nav, sponsor tiers). ─────── */
 
@@ -175,13 +107,16 @@
   --color-static-10: #15151e;
   --color-static-11: #000000;
 
-  /* Typography */
-  --font-display: "Formula1", var(--font-titillium), "Segoe UI", sans-serif;
-  --font-wide: "Formula1Wide", "Formula1", var(--font-titillium), sans-serif;
+  /* Typography — all Open Font License, self-hosted via next/font.
+     Formula1 / Formula1Wide / KH Interference F1 are Formula One Licensing
+     BV's corporate faces and Northwell is a paid retail font; none of them
+     were licensed for this site, so all four are gone. See packages/ui/fonts.ts. */
+  --font-display: var(--font-rajdhani), var(--font-titillium), "Segoe UI", sans-serif;
+  --font-wide: var(--font-rajdhani), var(--font-titillium), sans-serif;
   --font-body: var(--font-titillium), "Titillium Web", "Segoe UI", sans-serif;
-  --font-digits: "Formula1Digits", "Consolas", monospace;
-  --font-numeric: "Formula1Digits", "Consolas", monospace;
-  --font-script: "Northwell", "Northwell Clean", cursive;
+  --font-digits: var(--font-jetbrains), "Consolas", monospace;
+  --font-numeric: var(--font-jetbrains), "Consolas", monospace;
+  --font-script: var(--font-caveat), cursive;
 
   /* Breakpoints (F1 system: 735 / 1069 / 1696) */
   --breakpoint-md: 735px;

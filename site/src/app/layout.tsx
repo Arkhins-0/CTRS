@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { titillium } from "@ctr/ui/fonts";
+import { caveat, jetbrainsMono, rajdhani, titillium } from "@ctr/ui/fonts";
 import { PwaRegister } from "@/components/push/pwa-register";
 import { ThemeStyle } from "@/components/theme-style";
 import "./globals.css";
@@ -33,7 +33,10 @@ export const viewport = { themeColor: "#15151E" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={titillium.variable}>
+    <html
+      lang="en"
+      className={`${titillium.variable} ${rajdhani.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
+    >
       <head>
         <ThemeStyle />
       </head>
