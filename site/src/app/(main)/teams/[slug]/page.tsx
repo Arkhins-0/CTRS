@@ -138,7 +138,9 @@ export default async function TeamPage({ params }: Props) {
                         className="race-line group flex justify-between gap-3 overflow-clip rounded-md border border-surface-4 bg-surface-1 p-4"
                       >
                         <div className="flex min-w-0 flex-col">
-                          <p className="display-l font-normal text-text-4">{d.firstName}</p>
+                          <p className="font-script text-3xl leading-none text-text-4">
+                            {d.firstName}
+                          </p>
                           <p className="display-l font-bold uppercase text-text-5 group-hover:underline">
                             {d.lastName}
                           </p>

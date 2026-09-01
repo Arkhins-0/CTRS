@@ -49,68 +49,33 @@ export default async function DriverPage({ params }: Props) {
 
   return (
     <main>
-      {/* ── Hero: identity left, halftone portrait panel right ───────────── */}
+      {/* ── Hero: one big team-colour halftone card, identity inside it ───── */}
       <section className="bg-surface-1">
-        <div className="f1-inner grid items-end gap-8 py-8 lg:grid-cols-[1fr_auto] lg:py-12">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2.5">
-              {driver.current?.category ? (
-                <CategoryBadge category={driver.current.category} />
-              ) : null}
-              <CountryFlag code={driver.countryCode} className="text-xl leading-none" />
-              <span className="body-xs font-bold uppercase text-text-3">{driver.code}</span>
-            </div>
-            <h1 className="mt-4">
-              <span className="display-2xl lg:display-3xl block font-normal text-text-4">
-                {driver.firstName}
-              </span>
-              <span className="display-4xl lg:display-5xl block font-black uppercase text-text-5">
-                {driver.lastName}
-              </span>
-            </h1>
-            {driver.current ? (
-              <div className="body-s mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold text-text-4">
-                <Link
-                  href={`/teams/${driver.current.teamSlug}`}
-                  className="decoration-2 underline-offset-2 hover:underline"
-                >
-                  {driver.current.teamName}
-                </Link>
-                <span aria-hidden className="text-text-3">
-                  ·
-                </span>
-                <span
-                  className="font-digits text-xl font-bold leading-none"
-                  style={{ color: teamDark }}
-                >
-                  {driver.current.carNumber}
-                </span>
-              </div>
-            ) : null}
-          </div>
-
-          {/* portrait panel — team colour + halftone, giant number behind */}
+        <div className="f1-inner py-6 md:py-8 lg:py-12">
           <div
-            className="relative h-64 w-full overflow-hidden rounded-lg sm:w-[340px] lg:h-80 lg:w-[400px]"
+            className="relative overflow-hidden rounded-lg"
             style={{ backgroundColor: teamColor, color: teamFg }}
           >
             <HalftoneWash fg={teamFg} />
+
+            {/* giant car number behind the portrait */}
             {driver.current ? (
               <span
                 aria-hidden
-                className="pointer-events-none absolute right-4 top-0 select-none font-display text-[10rem] font-black leading-none lg:text-[12rem]"
+                className="pointer-events-none absolute right-4 top-0 select-none font-display text-[9rem] font-black leading-none md:text-[12rem] lg:text-[15rem]"
                 style={{ color: teamDark }}
               >
                 {driver.current.carNumber}
               </span>
             ) : null}
+
             {headshot ? (
-              <span className="absolute bottom-0 left-1/2 aspect-square w-[230px] -translate-x-1/2 lg:w-[290px]">
+              <span className="pointer-events-none absolute bottom-0 right-2 aspect-square w-[210px] md:right-8 md:w-[300px] lg:right-16 lg:w-[360px]">
                 <Image
                   src={headshot}
                   alt={fullName}
                   fill
-                  sizes="290px"
+                  sizes="360px"
                   className="object-contain object-bottom"
                   priority
                 />
@@ -118,16 +83,53 @@ export default async function DriverPage({ params }: Props) {
             ) : (
               <span
                 aria-hidden
-                className="absolute bottom-4 left-1/2 flex h-24 w-24 -translate-x-1/2 items-center justify-center rounded-full font-display text-4xl font-black"
+                className="absolute bottom-6 right-10 flex h-24 w-24 items-center justify-center rounded-full font-display text-4xl font-black"
                 style={{ backgroundColor: teamDark, color: readableOn(teamDark) }}
               >
                 {initials}
               </span>
             )}
+
+            <div className="relative z-10 flex min-h-[300px] flex-col p-5 md:min-h-[360px] md:p-8 lg:min-h-[420px] lg:p-10">
+              <div className="flex flex-wrap items-center gap-2.5">
+                {driver.current?.category ? (
+                  <CategoryBadge category={driver.current.category} />
+                ) : null}
+                <CountryFlag code={driver.countryCode} className="text-xl leading-none" />
+                <span className="body-xs font-bold uppercase opacity-80">{driver.code}</span>
+              </div>
+
+              {/* first name in the handwritten script, surname in black caps —
+                  the pairing this hero has always had */}
+              <p className="font-script mt-4 max-w-[65%] text-5xl leading-none lg:text-7xl">
+                {driver.firstName}
+              </p>
+              <h1 className="display-3xl lg:display-5xl -mt-1 max-w-[65%] font-black uppercase">
+                {driver.lastName}
+              </h1>
+
+              {driver.current ? (
+                <div className="body-s mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold">
+                  <Link
+                    href={`/teams/${driver.current.teamSlug}`}
+                    className="decoration-2 underline-offset-2 hover:underline"
+                  >
+                    {driver.current.teamName}
+                  </Link>
+                  <span aria-hidden className="opacity-60">
+                    ·
+                  </span>
+                  <span
+                    className="font-digits text-xl font-bold leading-none"
+                    style={{ color: teamDark }}
+                  >
+                    {driver.current.carNumber}
+                  </span>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
-        {/* team-colour accent strip closing the hero, F1-style */}
-        <div aria-hidden className="h-1.5" style={{ backgroundColor: teamColor }} />
       </section>
 
       {/* ── Statistics: white stat cards on the light band ────────────────── */}
@@ -263,7 +265,7 @@ export default async function DriverPage({ params }: Props) {
                     {mate.carNumber}
                   </span>
                   <span className="min-w-0">
-                    <span className="display-s block font-normal text-text-3">
+                    <span className="font-script block text-xl leading-none text-text-3">
                       {mate.firstName}
                     </span>
                     <span className="display-m block font-medium uppercase text-text-5 group-hover:underline">
