@@ -2,18 +2,28 @@ import Image from "next/image";
 import Link from "next/link";
 import { CountryFlag } from "@ctr/ui";
 import { Countdown } from "@/components/news/countdown";
-import { teamGradient } from "@/components/racing/colors";
-import type { DriverStandingRow, ScheduleGp } from "@/components/racing/data";
+import { readableOn, shadeHex } from "@/components/racing/colors";
+import type {
+  ConstructorStandingRow,
+  DriverStandingRow,
+  ScheduleGp,
+} from "@/components/racing/data";
 import { formatDateRange } from "@/components/racing/meta";
-import { DriverStandingsTable } from "@/components/racing/standings-tables";
+import {
+  ConstructorStandingsTable,
+  DriverStandingsTable,
+} from "@/components/racing/standings-tables";
 import { mediaUrl, placeholderStyle } from "@/lib/media";
 import { RacingLine } from "./band";
+import { StandingsTabs } from "./standings-tabs";
 
 /* ── Band 4 · "{year} Season" standings bundle ─────────────────────────────
-   Racing-line motif + uppercase season heading, DRIVERS/TEAMS underline tabs
-   (plain links into the standings hub), a 2nd-1st-3rd podium of team-coloured
-   cards, then the top of the drivers' table with a stroke CTA below it. When
-   no standings exist yet the caller swaps in <NextGpPromo/>. ─────────────── */
+   Racing-line motif + uppercase season heading, then DRIVERS/TEAMS tabs that
+   switch IN PLACE (client state, no navigation — the F1.com behaviour): each
+   tab is a 2nd-1st-3rd podium of flat team-coloured cards with a halftone
+   texture, the top of its standings table, and a stroke CTA into the full
+   standings hub. When no standings exist yet the caller swaps in
+   <NextGpPromo/>. ───────────────────────────────────────────────────────── */
 
 const ORDINALS = ["th", "st", "nd", "rd"] as const;
 
@@ -23,42 +33,66 @@ function ordinalSuffix(n: number): string {
   return ORDINALS[v % 10] ?? "th";
 }
 
+/** Card heights shared by the driver and team podium cards (1st is tall). */
+function podiumHeight(tall: boolean): string {
+  return tall
+    ? "min-h-[220px] md:min-h-[300px] lg:min-h-[324px]"
+    : "min-h-[180px] md:min-h-[260px] lg:min-h-[276px]";
+}
+
+/** The halftone dot screen — the card texture that replaced the old
+ *  darkening gradient. Dot ink follows the text colour choice. */
+function HalftoneWash({ fg }: { fg: "#0a0a0a" | "#ffffff" }) {
+  return (
+    <span
+      aria-hidden
+      className="halftone absolute inset-0"
+      style={{ color: fg === "#0a0a0a" ? "rgba(0,0,0,0.16)" : "rgba(255,255,255,0.15)" }}
+    />
+  );
+}
+
+function PodiumPosition({ position }: { position: number }) {
+  return (
+    <p className="flex items-start gap-0.5">
+      <span className="technical-2xl font-bold">{position}</span>
+      <span className="technical-xs mt-[3px] font-bold">{ordinalSuffix(position)}</span>
+    </p>
+  );
+}
+
 function PodiumCard({
   row,
-  headshotPath,
   tall = false,
   orderClass = "",
 }: {
   row: DriverStandingRow;
-  headshotPath: string | null;
   tall?: boolean;
   orderClass?: string;
 }) {
   const color = row.team?.color ?? "#67676d";
-  const headshot = mediaUrl(headshotPath);
+  const fg = readableOn(color);
+  const headshot = mediaUrl(row.driver.headshotPath);
 
   return (
     <article
-      className={`group relative flex overflow-hidden rounded-md text-white ${orderClass} ${
-        tall
-          ? "min-h-[220px] md:min-h-[300px] lg:min-h-[324px]"
-          : "min-h-[180px] md:min-h-[260px] lg:min-h-[276px]"
-      }`}
-      style={teamGradient(color)}
+      className={`group relative flex overflow-hidden rounded-md ${orderClass} ${podiumHeight(tall)}`}
+      style={{ backgroundColor: color, color: fg }}
     >
+      <HalftoneWash fg={fg} />
       <span
         aria-hidden
         className="absolute inset-y-0 left-0 w-1.5"
-        style={{ backgroundColor: color }}
+        style={{ backgroundColor: shadeHex(color, -0.4) }}
       />
 
       {headshot ? (
-        <span className="pointer-events-none absolute bottom-0 right-0 aspect-square w-[110px] lg:w-[160px]">
+        <span className="pointer-events-none absolute bottom-0 right-0 aspect-square w-[150px] md:w-[210px] lg:w-[240px]">
           <Image
             src={headshot}
             alt=""
             fill
-            sizes="160px"
+            sizes="240px"
             className="object-contain object-bottom"
           />
         </span>
@@ -73,12 +107,7 @@ function PodiumCard({
       )}
 
       <div className="relative z-10 flex flex-1 flex-col gap-2 px-4 py-3">
-        <p className="flex items-start gap-0.5">
-          <span className="technical-2xl font-bold">{row.position}</span>
-          <span className="technical-xs mt-[3px] font-bold">
-            {ordinalSuffix(row.position)}
-          </span>
-        </p>
+        <PodiumPosition position={row.position} />
 
         <Link
           href={`/drivers/${row.driver.slug}`}
@@ -89,7 +118,7 @@ function PodiumCard({
         </Link>
 
         {row.team ? (
-          <span className="display-s max-w-[60%] font-normal text-static-3">
+          <span className="display-s max-w-[60%] font-normal opacity-75">
             {row.team.shortName}
           </span>
         ) : null}
@@ -112,26 +141,149 @@ function PodiumCard({
   );
 }
 
+function TeamPodiumCard({
+  row,
+  tall = false,
+  orderClass = "",
+}: {
+  row: ConstructorStandingRow;
+  tall?: boolean;
+  orderClass?: string;
+}) {
+  const color = row.team.color;
+  const fg = readableOn(color);
+  const logo = mediaUrl(row.team.logoPath);
+  const disc = shadeHex(color, -0.35);
+
+  return (
+    <article
+      className={`group relative flex overflow-hidden rounded-md ${orderClass} ${podiumHeight(tall)}`}
+      style={{ backgroundColor: color, color: fg }}
+    >
+      <HalftoneWash fg={fg} />
+      <span
+        aria-hidden
+        className="absolute inset-y-0 left-0 w-1.5"
+        style={{ backgroundColor: disc }}
+      />
+
+      {/* Team roundel — the F1 teams-tab card carries the logo in a darker
+          circle of the team's own colour, top-right. */}
+      <span
+        aria-hidden
+        className="absolute right-4 top-4 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full lg:h-16 lg:w-16"
+        style={{ backgroundColor: disc }}
+      >
+        {logo ? (
+          <span className="relative block h-full w-full">
+            <Image src={logo} alt="" fill sizes="64px" className="object-contain p-2" />
+          </span>
+        ) : (
+          <span className="display-s font-bold" style={{ color: readableOn(disc) }}>
+            {row.team.shortName.slice(0, 3).toUpperCase()}
+          </span>
+        )}
+      </span>
+
+      <div className="relative z-10 flex flex-1 flex-col gap-2 px-4 py-3">
+        <PodiumPosition position={row.position} />
+
+        <Link
+          href={`/teams/${row.team.teamSlug}`}
+          className="max-w-[70%] after:absolute after:inset-0 group-hover:underline"
+        >
+          <span className="display-l font-medium uppercase">{row.team.displayName}</span>
+        </Link>
+
+        {row.wins > 0 ? (
+          <span className="display-s font-normal opacity-75">
+            {row.wins} {row.wins === 1 ? "win" : "wins"}
+          </span>
+        ) : null}
+
+        <span className="flex-1" aria-hidden />
+
+        <p className="flex items-baseline gap-1">
+          <span className="technical-xl font-bold">{row.points}</span>
+          <span className="technical-xs font-bold">PTS</span>
+        </p>
+      </div>
+    </article>
+  );
+}
+
+/** 2nd · 1st · 3rd grid, the leader tallest — shared by both tabs. */
+function PodiumGrid({ cards }: { cards: (React.ReactNode | null)[] }) {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end">{cards}</div>
+  );
+}
+
 export function SeasonStandingsBand({
   year,
   categoryName,
   rows,
-  headshotBySlug,
+  teamRows,
   note,
 }: {
   year: number;
   categoryName: string;
   rows: DriverStandingRow[];
-  headshotBySlug: Record<string, string | null>;
+  teamRows: ConstructorStandingRow[];
   note?: string | null;
 }) {
   if (!rows.length) return null;
 
   const podium = rows.slice(0, 3);
-  const tabs = [
-    { label: "Drivers", href: `/standings/${year}/drivers`, active: true },
-    { label: "Teams", href: `/standings/${year}/constructors`, active: false },
-  ];
+  const teamPodium = teamRows.slice(0, 3);
+
+  const driversPanel = (
+    <>
+      <PodiumGrid
+        cards={[
+          podium[1] ? (
+            <PodiumCard key="p2" row={podium[1]} orderClass="md:order-1 max-md:ml-6" />
+          ) : null,
+          podium[0] ? (
+            <PodiumCard key="p1" row={podium[0]} tall orderClass="md:order-2" />
+          ) : null,
+          podium[2] ? (
+            <PodiumCard key="p3" row={podium[2]} orderClass="md:order-3 max-md:ml-12" />
+          ) : null,
+        ]}
+      />
+      <DriverStandingsTable rows={rows.slice(0, 5)} />
+      <div className="flex justify-center">
+        <Link href={`/standings/${year}/drivers`} className="btn btn-sm btn-stroke">
+          View full standings
+        </Link>
+      </div>
+    </>
+  );
+
+  const teamsPanel = teamRows.length ? (
+    <>
+      <PodiumGrid
+        cards={[
+          teamPodium[1] ? (
+            <TeamPodiumCard key="t2" row={teamPodium[1]} orderClass="md:order-1 max-md:ml-6" />
+          ) : null,
+          teamPodium[0] ? (
+            <TeamPodiumCard key="t1" row={teamPodium[0]} tall orderClass="md:order-2" />
+          ) : null,
+          teamPodium[2] ? (
+            <TeamPodiumCard key="t3" row={teamPodium[2]} orderClass="md:order-3 max-md:ml-12" />
+          ) : null,
+        ]}
+      />
+      <ConstructorStandingsTable rows={teamRows.slice(0, 5)} />
+      <div className="flex justify-center">
+        <Link href={`/standings/${year}/constructors`} className="btn btn-sm btn-stroke">
+          View full standings
+        </Link>
+      </div>
+    </>
+  ) : null;
 
   return (
     <section className="bg-surface-1 text-text-5">
@@ -153,58 +305,7 @@ export function SeasonStandingsBand({
           </p>
         </div>
 
-        <div className="border-b-2 border-surface-4">
-          <nav aria-label="Standings" className="-mb-[2px] flex">
-            {tabs.map((t) => (
-              <Link
-                key={t.href}
-                href={t.href}
-                aria-current={t.active ? "page" : undefined}
-                className={`body-m-compact block max-w-[220px] flex-1 border-b-2 px-4 py-2 text-center uppercase transition-colors duration-500 md:px-6 ${
-                  t.active
-                    ? "border-brand font-bold text-text-5"
-                    : "border-transparent font-semibold text-text-3 hover:border-surface-6 hover:text-text-5"
-                }`}
-              >
-                {t.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
-        {/* Podium — 2nd · 1st · 3rd, the leader tallest */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-end">
-          {podium[1] ? (
-            <PodiumCard
-              row={podium[1]}
-              headshotPath={headshotBySlug[podium[1].driver.slug] ?? null}
-              orderClass="md:order-1 max-md:ml-6"
-            />
-          ) : null}
-          {podium[0] ? (
-            <PodiumCard
-              row={podium[0]}
-              headshotPath={headshotBySlug[podium[0].driver.slug] ?? null}
-              tall
-              orderClass="md:order-2"
-            />
-          ) : null}
-          {podium[2] ? (
-            <PodiumCard
-              row={podium[2]}
-              headshotPath={headshotBySlug[podium[2].driver.slug] ?? null}
-              orderClass="md:order-3 max-md:ml-12"
-            />
-          ) : null}
-        </div>
-
-        <DriverStandingsTable rows={rows.slice(0, 5)} />
-
-        <div className="flex justify-center">
-          <Link href={`/standings/${year}/drivers`} className="btn btn-sm btn-stroke">
-            View full standings
-          </Link>
-        </div>
+        <StandingsTabs drivers={driversPanel} teams={teamsPanel} />
       </div>
     </section>
   );

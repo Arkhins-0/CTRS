@@ -6,8 +6,8 @@ import { NextGpPromo, SeasonStandingsBand } from "@/components/home/season-bundl
 import { VideoRailBand } from "@/components/home/video-rail";
 import {
   getCategories,
+  getConstructorStandingsForSeason,
   getDriverStandingsForSeason,
-  getDriversByCategory,
   getScheduleForSeason,
 } from "@/components/racing/data";
 import { cached } from "@/lib/cache";
@@ -73,32 +73,29 @@ async function getSeasonBundle(year: number) {
   ]);
   const flagship = categories[0] ?? null;
 
-  const standings = flagship
-    ? await getDriverStandingsForSeason(year, flagship.id)
-    : { computedThroughRound: 0, rows: [] };
-
-  // Podium cards want headshots, which the standings rows do not carry.
-  const headshotBySlug: Record<string, string | null> = {};
-  if (standings.rows.length) {
-    const groups = await getDriversByCategory(year);
-    for (const group of groups) {
-      for (const d of group.drivers) headshotBySlug[d.slug] = d.headshotPath;
-    }
-  }
+  const [standings, teamStandings] = flagship
+    ? await Promise.all([
+        getDriverStandingsForSeason(year, flagship.id),
+        getConstructorStandingsForSeason(year, flagship.id),
+      ])
+    : [
+        { computedThroughRound: 0, rows: [] },
+        { computedThroughRound: 0, rows: [] },
+      ];
 
   const nextGp =
     schedule.find((g) => g.status === "live") ??
     schedule.find((g) => g.status === "scheduled") ??
     null;
 
-  return { flagship, standings, headshotBySlug, nextGp };
+  return { flagship, standings, teamStandings, nextGp };
 }
 
 export default async function HomePage() {
   const year = await getCurrentSeasonYear();
   const [editorial, season] = await Promise.all([getHomeEditorial(), getSeasonBundle(year)]);
 
-  const { flagship, standings, headshotBySlug, nextGp } = season;
+  const { flagship, standings, teamStandings, nextGp } = season;
   // "Scored" = anyone has points at all, not computedThroughRound > 0 — a
   // season's opening non-championship round is round 0, which yields real
   // points but a computed-through of 0, and the band should still show.
@@ -124,7 +121,7 @@ export default async function HomePage() {
           year={year}
           categoryName={flagship.name}
           rows={standings.rows}
-          headshotBySlug={headshotBySlug}
+          teamRows={teamStandings.rows}
           note={
             standings.computedThroughRound > 0
               ? `After Round ${standings.computedThroughRound}`
