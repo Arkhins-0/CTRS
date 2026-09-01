@@ -36,7 +36,7 @@ export default async function AnnouncementsPage({
       />
 
       {sp.sent != null ? (
-        <div className="chamfer-tr mb-4 border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-300">
+        <div className="chamfer-tr mb-4 border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-700">
           Announcement sent to {sp.sent} of {sp.total ?? sp.sent} subscribed device
           {sp.total === "1" ? "" : "s"}.
           {sp.skipped && sp.skipped !== "0" ? (

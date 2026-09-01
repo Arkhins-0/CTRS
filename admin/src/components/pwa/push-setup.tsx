@@ -191,7 +191,7 @@ export function PushSetup({ api = "/api/push" }: { api?: string } = {}) {
     return (
       <div className={shell} role="status">
         <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-          <Download size={16} className="text-accent" /> Install to get announcements
+          <Download size={16} className="text-accent-ink" /> Install to get announcements
         </p>
         <p className="mt-2 flex flex-wrap items-center gap-1 text-xs leading-relaxed text-fg-muted">
           On iPhone, notifications only work once the console is on your home screen. Tap
@@ -207,7 +207,7 @@ export function PushSetup({ api = "/api/push" }: { api?: string } = {}) {
     return (
       <div className={shell} role="alert">
         <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-          <AlertTriangle size={16} className="text-accent" /> Notifications are blocked
+          <AlertTriangle size={16} className="text-accent-ink" /> Notifications are blocked
         </p>
         <p className="mt-2 text-xs leading-relaxed text-fg-muted">
           This device previously refused notifications, so we cannot ask again from here. Open your
@@ -225,7 +225,7 @@ export function PushSetup({ api = "/api/push" }: { api?: string } = {}) {
     return (
       <div className={shell}>
         <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-          <BatteryCharging size={16} className="text-accent" /> One more step — stop Android
+          <BatteryCharging size={16} className="text-accent-ink" /> One more step — stop Android
           killing alerts
         </p>
         <p className="mt-2 text-xs leading-relaxed text-fg-muted">
@@ -288,7 +288,7 @@ export function PushSetup({ api = "/api/push" }: { api?: string } = {}) {
   return (
     <div className={shell}>
       <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-        <BellRing size={16} className="text-accent" /> Turn on race-day notifications
+        <BellRing size={16} className="text-accent-ink" /> Turn on race-day notifications
       </p>
       <p className="mt-2 text-xs leading-relaxed text-fg-muted">
         Announcements from race control are delivered as notifications. Enable them on this device
@@ -302,7 +302,7 @@ export function PushSetup({ api = "/api/push" }: { api?: string } = {}) {
       >
         <BellRing size={16} /> {busy ? "Working…" : "Enable notifications"}
       </button>
-      {error ? <p className="mt-2 text-xs font-bold text-red-300">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs font-bold text-red-700">{error}</p> : null}
     </div>
   );
 }

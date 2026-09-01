@@ -47,7 +47,7 @@ export default async function ConfirmEmailPage({
       </p>
 
       {status && MESSAGES[status] ? (
-        <p className="mb-4 border border-f1-red/40 bg-f1-red/10 px-3 py-2 text-xs font-bold text-red-300">
+        <p className="mb-4 border border-f1-red/40 bg-f1-red/10 px-3 py-2 text-xs font-bold text-red-700">
           {MESSAGES[status]}
         </p>
       ) : null}

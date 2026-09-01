@@ -24,7 +24,7 @@ export default async function MemberLoginPage({
       {notice ? (
         <p
           role="status"
-          className="mt-4 border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300"
+          className="mt-4 border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-700"
         >
           {notice}
         </p>

@@ -32,7 +32,7 @@ export default async function MemberAnnouncementsPage() {
               {a.url ? (
                 <a
                   href={a.url}
-                  className="mt-2 inline-block text-xs font-bold uppercase tracking-wide text-accent hover:underline"
+                  className="mt-2 inline-block text-xs font-bold uppercase tracking-wide text-accent-ink hover:underline"
                 >
                   Open link
                 </a>

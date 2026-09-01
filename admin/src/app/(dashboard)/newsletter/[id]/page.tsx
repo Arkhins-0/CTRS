@@ -111,15 +111,15 @@ export default async function NewsletterIssuePage({
           role="status"
           className={`mb-4 border px-3 py-2 text-sm font-bold ${
             banner.tone === "ok"
-              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-              : "border-f1-red/40 bg-f1-red/10 text-red-300"
+              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
+              : "border-f1-red/40 bg-f1-red/10 text-red-700"
           }`}
         >
           {banner.message}
         </p>
       ) : null}
       {sp.sent != null ? (
-        <p role="status" className="mb-4 border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-300">
+        <p role="status" className="mb-4 border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-700">
           Sent to {sp.sent} subscriber{sp.sent === "1" ? "" : "s"}
           {sp.failed && sp.failed !== "0" ? ` — ${sp.failed} could not be delivered.` : "."}
         </p>

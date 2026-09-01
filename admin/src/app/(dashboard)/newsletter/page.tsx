@@ -126,7 +126,7 @@ export default async function NewsletterPage({
                     {i.status === "sent" ? `${i.sentCount}${i.failedCount ? ` (${i.failedCount} failed)` : ""}` : "—"}
                   </td>
                   <td className="text-right">
-                    <Link href={`/newsletter/${i.id}`} className="text-xs font-bold uppercase text-accent hover:underline">
+                    <Link href={`/newsletter/${i.id}`} className="text-xs font-bold uppercase text-accent-ink hover:underline">
                       {i.status === "draft" ? "Edit" : "View"}
                     </Link>
                   </td>
@@ -219,7 +219,7 @@ export default async function NewsletterPage({
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm">
           {page > 1 ? (
-            <Link href={listUrl(status, q, page - 1)} className="font-bold uppercase text-accent hover:underline">
+            <Link href={listUrl(status, q, page - 1)} className="font-bold uppercase text-accent-ink hover:underline">
               ← Previous
             </Link>
           ) : (
@@ -229,7 +229,7 @@ export default async function NewsletterPage({
             Page {page} of {totalPages}
           </span>
           {page < totalPages ? (
-            <Link href={listUrl(status, q, page + 1)} className="font-bold uppercase text-accent hover:underline">
+            <Link href={listUrl(status, q, page + 1)} className="font-bold uppercase text-accent-ink hover:underline">
               Next →
             </Link>
           ) : (

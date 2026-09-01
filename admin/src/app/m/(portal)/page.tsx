@@ -61,7 +61,7 @@ export default async function MemberHome() {
           )}
           <Link
             href="/m/schedule"
-            className="mt-3 inline-block text-xs font-bold uppercase tracking-wide text-accent hover:underline"
+            className="mt-3 inline-block text-xs font-bold uppercase tracking-wide text-accent-ink hover:underline"
           >
             Full schedule
           </Link>
@@ -85,7 +85,7 @@ export default async function MemberHome() {
           )}
           <Link
             href="/m/announcements"
-            className="mt-3 inline-block text-xs font-bold uppercase tracking-wide text-accent hover:underline"
+            className="mt-3 inline-block text-xs font-bold uppercase tracking-wide text-accent-ink hover:underline"
           >
             All announcements
           </Link>

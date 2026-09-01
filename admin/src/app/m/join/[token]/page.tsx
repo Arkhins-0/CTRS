@@ -73,7 +73,7 @@ export default async function JoinPage({
       </p>
 
       {status && MESSAGES[status] ? (
-        <p className="mt-4 border border-f1-red/40 bg-f1-red/10 px-3 py-2 text-xs font-bold text-red-300">
+        <p className="mt-4 border border-f1-red/40 bg-f1-red/10 px-3 py-2 text-xs font-bold text-red-700">
           {MESSAGES[status]}
         </p>
       ) : null}

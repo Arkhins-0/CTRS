@@ -118,7 +118,7 @@ export function NotificationsToggle({ api = "/api/push" }: { api?: string } = {}
     <div className="flex flex-col gap-2">
       {state === "on" ? (
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs font-bold uppercase tracking-wide text-emerald-300">
+          <span className="text-xs font-bold uppercase tracking-wide text-emerald-700">
             Enabled on this device
           </span>
           <button type="button" onClick={() => void disable()} className={btn}>

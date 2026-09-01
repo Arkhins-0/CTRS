@@ -117,7 +117,7 @@ export default async function RosterPage({
       {status === "bulk" ? (
         <p
           role="status"
-          className="mb-5 border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300"
+          className="mb-5 border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-700"
         >
           {sp.invited ?? 0} invitation{sp.invited === "1" ? "" : "s"} sent
           {sp.skipped && sp.skipped !== "0" ? `, ${sp.skipped} already had accounts` : ""}
@@ -128,8 +128,8 @@ export default async function RosterPage({
           role="status"
           className={`mb-5 border px-3 py-2 text-xs font-bold ${
             banner.tone === "ok"
-              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-              : "border-f1-red/40 bg-f1-red/10 text-red-300"
+              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
+              : "border-f1-red/40 bg-f1-red/10 text-red-700"
           }`}
         >
           {banner.message}
@@ -240,9 +240,9 @@ export default async function RosterPage({
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-3 font-numeric text-xs">
-                      <span className="text-emerald-300">{byStatus("going").length} going</span>
-                      <span className="text-amber-300">{byStatus("maybe").length} maybe</span>
-                      <span className="text-red-300">{byStatus("not_going").length} can&apos;t</span>
+                      <span className="text-emerald-700">{byStatus("going").length} going</span>
+                      <span className="text-amber-700">{byStatus("maybe").length} maybe</span>
+                      <span className="text-red-700">{byStatus("not_going").length} can&apos;t</span>
                       <span className="text-fg-faint">{noReply.length} no reply</span>
                     </div>
 

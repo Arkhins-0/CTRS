@@ -43,8 +43,8 @@ function Banner({ status }: { status?: string }) {
       role="status"
       className={`mb-5 border px-3 py-2 text-xs font-bold ${
         entry.tone === "ok"
-          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-          : "border-f1-red/40 bg-f1-red/10 text-red-300"
+          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
+          : "border-f1-red/40 bg-f1-red/10 text-red-700"
       }`}
     >
       {entry.message}

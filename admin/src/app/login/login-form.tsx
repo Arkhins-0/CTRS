@@ -30,7 +30,7 @@ export function LoginForm({ next }: { next: string }) {
         />
       </label>
       {state?.error ? (
-        <p className="border-l-4 border-f1-red bg-f1-red/10 px-3 py-2 text-sm text-red-300">
+        <p className="border-l-4 border-f1-red bg-f1-red/10 px-3 py-2 text-sm text-red-700">
           {state.error}
         </p>
       ) : null}

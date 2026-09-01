@@ -201,16 +201,17 @@ export function EmptyState({ title, hint }: { title: string; hint?: string }) {
 }
 
 export function StatusPill({ status }: { status: string }) {
-  // Tones are picked to clear AA against the dark surfaces they sit on.
+  // Tones are picked to clear AA against the LIGHT surfaces they sit on:
+  // soft tint background, dark ink of the same hue.
   const tones: Record<string, string> = {
-    published: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
-    open: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
-    completed: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
-    confirmed: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
+    published: "bg-emerald-500/10 text-emerald-800 ring-emerald-600/30",
+    open: "bg-emerald-500/10 text-emerald-800 ring-emerald-600/30",
+    completed: "bg-emerald-500/10 text-emerald-800 ring-emerald-600/30",
+    confirmed: "bg-emerald-500/10 text-emerald-800 ring-emerald-600/30",
     draft: "bg-panel text-fg-muted ring-line",
-    scheduled: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
-    pending: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
-    live: "bg-f1-red/20 text-red-300 ring-f1-red/40",
+    scheduled: "bg-amber-500/15 text-amber-800 ring-amber-600/40",
+    pending: "bg-amber-500/15 text-amber-800 ring-amber-600/40",
+    live: "bg-f1-red/10 text-f1-red ring-f1-red/30",
     archived: "bg-panel text-fg-faint ring-line",
     closed: "bg-panel text-fg-faint ring-line",
     cancelled: "bg-panel text-fg-faint ring-line",

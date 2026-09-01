@@ -22,6 +22,11 @@
   --color-fg-muted: #666666;
   --color-fg-faint: #8c8c8c;
 
+  /* Gold as TEXT: the raw accent (#f7d619) is unreadable on white, so any
+     accent-coloured text/icon on the light surfaces uses this dark gold.
+     Solid bg-accent chips keep the bright accent with accent-fg ink. */
+  --color-accent-ink: #7a6400;
+
   /* Same faces as the site: Rajdhani display / Titillium body / JetBrains
      Mono numerals (all OFL, self-hosted via next/font in layout.tsx). */
   --font-display: var(--font-rajdhani), var(--font-titillium), "Segoe UI", sans-serif;

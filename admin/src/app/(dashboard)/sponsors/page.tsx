@@ -53,7 +53,7 @@ function ActiveToggle({ sponsor }: { sponsor: SponsorRow }) {
       <button
         className={`inline-block px-2 py-1 text-[11px] font-bold uppercase tracking-wide ring-1 ring-inset transition-opacity hover:opacity-80 ${
           sponsor.isActive
-            ? "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30"
+            ? "bg-emerald-500/15 text-emerald-700 ring-emerald-500/30"
             : "bg-panel text-fg-muted ring-line"
         }`}
         title={sponsor.isActive ? "Click to deactivate" : "Click to activate"}
@@ -94,7 +94,7 @@ export default async function SponsorsPage() {
                         <div className="min-w-0 flex-1">
                           <Link
                             href={`/sponsors/${s.id}`}
-                            className="block truncate font-bold text-fg hover:text-accent"
+                            className="block truncate font-bold text-fg hover:text-accent-ink"
                           >
                             {s.name}
                           </Link>
@@ -111,7 +111,7 @@ export default async function SponsorsPage() {
                         <ActiveToggle sponsor={s} />
                         <Link
                           href={`/sponsors/${s.id}`}
-                          className="ml-auto text-xs font-bold uppercase tracking-wide text-accent hover:underline"
+                          className="ml-auto text-xs font-bold uppercase tracking-wide text-accent-ink hover:underline"
                         >
                           Edit
                         </Link>
@@ -147,7 +147,7 @@ export default async function SponsorsPage() {
                       <td>
                         <Link
                           href={`/sponsors/${s.id}`}
-                          className="font-bold hover:text-accent"
+                          className="font-bold hover:text-accent-ink"
                         >
                           {s.name}
                         </Link>
@@ -164,7 +164,7 @@ export default async function SponsorsPage() {
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/sponsors/${s.id}`}
-                            className="text-xs font-bold uppercase text-accent hover:underline"
+                            className="text-xs font-bold uppercase text-accent-ink hover:underline"
                           >
                             Edit
                           </Link>

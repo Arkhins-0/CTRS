@@ -14,7 +14,7 @@ export function DocsBody({ sections }: { sections: DocSection[] }) {
             <li key={s.slug}>
               <a
                 href={`#${s.slug}`}
-                className="text-sm font-bold text-accent hover:underline"
+                className="text-sm font-bold text-accent-ink hover:underline"
               >
                 {s.title}
               </a>
