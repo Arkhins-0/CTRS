@@ -112,3 +112,9 @@ export function istDateKey(iso: string): string {
 export function weekdayName(dateKey: string): string {
   return format(parseISO(dateKey), "EEEE");
 }
+
+/** "Round 3" — except round 0, which is the pre-season test weekend, not a
+ *  championship round, and must never print as the nonsensical "Round 0". */
+export function roundLabel(round: number): string {
+  return round > 0 ? `Round ${round}` : "Pre-Season";
+}

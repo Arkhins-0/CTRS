@@ -5,7 +5,7 @@ import { mediaUrl } from "@/lib/media";
 import { StatusChip } from "./category-ui";
 import { InlineCountdown } from "./countdown";
 import type { ScheduleGp } from "./data";
-import { formatDateRange } from "./meta";
+import { formatDateRange, roundLabel } from "./meta";
 
 /* ── Season-calendar card ──────────────────────────────────────────────────
    One card per round: the CIRCUIT PHOTO fills the whole card, darkened by a
@@ -101,7 +101,7 @@ export function RoundCard({
     ? gp.status === "live"
       ? "Live now"
       : "Up next"
-    : `Round ${gp.round}`;
+    : roundLabel(gp.round);
 
   const dateLine = dates ? (
     <span
@@ -177,7 +177,12 @@ export function RoundCard({
           {podium ? (
             <div className="mt-3">
               <p className="body-2xs mb-1 font-bold uppercase text-white/80">
-                {podium.categoryShortName ? `${podium.categoryShortName} podium` : "Podium"}
+                {`${[
+                  podium.categoryShortName,
+                  podium.raceNumber != null ? `Race ${podium.raceNumber}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")} podium`.trim()}
               </p>
               <ul className="flex flex-col gap-0.5">
                 {podium.lines.map((line) => (

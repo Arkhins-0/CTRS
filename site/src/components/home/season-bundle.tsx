@@ -8,7 +8,7 @@ import type {
   DriverStandingRow,
   ScheduleGp,
 } from "@/components/racing/data";
-import { formatDateRange } from "@/components/racing/meta";
+import { formatDateRange, roundLabel } from "@/components/racing/meta";
 import { HalftoneWash } from "@/components/racing/profile-ui";
 import {
   ConstructorStandingsTable,
@@ -312,7 +312,7 @@ export function NextGpPromo({ year, gp }: { year: number; gp: ScheduleGp }) {
       <div className="f1-inner flex flex-col gap-8 py-8 lg:flex-row lg:items-end lg:justify-between lg:py-12">
         <div>
           <span className="body-2xs inline-flex rounded-sm bg-brand px-2 py-1 font-bold uppercase leading-4 text-brand-fg">
-            Up next · Round {gp.round}
+            Up next · {roundLabel(gp.round)}
           </span>
           <h2 className="display-2xl lg:display-3xl mt-3 font-black uppercase">{gp.name}</h2>
           <p className="body-s mt-2 flex flex-wrap items-center gap-2 font-semibold text-text-3">

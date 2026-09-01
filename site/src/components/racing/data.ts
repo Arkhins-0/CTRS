@@ -162,10 +162,13 @@ export type ScheduleGp = {
   };
   /** Earliest Race 1 start of the weekend — the "lights out" countdown target. */
   firstRaceStartsAt: string | null;
-  /** Flagship-category podium — only present once the round is completed. */
+  /** Flagship-category podium — only present once the round is completed.
+   *  From the weekend's FINAL race of that category; raceNumber says which
+   *  race it was when the category ran more than one. */
   podium: {
     categoryShortName: string;
     categoryColor: string;
+    raceNumber: number | null;
     lines: PodiumLine[];
   } | null;
 };
@@ -212,16 +215,23 @@ export function getScheduleForSeason(year: number): Promise<ScheduleGp[]> {
 
         let podium: ScheduleGp["podium"] = null;
         if (gp.status === "completed") {
+          // Flagship category (lowest sort), then the LAST race of its
+          // weekend — a two-race touring-car format ends on Race 2, and
+          // showing Race 1 as "the" podium silently hid the second race.
           const flagship = [...gp.sessions]
             .filter((s) => s.results.length > 0)
             .sort(
               (a, b) =>
-                (a.category?.sort ?? 999) - (b.category?.sort ?? 999) || a.sequence - b.sequence,
+                (a.category?.sort ?? 999) - (b.category?.sort ?? 999) || b.sequence - a.sequence,
             )[0];
           if (flagship) {
+            const racesInCategory = gp.sessions.filter(
+              (s) => s.category?.id === flagship.category?.id && s.results.length > 0,
+            ).length;
             podium = {
               categoryShortName: flagship.category?.shortName ?? "",
               categoryColor: flagship.category?.color ?? "#f7d619",
+              raceNumber: racesInCategory > 1 ? flagship.sequence : null,
               lines: [...flagship.results]
                 .sort((a, b) => (a.position ?? 99) - (b.position ?? 99))
                 .slice(0, 3)

@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { Bookmark, CalendarCheck, ChevronRight, Heart, LogOut, Mail, Trophy } from "lucide-react";
 import { db, newsletterSubscribers, roundRsvps } from "@ctr/db";
 import { CountryFlag } from "@ctr/ui";
-import { formatDateRange } from "@/components/racing/meta";
+import { formatDateRange, roundLabel } from "@/components/racing/meta";
 import { NotificationsToggle } from "@/components/push/notifications-toggle";
 import { requireFan } from "@/lib/fan-auth";
 import { AccountNav } from "@/components/fanzone/account-nav";
@@ -133,7 +133,7 @@ export default async function AccountPage() {
                       href={`/schedule/${r.round.championshipSeason.year}/${r.round.slug}`}
                       className="body-s block truncate font-bold text-text-5 hover:underline"
                     >
-                      Round {r.round.round} · {r.round.name}
+                      {roundLabel(r.round.round)} · {r.round.name}
                     </Link>
                     <p className="body-xs mt-0.5 truncate text-text-3">
                       {[r.round.circuit.name, r.round.circuit.locality].filter(Boolean).join(", ")}

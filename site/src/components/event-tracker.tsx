@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { CountryFlag } from "@ctr/ui";
+import { roundLabel } from "@/components/racing/meta";
 
 export type TrackerData = {
   year: number;
@@ -128,7 +129,7 @@ export function EventTracker({ data }: { data: TrackerData }) {
               </div>
             </div>
             <span className="display-s hidden text-static-5 md:block">
-              Round {data.round}
+              {roundLabel(data.round)}
             </span>
           </div>
         </div>

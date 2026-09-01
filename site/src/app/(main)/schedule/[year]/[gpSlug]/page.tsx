@@ -19,8 +19,7 @@ import {
   istDateKey,
   sessionDisplayLabel,
   weekdayName,
-  type SessionType,
-} from "@/components/racing/meta";
+  type SessionType, roundLabel } from "@/components/racing/meta";
 import { mediaUrl, placeholderStyle } from "@/lib/media";
 
 type Props = { params: Promise<{ year: string; gpSlug: string }> };
@@ -116,7 +115,7 @@ export default async function GrandPrixPage({ params }: Props) {
         <div className="absolute inset-x-0 bottom-0">
           <div className="f1-inner pb-8">
             <p className="body-2xs flex items-center gap-3 font-bold uppercase text-white/80">
-              Round {gp.round}
+              {roundLabel(gp.round)}
               {gp.status === "live" || gp.status === "cancelled" ? (
                 <StatusChip status={gp.status} />
               ) : null}
