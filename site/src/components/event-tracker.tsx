@@ -73,7 +73,19 @@ export function EventTracker({ data }: { data: TrackerData }) {
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setCollapsed(window.scrollY > 60);
+    /*
+     * Hysteresis, not a single threshold. Collapsing this strip removes
+     * ~56px of header height, which shifts the page under the finger; with
+     * one cutoff the scroll position oscillates across it (mobile URL-bar
+     * resizes and rubber-banding add their own jitter) and the bar twitches
+     * open/closed repeatedly around that line. Two far-apart thresholds
+     * mean no single scroll position can flip it both ways: collapse only
+     * once clearly into the page, expand only back at the very top.
+     */
+    const COLLAPSE_AT = 160;
+    const EXPAND_AT = 10;
+    const onScroll = () =>
+      setCollapsed((c) => (c ? window.scrollY > EXPAND_AT : window.scrollY > COLLAPSE_AT));
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
