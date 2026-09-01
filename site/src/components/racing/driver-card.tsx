@@ -60,16 +60,15 @@ export function DriverCard({
       </div>
       <div aria-hidden />
 
-      {/* r2c1 — nationality flag in a white ring */}
+      {/* r2c1 — nationality flag, plain rectangle (the round white ring cropped
+          the flag into a disc and read as an avatar rather than a nationality) */}
       <div className="relative z-10 flex items-end justify-start">
-        {driver.countryCode ? (
-          <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border-2 border-white text-[13px] leading-none">
-            <CountryFlag code={driver.countryCode} />
-          </span>
-        ) : null}
+        <CountryFlag code={driver.countryCode} className="text-xl leading-none" />
       </div>
 
-      {/* r2c2 — headshot bleeding out of the bottom-right cell */}
+      {/* r2c2 — headshot, anchored to the card's bottom edge. -bottom-4 cancels
+          the card's p-4 so the shoulders run into the edge instead of stopping
+          short of it; the card's own overflow-clip does the rounding. */}
       <div className="relative">
         {headshot ? (
           <Image
@@ -78,7 +77,7 @@ export function DriverCard({
             width={220}
             height={224}
             sizes="(max-width: 735px) 50vw, 220px"
-            className="absolute -top-28 right-0 h-56 w-[150px] rounded-md object-cover object-top"
+            className="absolute -bottom-4 right-0 h-56 w-[150px] object-cover object-top"
           />
         ) : (
           <span

@@ -46,6 +46,14 @@ function rnd(seed: string): number {
   return ((h >>> 0) % 100000) / 100000;
 }
 
+/**
+ * A representative lap for the category, in ms. The circuit is ~2.1 km, so
+ * roughly a minute and a half a lap — varied per category so a Formula car
+ * and a touring car do not post identical times.
+ */
+const BASE_LAP_MS = 92_000;
+const RACE_LAPS = 18;
+
 const at = (date: string, h: number, m: number) =>
   new Date(`${date}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00+05:30`);
 const slot = (base: Date, idx: number, mins: number) =>
@@ -142,6 +150,10 @@ async function seed() {
       );
     if (!entries.length) continue;
 
+    // Each category runs its own pace, so a formula car and a touring car
+    // do not post identical lap times at the same circuit.
+    const catLap = BASE_LAP_MS + Math.round(rnd(`${cat.slug}-pace`) * 14_000) - 4_000;
+
     const mk = (
       type: "fp1" | "qualifying" | "race",
       sequence: number,
@@ -180,14 +192,21 @@ async function seed() {
       if (session.type === "fp1") continue;
 
       if (session.type === "qualifying") {
+        // Pole sets the benchmark; the field fans out behind it in tenths.
+        let lap = catLap + Math.round(rnd(`${cat.id}-pole`) * 600);
         await db.insert(sessionResults).values(
-          qualifying.map((e, idx) => ({
-            sessionId: session.id,
-            driverSeasonEntryId: e.id,
-            position: idx + 1,
-            status: "finished" as const,
-            points: 0,
-          })),
+          qualifying.map((e, idx) => {
+            if (idx > 0) lap += 90 + Math.round(rnd(`${cat.id}-q-gap-${e.id}`) * 420);
+            return {
+              sessionId: session.id,
+              driverSeasonEntryId: e.id,
+              position: idx + 1,
+              status: "finished" as const,
+              points: 0,
+              timeMs: lap,
+              q1TimeMs: lap,
+            };
+          }),
         );
         resultCount += qualifying.length;
         continue;
@@ -204,17 +223,28 @@ async function seed() {
       const finishers = order.slice(0, order.length - dnfCount);
       const retired = order.slice(order.length - dnfCount);
 
+      // Winner's total race time; everyone else is stored as a gap to it,
+      // which is what the classification table reads (leader → time,
+      // the rest → +gap).
+      const winnerMs = RACE_LAPS * catLap + Math.round(rnd(`${seed}-win`) * 4000);
+      let gap = 0;
+
       await db.insert(sessionResults).values([
-        ...finishers.map((e, idx) => ({
-          sessionId: session.id,
-          driverSeasonEntryId: e.id,
-          position: idx + 1,
-          gridPosition: gridPos.get(e.id) ?? null,
-          status: "finished" as const,
-          laps: 18,
-          points: pointsForPosition(scheme, idx + 1),
-          fastestLap: idx === (session.sequence === 1 ? 0 : 1),
-        })),
+        ...finishers.map((e, idx) => {
+          if (idx > 0) gap += 600 + Math.round(rnd(`${seed}-gap-${e.id}`) * 5200);
+          return {
+            sessionId: session.id,
+            driverSeasonEntryId: e.id,
+            position: idx + 1,
+            gridPosition: gridPos.get(e.id) ?? null,
+            status: "finished" as const,
+            laps: RACE_LAPS,
+            points: pointsForPosition(scheme, idx + 1),
+            fastestLap: idx === (session.sequence === 1 ? 0 : 1),
+            timeMs: winnerMs + gap,
+            gapMs: idx === 0 ? null : gap,
+          };
+        }),
         ...retired.map((e) => ({
           sessionId: session.id,
           driverSeasonEntryId: e.id,
@@ -224,6 +254,7 @@ async function seed() {
           laps: 6 + Math.floor(rnd(`${seed}-dnf-${e.id}`) * 8),
           points: 0,
           fastestLap: false,
+          lapsBehind: RACE_LAPS - (6 + Math.floor(rnd(`${seed}-dnf-${e.id}`) * 8)),
         })),
       ]);
       resultCount += order.length;

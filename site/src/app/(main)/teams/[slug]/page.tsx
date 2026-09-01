@@ -165,11 +165,7 @@ export default async function TeamPage({ params }: Props) {
                         </div>
                         <div aria-hidden />
                         <div className="relative z-10 flex items-end justify-start">
-                          {d.countryCode ? (
-                            <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border-2 border-white text-[13px] leading-none">
-                              <CountryFlag code={d.countryCode} />
-                            </span>
-                          ) : null}
+                          <CountryFlag code={d.countryCode} className="text-xl leading-none" />
                         </div>
                         <div className="relative">
                           {shot ? (
@@ -179,7 +175,7 @@ export default async function TeamPage({ params }: Props) {
                               width={220}
                               height={224}
                               sizes="(max-width: 735px) 50vw, 220px"
-                              className="absolute -top-28 right-0 h-56 w-[150px] rounded-md object-cover object-top"
+                              className="absolute -bottom-4 right-0 h-56 w-[150px] object-cover object-top"
                             />
                           ) : (
                             <span
