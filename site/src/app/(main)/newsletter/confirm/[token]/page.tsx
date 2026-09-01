@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Confirm subscription",
-  description: "Confirm your CTR Sports newsletter subscription.",
+  description: "Confirm your CTR newsletter subscription.",
 };
 
 export default async function ConfirmSubscriptionPage({

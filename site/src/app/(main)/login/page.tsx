@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in to the CTR Sports fan zone.",
+  description: "Sign in to the CTR fan zone.",
 };
 
 const NOTICES: Record<string, string> = {

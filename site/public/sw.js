@@ -1,4 +1,4 @@
-/* CTR Sports service worker — Web Push display + click-through. */
+/* CTR service worker — Web Push display + click-through. */
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -9,7 +9,7 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let data = { title: "CTR Sports", body: "", url: "/" };
+  let data = { title: "CTR", body: "", url: "/" };
   try {
     data = { ...data, ...event.data.json() };
   } catch {

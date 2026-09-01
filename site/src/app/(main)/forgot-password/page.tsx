@@ -7,7 +7,7 @@ import { requestFanPasswordResetAction } from "./actions";
 
 export const metadata: Metadata = {
   title: "Forgot password",
-  description: "Reset the password on your CTR Sports fan zone account.",
+  description: "Reset the password on your CTR fan zone account.",
 };
 
 export default async function ForgotPasswordPage({
@@ -21,7 +21,7 @@ export default async function ForgotPasswordPage({
     return (
       <AuthCard title="Check your inbox">
         <p className="body-s text-text-3">
-          If that address has a CTR Sports account, a reset link is on its way. It expires in an
+          If that address has a CTR account, a reset link is on its way. It expires in an
           hour and can only be used once.
         </p>
         <p className="body-s mt-3 text-text-3">

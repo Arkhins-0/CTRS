@@ -45,7 +45,7 @@ export function CtrLogo({
   return (
     <Image
       src="/ctr-logo.webp"
-      alt="CTR Sports"
+      alt="CTR–JK Tyre FMSCI Indian National Car Racing Championship"
       width={Math.round((height * LOGO_W) / LOGO_H)}
       height={height}
       priority={priority}
@@ -177,7 +177,7 @@ export async function SiteHeader() {
             }}
           />
           <div className="f1-inner relative flex min-h-[54px] items-center justify-between gap-8 md:min-h-[58px] lg:min-h-[64px]">
-            <Link href="/" aria-label="CTR Sports home" className="shrink-0">
+            <Link href="/" aria-label="CTR–JK Tyre FMSCI Indian National Car Racing Championship home" className="shrink-0">
               <CtrLogo height={36} priority />
             </Link>
             <HeaderNav links={links} secondary={SECONDARY_LINKS} fanName={fanName} />

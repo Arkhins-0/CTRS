@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!archive) return { title: "Tag not found" };
   return {
     title: `${archive.tag.name} — News`,
-    description: `Every CTR Sports story tagged ${archive.tag.name}.`,
+    description: `Every CTR story tagged ${archive.tag.name}.`,
   };
 }
 

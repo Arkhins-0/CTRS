@@ -111,7 +111,7 @@ export default async function ArticlePage({ params }: Props) {
 
   const { article, related } = bundle;
   const heroImg = mediaUrl(article.hero?.path);
-  const byline = article.authorNameOverride ?? article.author?.displayName ?? "CTR Sports";
+  const byline = article.authorNameOverride ?? article.author?.displayName ?? "CTR";
   const tagList = article.articleTags.map((t) => t.tag);
 
   return (

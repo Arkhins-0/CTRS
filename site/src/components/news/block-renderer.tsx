@@ -55,7 +55,7 @@ function HeroBlock({ data, pageTitle }: { data: HeroData; pageTitle: string }) {
     <section className="dark-section bg-surface-3">
       <div className="f1-inner py-12 lg:py-16">
         <p className="display-s font-normal uppercase text-brand">
-          {data.kicker ?? "CTR Sports"}
+          {data.kicker ?? "CTR"}
         </p>
         <h1 className="display-2xl lg:display-3xl mt-3 max-w-3xl font-black uppercase text-text-5">
           {data.heading ?? pageTitle}

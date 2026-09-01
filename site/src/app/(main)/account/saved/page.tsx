@@ -74,7 +74,7 @@ export default async function SavedArticlesPage() {
                           style={placeholderStyle(article.title)}
                         >
                           <span className="display-s font-medium uppercase text-white/70">
-                            CTR Sports
+                            CTR
                           </span>
                         </div>
                       )}

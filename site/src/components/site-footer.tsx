@@ -202,7 +202,8 @@ export async function SiteFooter() {
             ) : null}
           </div>
           <p className="body-2xs mt-4 text-right font-semibold text-text-3">
-            © {new Date().getFullYear()} CTR Sports · CTR Unified
+            © {new Date().getFullYear()} CTR–JK Tyre FMSCI Indian National Car Racing
+            Championship · CTR Unified
           </p>
         </div>
       </div>

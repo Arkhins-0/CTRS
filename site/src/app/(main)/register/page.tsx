@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Create your account",
-  description: "Join the CTR Sports fan zone — save stories, pick favourites and vote in polls.",
+  description: "Join the CTR fan zone — save stories, pick favourites and vote in polls.",
 };
 
 export default async function RegisterPage() {

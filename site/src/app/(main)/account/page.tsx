@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "My account",
-  description: "Your CTR Sports fan zone dashboard.",
+  description: "Your CTR fan zone dashboard.",
 };
 
 const CARDS = [

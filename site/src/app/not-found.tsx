@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-surface-3 px-6 py-16 text-center">
-      <Link href="/" aria-label="CTR Sports home" className="flex items-center gap-1.5">
+      <Link href="/" aria-label="CTR–JK Tyre FMSCI Indian National Car Racing Championship home" className="flex items-center gap-1.5">
         <span className="rounded-sm bg-brand px-1.5 py-0.5 font-display text-base font-black italic leading-5 text-brand-fg">
           CTR
         </span>

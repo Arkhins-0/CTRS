@@ -200,7 +200,7 @@ export async function GET(req: Request) {
   let sent = 0;
   let failed = 0;
   let representativeHtml = "";
-  let representativeSubject = "The Pit Wall — this week at CTR Sports";
+  let representativeSubject = "The Pit Wall — this week at CTR";
 
   if (!isEmpty) {
     // Confirmed subscribers, backfilling any missing unsubscribe token first

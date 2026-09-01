@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Unsubscribe",
-  description: "Manage your CTR Sports newsletter subscription.",
+  description: "Manage your CTR newsletter subscription.",
 };
 
 export default async function UnsubscribePage({
