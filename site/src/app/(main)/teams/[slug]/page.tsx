@@ -84,7 +84,7 @@ export default async function TeamPage({ params }: Props) {
             className="relative flex h-56 w-full items-center justify-center overflow-hidden rounded-lg sm:w-[340px] lg:h-72 lg:w-[400px]"
             style={{ backgroundColor: color, color: fg }}
           >
-            <HalftoneWash fg={fg} />
+            <HalftoneWash on={color} />
             {logo ? (
               <span className="relative h-36 w-36 lg:h-44 lg:w-44">
                 <Image src={logo} alt={name} fill sizes="176px" className="object-contain" priority />

@@ -95,7 +95,7 @@ export function DriverIdentityCard({
       className={`group relative z-0 flex overflow-hidden rounded-lg ${s.card} ${className}`}
       style={{ backgroundColor: color, color: fg }}
     >
-      <HalftoneWash fg={fg} />
+      <HalftoneWash on={color} />
 
       {/* car number, big and tinted — sits behind the portrait */}
       {carNumber != null ? (

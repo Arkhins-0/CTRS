@@ -1,18 +1,22 @@
+import { readableOn, whiteScreenFails } from "./colors";
+
 /* ── Shared pieces for the driver/team profile pages (F1.com-style) ────────
    White stat cards on a light band, and the halftone team-colour wash the
    homepage podium cards introduced — kept in one place so the profile pages
    and the season band never drift apart visually. ─────────────────────────── */
 
-/** The halftone dot screen over a flat team colour. Ink follows the text
- *  colour that readableOn() picked for that colour. */
-export function HalftoneWash({ fg }: { fg: "#0a0a0a" | "#ffffff" }) {
-  return (
-    <span
-      aria-hidden
-      className="halftone absolute inset-0"
-      style={{ color: fg === "#0a0a0a" ? "rgba(0,0,0,0.16)" : "rgba(255,255,255,0.15)" }}
-    />
-  );
+/**
+ * The halftone dot screen over a flat team colour. Takes the BACKGROUND it
+ * sits on: the ink normally follows the same light/dark split as the text,
+ * except on the colours where a white screen cannot register at all — see
+ * whiteScreenFails() for why a pure red is the case that breaks the rule.
+ */
+export function HalftoneWash({ on }: { on: string }) {
+  const ink =
+    readableOn(on) === "#0a0a0a" || whiteScreenFails(on)
+      ? "rgba(0,0,0,0.16)"
+      : "rgba(255,255,255,0.15)";
+  return <span aria-hidden className="halftone absolute inset-0" style={{ color: ink }} />;
 }
 
 /** White bordered stat card: small uppercase label over a big numeral —

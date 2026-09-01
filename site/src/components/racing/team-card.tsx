@@ -56,7 +56,7 @@ export function TeamCard({
       className={`group relative z-0 flex min-h-[256px] flex-col overflow-hidden rounded-lg p-4 lg:p-6 ${className}`}
       style={{ backgroundColor: team.color, color: fg }}
     >
-      <HalftoneWash fg={fg} />
+      <HalftoneWash on={team.color} />
 
       {/* car render — cutout PNG/WebP with a transparent background, sitting
           directly on the team colour and running off the bottom edge */}

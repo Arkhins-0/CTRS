@@ -93,7 +93,7 @@ function TeamPodiumCard({
       className={`group relative flex overflow-hidden rounded-md ${orderClass} ${podiumHeight(tall)}`}
       style={{ backgroundColor: color, color: fg }}
     >
-      <HalftoneWash fg={fg} />
+      <HalftoneWash on={color} />
       <span
         aria-hidden
         className="absolute inset-y-0 left-0 w-1.5"

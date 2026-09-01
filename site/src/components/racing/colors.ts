@@ -36,3 +36,31 @@ export function teamGradient(color: string): CSSProperties {
     background: `linear-gradient(145deg, ${shadeHex(color, -0.15)} 0%, ${shadeHex(color, -0.55)} 58%, #0c0e11 100%)`,
   };
 }
+
+/**
+ * True when a WHITE dot screen will not register on this colour.
+ *
+ * The screen normally takes white ink on a dark ground and black on a light
+ * one, which is right almost everywhere. It fails on a colour that is both
+ * very dark and almost fully saturated — a pure red like #E10600, whose red
+ * channel is already at 88% — because there a white overlay has almost no
+ * room to lift brightness and lands in the chroma channels instead. The dot
+ * comes out a slightly pinker red of much the same lightness, and the eye
+ * resolves chroma detail far more poorly than lightness detail at the size
+ * of a single dot, so the texture disappears.
+ *
+ * (CIE76 hides this — it rates that red dot as a bigger difference than the
+ * blue one that is plainly visible. CIEDE2000, which down-weights chroma
+ * differences at high chroma, scores it 5.0 against blue's 7.8 and matches
+ * what the eye reports. Black ink at the same opacity scores 7.5.)
+ *
+ * Kept deliberately narrow: only near-black, near-pure hues qualify.
+ */
+export function whiteScreenFails(hex: string): boolean {
+  const { r, g, b } = hexToRgb(hex);
+  const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const saturation = max === 0 ? 0 : (max - min) / max;
+  return luma < 80 && saturation > 0.9;
+}

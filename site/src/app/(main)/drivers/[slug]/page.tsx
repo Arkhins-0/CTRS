@@ -56,7 +56,7 @@ export default async function DriverPage({ params }: Props) {
             className="relative overflow-hidden rounded-lg"
             style={{ backgroundColor: teamColor, color: teamFg }}
           >
-            <HalftoneWash fg={teamFg} />
+            <HalftoneWash on={teamColor} />
 
             {/* giant car number behind the portrait */}
             {driver.current ? (
