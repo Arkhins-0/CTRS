@@ -9,6 +9,7 @@ import type {
   ScheduleGp,
 } from "@/components/racing/data";
 import { formatDateRange } from "@/components/racing/meta";
+import { HalftoneWash } from "@/components/racing/profile-ui";
 import {
   ConstructorStandingsTable,
   DriverStandingsTable,
@@ -38,18 +39,6 @@ function podiumHeight(tall: boolean): string {
   return tall
     ? "min-h-[220px] md:min-h-[300px] lg:min-h-[324px]"
     : "min-h-[180px] md:min-h-[260px] lg:min-h-[276px]";
-}
-
-/** The halftone dot screen — the card texture that replaced the old
- *  darkening gradient. Dot ink follows the text colour choice. */
-function HalftoneWash({ fg }: { fg: "#0a0a0a" | "#ffffff" }) {
-  return (
-    <span
-      aria-hidden
-      className="halftone absolute inset-0"
-      style={{ color: fg === "#0a0a0a" ? "rgba(0,0,0,0.16)" : "rgba(255,255,255,0.15)" }}
-    />
-  );
 }
 
 function PodiumPosition({ position }: { position: number }) {

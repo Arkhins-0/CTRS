@@ -1,14 +1,19 @@
-import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CountryFlag } from "@ctr/ui";
+import { DriverRoundel } from "@/components/racing/category-ui";
 import { readableOn, shadeHex } from "@/components/racing/colors";
 import { getTeamDetail } from "@/components/racing/data";
+import { FactCard, HalftoneWash, StatCard } from "@/components/racing/profile-ui";
 import { RacingLine } from "@/components/racing/racing-line";
 import { mediaUrl } from "@/lib/media";
 import { getCurrentSeasonYear } from "@/lib/settings";
+
+/* ── Team profile — F1.com-style: white ground, giant black team name with
+   driver chips, the logo on a compact team-colour halftone panel, white
+   stat/driver cards instead of full-bleed team-gradient bands. ───────────── */
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -23,16 +28,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-/** Profile info cell (label over value) used in the 2→4 column data grid. */
-function Fact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border-t border-black/10 pt-3">
-      <p className="body-xs font-semibold uppercase text-text-3">{label}</p>
-      <p className="display-l mt-1 font-medium text-text-5">{value}</p>
-    </div>
-  );
-}
-
 export default async function TeamPage({ params }: Props) {
   const { slug } = await params;
   const currentYear = await getCurrentSeasonYear();
@@ -40,68 +35,76 @@ export default async function TeamPage({ params }: Props) {
   if (!team) notFound();
 
   const name = team.shortName ?? team.name;
-  const teamDark = shadeHex(team.color, -0.45);
-  const fg = readableOn(team.color);
+  const color = team.color;
+  const fg = readableOn(color);
+  const teamDark = shadeHex(color, -0.35);
+  const logo = mediaUrl(team.logoPath);
   const allDrivers = team.groups.flatMap((g) => g.drivers);
 
   return (
     <main>
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section
-        className="relative overflow-clip"
-        style={{ "--team": team.color, backgroundColor: team.color } as CSSProperties}
-      >
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-1/2"
-          style={{ background: `linear-gradient(0deg, ${teamDark}, transparent)` }}
-        />
-        <div style={{ color: fg, opacity: 0.7 }}>
-          <RacingLine />
-        </div>
-        <div
-          className="f1-inner relative z-10 flex flex-col items-center gap-4 py-10 text-center lg:py-14"
-          style={{ color: fg }}
-        >
-          <span
-            className="flex h-16 w-16 items-center justify-center rounded-full"
-            style={{ backgroundColor: teamDark }}
+      {/* ── Hero: identity left, halftone logo panel right ────────────────── */}
+      <section className="bg-surface-1">
+        <div className="f1-inner grid items-center gap-8 py-8 lg:grid-cols-[1fr_auto] lg:py-12">
+          <div className="min-w-0">
+            <p className="body-xs flex items-center gap-2 font-semibold uppercase text-text-3">
+              <CountryFlag code={team.countryCode ?? "IN"} className="text-base leading-none" />
+              {team.base ?? "India"}
+            </p>
+            <h1 className="display-4xl lg:display-5xl mt-3 font-black uppercase text-text-5">
+              {name}
+            </h1>
+            {team.fullName && team.fullName !== name ? (
+              <p className="body-s mt-2 font-semibold text-text-3">{team.fullName}</p>
+            ) : null}
+
+            {/* driver chips — headshot roundel + name, straight into the
+                driver pages (the F1 team-page line-up strip) */}
+            {allDrivers.length ? (
+              <div className="mt-6 flex flex-wrap gap-2">
+                {allDrivers.map((d) => (
+                  <Link
+                    key={d.slug}
+                    href={`/drivers/${d.slug}`}
+                    className="flex items-center gap-2 rounded-full border border-surface-4 bg-surface-1 py-1 pl-1 pr-3 transition-colors hover:bg-black/5"
+                  >
+                    <DriverRoundel headshotPath={d.headshotPath} color={color} />
+                    <span className="body-xs font-bold text-text-5">
+                      {d.firstName} {d.lastName}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          {/* logo panel — team colour + halftone */}
+          <div
+            className="relative flex h-56 w-full items-center justify-center overflow-hidden rounded-lg sm:w-[340px] lg:h-72 lg:w-[400px]"
+            style={{ backgroundColor: color, color: fg }}
           >
-            <span className="font-display text-xl font-medium text-white">
-              {name.slice(0, 3).toUpperCase()}
-            </span>
-          </span>
-          <h1 className="display-3xl lg:display-4xl font-black uppercase">{name}</h1>
-          {team.fullName ? (
-            <p className="body-s font-semibold opacity-80">{team.fullName}</p>
-          ) : null}
-          {allDrivers.length ? (
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-              {allDrivers.map((d, i) => (
-                <span key={d.slug} className="flex items-center gap-4">
-                  {i > 0 ? (
-                    <span aria-hidden className="h-4 w-px bg-current opacity-30" />
-                  ) : null}
-                  <span className="display-m font-medium uppercase">
-                    {d.firstName} {d.lastName}
-                  </span>
-                </span>
-              ))}
-            </div>
-          ) : null}
-          <p className="body-xs mt-1 flex items-center gap-2 font-semibold opacity-80">
-            <CountryFlag code={team.countryCode ?? "IN"} />
-            {team.base ?? "India"}
-          </p>
+            <HalftoneWash fg={fg} />
+            {logo ? (
+              <span className="relative h-36 w-36 lg:h-44 lg:w-44">
+                <Image src={logo} alt={name} fill sizes="176px" className="object-contain" priority />
+              </span>
+            ) : (
+              <span
+                className="flex h-24 w-24 items-center justify-center rounded-full font-display text-3xl font-black"
+                style={{ backgroundColor: teamDark, color: readableOn(teamDark) }}
+              >
+                {name.slice(0, 3).toUpperCase()}
+              </span>
+            )}
+          </div>
         </div>
-        <div style={{ color: fg, opacity: 0.7 }}>
-          <RacingLine />
-        </div>
+        {/* team-colour accent strip closing the hero, F1-style */}
+        <div aria-hidden className="h-1.5" style={{ backgroundColor: color }} />
       </section>
 
-      {/* ── Drivers (dark band) ──────────────────────────────────────────── */}
+      {/* ── Line-up: light band, white driver cards per category ──────────── */}
       {team.groups.length ? (
-        <section className="dark-section bg-surface-3">
+        <section className="bg-surface-2">
           <div className="f1-inner flex flex-col gap-10 py-12 lg:py-16">
             <h2 className="display-xl lg:display-2xl font-black uppercase text-text-5">
               {team.seasonYear} Line-up
@@ -118,7 +121,7 @@ export default async function TeamPage({ params }: Props) {
                     {group.category.name}
                   </h3>
                   {group.standing ? (
-                    <span className="rounded-sm bg-white/10 px-2 py-1 text-[11px] font-bold uppercase leading-4 text-text-5">
+                    <span className="rounded-sm bg-black/10 px-2 py-1 text-[11px] font-bold uppercase leading-4 text-text-5">
                       P{group.standing.position} · {group.standing.points} pts
                     </span>
                   ) : null}
@@ -132,60 +135,45 @@ export default async function TeamPage({ params }: Props) {
                       <Link
                         key={d.slug}
                         href={`/drivers/${d.slug}`}
-                        className="group relative z-0 grid min-h-[256px] grid-cols-2 grid-rows-[1fr_112px] overflow-clip rounded-md p-4 text-white"
-                        style={
-                          {
-                            "--team": team.color,
-                            backgroundColor: teamDark,
-                          } as CSSProperties
-                        }
+                        className="race-line group flex justify-between gap-3 overflow-clip rounded-md border border-surface-4 bg-surface-1 p-4"
                       >
-                        <span
-                          aria-hidden
-                          className="drs pointer-events-none absolute inset-y-0 -right-8 z-0 w-3/4 opacity-30"
-                        />
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute inset-y-0 left-0 z-0 w-3/4"
-                          style={{
-                            background: `linear-gradient(269.74deg, transparent 20%, ${teamDark} 90%)`,
-                          }}
-                        />
-                        <div className="relative z-10 min-h-[112px]">
-                          <p className="display-l font-normal group-hover:underline">
-                            {d.firstName}
-                          </p>
-                          <p className="display-l font-medium group-hover:underline">
+                        <div className="flex min-w-0 flex-col">
+                          <p className="display-l font-normal text-text-4">{d.firstName}</p>
+                          <p className="display-l font-bold uppercase text-text-5 group-hover:underline">
                             {d.lastName}
                           </p>
-                          <p className="body-xs pb-4 pt-1 font-semibold">{name}</p>
-                          <p className="font-digits text-2xl font-bold leading-none">
+                          <p
+                            className="font-digits mt-2 text-2xl font-bold leading-none"
+                            style={{ color: teamDark }}
+                          >
                             {d.carNumber}
                           </p>
-                        </div>
-                        <div aria-hidden />
-                        <div className="relative z-10 flex items-end justify-start">
+                          <span className="flex-1" aria-hidden />
                           <CountryFlag code={d.countryCode} className="text-xl leading-none" />
                         </div>
-                        <div className="relative">
+                        {/* headshot on a team-colour halftone tile */}
+                        <span
+                          className="relative h-36 w-28 shrink-0 self-end overflow-hidden rounded-md"
+                          style={{ backgroundColor: color, color: fg }}
+                        >
+                          <HalftoneWash fg={fg} />
                           {shot ? (
                             <Image
                               src={shot}
                               alt={`${d.firstName} ${d.lastName}`}
-                              width={220}
-                              height={224}
-                              sizes="(max-width: 735px) 50vw, 220px"
-                              className="absolute -bottom-4 right-0 h-56 w-[150px] object-cover object-top"
+                              fill
+                              sizes="112px"
+                              className="card-img object-cover object-top"
                             />
                           ) : (
                             <span
                               aria-hidden
-                              className="absolute -top-24 right-0 select-none font-display text-8xl font-black leading-none text-white/10"
+                              className="absolute inset-0 flex items-center justify-center font-display text-3xl font-black opacity-60"
                             >
                               {initials}
                             </span>
                           )}
-                        </div>
+                        </span>
                       </Link>
                     );
                   })}
@@ -196,8 +184,8 @@ export default async function TeamPage({ params }: Props) {
         </section>
       ) : null}
 
-      {/* ── Profile (warm band) ──────────────────────────────────────────── */}
-      <section className="bg-surface-3">
+      {/* ── Team profile: stat cards + description ───────────────────────── */}
+      <section className="bg-surface-1">
         <div className="f1-inner py-12 lg:py-16">
           <div className="text-brand">
             <RacingLine className="max-w-40" />
@@ -205,16 +193,16 @@ export default async function TeamPage({ params }: Props) {
           <h2 className="display-xl lg:display-2xl mt-2 font-black uppercase text-text-5">
             Team Profile
           </h2>
-          <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-6 lg:grid-cols-4">
-            {team.fullName ? <Fact label="Full Team Name" value={team.fullName} /> : null}
-            {team.base ? <Fact label="Base" value={team.base} /> : null}
+          <dl className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+            {team.fullName ? <FactCard label="Full Team Name" value={team.fullName} /> : null}
+            {team.base ? <FactCard label="Base" value={team.base} /> : null}
             {team.teamPrincipal ? (
-              <Fact label="Team Principal" value={team.teamPrincipal} />
+              <FactCard label="Team Principal" value={team.teamPrincipal} />
             ) : null}
             {team.firstEntryYear ? (
-              <Fact label="First Entry" value={String(team.firstEntryYear)} />
+              <StatCard label="First Entry" value={team.firstEntryYear} />
             ) : null}
-            <Fact label="Drivers" value={String(allDrivers.length)} />
+            <StatCard label="Drivers" value={allDrivers.length} />
           </dl>
           {team.description ? (
             <div className="body-m mt-8 flex max-w-[680px] flex-col gap-4 text-text-4">

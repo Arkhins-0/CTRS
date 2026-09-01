@@ -901,6 +901,7 @@ export type DriverDetail = {
     lastName: string;
     code: string;
     carNumber: number;
+    headshotPath: string | null;
   }[];
 };
 
@@ -1010,7 +1011,7 @@ export function getDriverDetail(slug: string): Promise<DriverDetail | null> {
                 : isNull(e.categoryId),
               ne(e.driverId, driver.id),
             ),
-          with: { driver: true },
+          with: { driver: { with: { headshot: true } } },
         });
         const uniqueMates = new Map<string, (typeof mateEntries)[number]>();
         for (const m of mateEntries) keepLatest(uniqueMates, m.driverId, m);
@@ -1022,6 +1023,7 @@ export function getDriverDetail(slug: string): Promise<DriverDetail | null> {
             lastName: m.driver.lastName,
             code: m.driver.code,
             carNumber: m.carNumber,
+            headshotPath: m.driver.headshot?.path ?? null,
           }));
       }
 
@@ -1163,6 +1165,7 @@ export type TeamDetail = {
   color: string;
   secondaryColor: string | null;
   teamPrincipal: string | null;
+  logoPath: string | null;
   groups: TeamCategoryGroup[];
 };
 
@@ -1173,6 +1176,7 @@ export function getTeamDetail(slug: string, currentYear: number): Promise<TeamDe
       const team = await db.query.teams.findFirst({
         where: (t, { eq: whereEq }) => whereEq(t.slug, slug),
         with: {
+          logo: true,
           seasonEntries: {
             where: (e, { eq: whereEq, sql }) =>
               season ? whereEq(e.championshipSeasonId, season.id) : sql`false`,
@@ -1265,6 +1269,7 @@ export function getTeamDetail(slug: string, currentYear: number): Promise<TeamDe
         color: entry?.primaryColor ?? "#67676d",
         secondaryColor: entry?.secondaryColor ?? null,
         teamPrincipal: entry?.teamPrincipal ?? null,
+        logoPath: team.logo?.path ?? null,
         groups,
       } satisfies TeamDetail;
     },

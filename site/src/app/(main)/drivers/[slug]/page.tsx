@@ -1,16 +1,20 @@
-import type { CSSProperties } from "react";
 import { differenceInYears, parseISO } from "date-fns";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CountryFlag } from "@ctr/ui";
-import { CategoryBadge } from "@/components/racing/category-ui";
-import { shadeHex } from "@/components/racing/colors";
+import { CategoryBadge, DriverRoundel } from "@/components/racing/category-ui";
+import { readableOn, shadeHex } from "@/components/racing/colors";
 import { getDriverDetail } from "@/components/racing/data";
 import { formatDate } from "@/components/racing/meta";
+import { FactCard, HalftoneWash, StatCard } from "@/components/racing/profile-ui";
 import { RacingLine } from "@/components/racing/racing-line";
 import { mediaUrl } from "@/lib/media";
+
+/* ── Driver profile — F1.com-style: white ground, giant black name, the
+   headshot on a compact team-colour halftone panel (not a full-bleed team
+   gradient), stat cards instead of a dark statistics band. ──────────────── */
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -26,25 +30,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-/** Label-over-value row used in the season data grid. */
-function SeasonStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-white/10 py-3">
-      <dt className="body-xs font-semibold text-text-3">{label}</dt>
-      <dd className="display-l lg:display-xl font-medium text-text-5">{value}</dd>
-    </div>
-  );
-}
-
-function CareerRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-surface-6 py-3 last:border-0">
-      <dt className="body-xs font-semibold text-static-5">{label}</dt>
-      <dd className="display-l font-medium text-white">{value}</dd>
-    </div>
-  );
-}
-
 export default async function DriverPage({ params }: Props) {
   const { slug } = await params;
   const driver = await getDriverDetail(slug);
@@ -53,7 +38,8 @@ export default async function DriverPage({ params }: Props) {
   const fullName = `${driver.firstName} ${driver.lastName}`;
   const headshot = mediaUrl(driver.headshotPath);
   const teamColor = driver.current?.teamColor ?? "#67676d";
-  const teamDark = shadeHex(teamColor, -0.45);
+  const teamFg = readableOn(teamColor);
+  const teamDark = shadeHex(teamColor, -0.35);
   const initials =
     `${driver.firstName[0] ?? ""}${driver.lastName[0] ?? ""}`.toUpperCase();
   const age = driver.dateOfBirth
@@ -63,160 +49,150 @@ export default async function DriverPage({ params }: Props) {
 
   return (
     <main>
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section
-        className="relative overflow-clip"
-        style={{ "--team": teamColor, backgroundColor: teamColor } as CSSProperties}
-      >
-        <div className="text-white/70">
-          <RacingLine />
-        </div>
-        <div className="f1-inner grid items-end gap-8 py-8 lg:grid-cols-2 lg:py-12">
-          {/* identity */}
-          <div className="relative z-10 min-w-0 text-white">
-            <div className="flex flex-wrap items-center gap-2">
+      {/* ── Hero: identity left, halftone portrait panel right ───────────── */}
+      <section className="bg-surface-1">
+        <div className="f1-inner grid items-end gap-8 py-8 lg:grid-cols-[1fr_auto] lg:py-12">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
               {driver.current?.category ? (
-                <CategoryBadge
-                  category={driver.current.category}
-                  className="border-white/70 text-white"
-                />
+                <CategoryBadge category={driver.current.category} />
               ) : null}
-              <CountryFlag code={driver.countryCode} className="text-xl" />
-              <span className="body-xs font-bold uppercase text-white/80">{driver.code}</span>
+              <CountryFlag code={driver.countryCode} className="text-xl leading-none" />
+              <span className="body-xs font-bold uppercase text-text-3">{driver.code}</span>
             </div>
-            <p className="font-script mt-4 text-5xl leading-none lg:text-7xl">
-              {driver.firstName}
-            </p>
-            <h1 className="display-3xl lg:display-4xl -mt-1 font-black uppercase">
-              {driver.lastName}
+            <h1 className="mt-4">
+              <span className="display-2xl lg:display-3xl block font-normal text-text-4">
+                {driver.firstName}
+              </span>
+              <span className="display-4xl lg:display-5xl block font-black uppercase text-text-5">
+                {driver.lastName}
+              </span>
             </h1>
-            <div className="body-s mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold">
-              {driver.current ? (
-                <>
-                  <Link
-                    href={`/teams/${driver.current.teamSlug}`}
-                    className="hover:underline"
-                  >
-                    {driver.current.teamName}
-                  </Link>
-                  <span aria-hidden className="text-white/50">
-                    ·
-                  </span>
-                  <span className="font-digits text-xl font-bold leading-none">
-                    {driver.current.carNumber}
-                  </span>
-                </>
-              ) : null}
-            </div>
+            {driver.current ? (
+              <div className="body-s mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 font-semibold text-text-4">
+                <Link
+                  href={`/teams/${driver.current.teamSlug}`}
+                  className="decoration-2 underline-offset-2 hover:underline"
+                >
+                  {driver.current.teamName}
+                </Link>
+                <span aria-hidden className="text-text-3">
+                  ·
+                </span>
+                <span
+                  className="font-digits text-xl font-bold leading-none"
+                  style={{ color: teamDark }}
+                >
+                  {driver.current.carNumber}
+                </span>
+              </div>
+            ) : null}
           </div>
 
-          {/* number + headshot */}
-          <div className="relative flex min-h-[220px] items-end justify-center lg:justify-end">
+          {/* portrait panel — team colour + halftone, giant number behind */}
+          <div
+            className="relative h-64 w-full overflow-hidden rounded-lg sm:w-[340px] lg:h-80 lg:w-[400px]"
+            style={{ backgroundColor: teamColor, color: teamFg }}
+          >
+            <HalftoneWash fg={teamFg} />
             {driver.current ? (
               <span
                 aria-hidden
-                className="pointer-events-none absolute bottom-0 right-0 select-none font-display text-[9rem] font-black leading-none lg:text-[13rem]"
+                className="pointer-events-none absolute right-4 top-0 select-none font-display text-[10rem] font-black leading-none lg:text-[12rem]"
                 style={{ color: teamDark }}
               >
                 {driver.current.carNumber}
               </span>
             ) : null}
-            <div className="relative h-56 w-48 overflow-hidden rounded-md lg:h-72 lg:w-64">
-              {headshot ? (
+            {headshot ? (
+              <span className="absolute bottom-0 left-1/2 aspect-square w-[230px] -translate-x-1/2 lg:w-[290px]">
                 <Image
                   src={headshot}
                   alt={fullName}
                   fill
-                  sizes="256px"
-                  className="object-cover object-top"
+                  sizes="290px"
+                  className="object-contain object-bottom"
                   priority
                 />
-              ) : (
-                <span
-                  className="flex h-full w-full items-center justify-center font-display text-6xl font-black text-white/25"
-                  style={{ backgroundColor: teamDark }}
-                >
-                  {initials}
-                </span>
-              )}
-            </div>
+              </span>
+            ) : (
+              <span
+                aria-hidden
+                className="absolute bottom-4 left-1/2 flex h-24 w-24 -translate-x-1/2 items-center justify-center rounded-full font-display text-4xl font-black"
+                style={{ backgroundColor: teamDark, color: readableOn(teamDark) }}
+              >
+                {initials}
+              </span>
+            )}
           </div>
         </div>
-        <div className="text-white/70">
-          <RacingLine />
-        </div>
+        {/* team-colour accent strip closing the hero, F1-style */}
+        <div aria-hidden className="h-1.5" style={{ backgroundColor: teamColor }} />
       </section>
 
-      {/* ── Statistics (dark band) ───────────────────────────────────────── */}
-      <section className="dark-section bg-surface-3">
+      {/* ── Statistics: white stat cards on the light band ────────────────── */}
+      <section className="bg-surface-2">
         <div className="f1-inner py-12 lg:py-16">
           <h2 className="display-xl lg:display-2xl font-black uppercase text-text-5">
             Statistics
           </h2>
-          <div className="mt-8 grid gap-8 lg:grid-cols-2 lg:gap-12">
-            <div>
-              <p className="display-s font-medium uppercase text-text-3">
-                {driver.season?.year ?? driver.current?.seasonYear ?? ""} Season
-                {driver.current?.category ? ` · ${driver.current.category.shortName}` : ""}
-              </p>
-              {driver.season ? (
-                <dl className="mt-4">
-                  <SeasonStat
-                    label="Position"
-                    value={
-                      seasonStarted && driver.season.position != null
-                        ? `P${driver.season.position}`
-                        : "—"
-                    }
-                  />
-                  <SeasonStat label="Points" value={String(driver.season.points)} />
-                  <SeasonStat label="Races" value={String(driver.season.races)} />
-                  <SeasonStat label="Wins" value={String(driver.season.wins)} />
-                  <SeasonStat label="Podiums" value={String(driver.season.podiums)} />
-                  <SeasonStat label="Poles" value={String(driver.season.poles)} />
-                </dl>
-              ) : (
-                <p className="body-s mt-4 text-text-3">No season entry on record yet.</p>
-              )}
-              {driver.season && !seasonStarted ? (
+
+          <p className="display-s mt-8 font-medium uppercase text-text-3">
+            {driver.season?.year ?? driver.current?.seasonYear ?? ""} Season
+            {driver.current?.category ? ` · ${driver.current.category.shortName}` : ""}
+          </p>
+          {driver.season ? (
+            <>
+              <dl className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6 lg:gap-4">
+                <StatCard
+                  label="Position"
+                  value={
+                    seasonStarted && driver.season.position != null
+                      ? `P${driver.season.position}`
+                      : "—"
+                  }
+                />
+                <StatCard label="Points" value={driver.season.points} />
+                <StatCard label="Races" value={driver.season.races} />
+                <StatCard label="Wins" value={driver.season.wins} />
+                <StatCard label="Podiums" value={driver.season.podiums} />
+                <StatCard label="Poles" value={driver.season.poles} />
+              </dl>
+              {!seasonStarted ? (
                 <p className="body-xs mt-4 font-semibold text-text-3">
                   The season hasn&apos;t started yet — numbers update after every race.
                 </p>
               ) : null}
-            </div>
+            </>
+          ) : (
+            <p className="body-s mt-4 text-text-3">No season entry on record yet.</p>
+          )}
 
-            <div className="rounded-lg bg-static-8 p-6">
-              <p className="display-s font-medium uppercase text-static-5">Career Stats</p>
-              <dl className="mt-4">
-                <CareerRow
-                  label="Grands Prix Entered"
-                  value={
-                    driver.career.grandsPrixEntered > 0
-                      ? String(driver.career.grandsPrixEntered)
-                      : "—"
-                  }
-                />
-                <CareerRow
-                  label="Career Points"
-                  value={
-                    driver.career.careerPoints > 0 ? String(driver.career.careerPoints) : "—"
-                  }
-                />
-                <CareerRow label="Wins" value={String(driver.career.wins)} />
-                <CareerRow label="Podiums" value={String(driver.career.podiums)} />
-                <CareerRow label="Poles" value={String(driver.career.poles)} />
-                <CareerRow
-                  label="Best Finish"
-                  value={driver.career.bestFinish != null ? `P${driver.career.bestFinish}` : "—"}
-                />
-              </dl>
-            </div>
-          </div>
+          <p className="display-s mt-10 font-medium uppercase text-text-3">Career</p>
+          <dl className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6 lg:gap-4">
+            <StatCard
+              label="Grands Prix Entered"
+              value={
+                driver.career.grandsPrixEntered > 0 ? driver.career.grandsPrixEntered : "—"
+              }
+            />
+            <StatCard
+              label="Career Points"
+              value={driver.career.careerPoints > 0 ? driver.career.careerPoints : "—"}
+            />
+            <StatCard label="Wins" value={driver.career.wins} />
+            <StatCard label="Podiums" value={driver.career.podiums} />
+            <StatCard label="Poles" value={driver.career.poles} />
+            <StatCard
+              label="Best Finish"
+              value={driver.career.bestFinish != null ? `P${driver.career.bestFinish}` : "—"}
+            />
+          </dl>
         </div>
       </section>
 
-      {/* ── Biography (warm band) ────────────────────────────────────────── */}
-      <section className="bg-surface-3">
+      {/* ── Biography ────────────────────────────────────────────────────── */}
+      <section className="bg-surface-1">
         <div className="f1-inner py-12 lg:py-16">
           <div className="text-brand">
             <RacingLine className="max-w-40" />
@@ -225,23 +201,27 @@ export default async function DriverPage({ params }: Props) {
             Biography
           </h2>
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
-            <div className="flex flex-col gap-4">
-              <div className="rounded-md bg-surface-1 p-4">
-                <p className="body-xs font-semibold uppercase text-text-3">Date of Birth</p>
-                <p className="display-l mt-1 font-medium text-text-5">
-                  {formatDate(driver.dateOfBirth)}
-                  {age != null ? (
-                    <span className="body-s ml-2 font-semibold text-text-3">({age})</span>
-                  ) : null}
-                </p>
-              </div>
-              <div className="rounded-md bg-surface-1 p-4">
-                <p className="body-xs font-semibold uppercase text-text-3">Place of Birth</p>
-                <p className="display-l mt-1 flex items-center gap-2 font-medium text-text-5">
-                  {driver.placeOfBirth ?? "—"}
-                  <CountryFlag code={driver.countryCode} className="text-base" />
-                </p>
-              </div>
+            <div className="flex flex-col gap-3">
+              <FactCard
+                label="Date of Birth"
+                value={
+                  <>
+                    {formatDate(driver.dateOfBirth)}
+                    {age != null ? (
+                      <span className="body-s font-semibold text-text-3">({age})</span>
+                    ) : null}
+                  </>
+                }
+              />
+              <FactCard
+                label="Place of Birth"
+                value={
+                  <>
+                    {driver.placeOfBirth ?? "—"}
+                    <CountryFlag code={driver.countryCode} className="text-base" />
+                  </>
+                }
+              />
             </div>
             <div className="lg:col-span-2">
               {driver.biography ? (
@@ -263,24 +243,23 @@ export default async function DriverPage({ params }: Props) {
 
       {/* ── Teammates ────────────────────────────────────────────────────── */}
       {driver.teammates.length ? (
-        <section className="bg-surface-1">
+        <section className="bg-surface-2">
           <div className="f1-inner py-12 lg:py-16">
             <h2 className="display-xl lg:display-2xl font-black uppercase text-text-5">
               Teammates
             </h2>
-            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 lg:gap-4">
               {driver.teammates.map((mate) => (
                 <Link
                   key={mate.slug}
                   href={`/drivers/${mate.slug}`}
-                  className="group flex items-center gap-4 rounded-md bg-surface-3 p-4"
+                  className="race-line group flex items-center gap-4 overflow-clip rounded-md border border-surface-4 bg-surface-1 p-4"
                 >
+                  <DriverRoundel headshotPath={mate.headshotPath} color={teamColor} />
                   <span
-                    aria-hidden
-                    className="h-10 w-1 shrink-0 rounded-full"
-                    style={{ backgroundColor: teamColor }}
-                  />
-                  <span className="font-digits text-2xl font-bold leading-none text-text-3">
+                    className="font-digits text-2xl font-bold leading-none"
+                    style={{ color: teamDark }}
+                  >
                     {mate.carNumber}
                   </span>
                   <span className="min-w-0">
