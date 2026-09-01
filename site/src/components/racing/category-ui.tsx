@@ -112,7 +112,7 @@ export function CategoryPills({
           className={`${pill} ${
             activeSlug === null
               ? "bg-brand text-brand-fg"
-              : "text-text-5 shadow-[inset_0_0_0_2px_var(--f1-text-5)] hover:bg-black/10"
+              : "text-text-5 shadow-[inset_0_0_0_2px_var(--f1-text-5)] hover:bg-white/10"
           }`}
         >
           {allLabel}
@@ -126,7 +126,7 @@ export function CategoryPills({
             href={hrefFor(c.slug)}
             aria-current={active ? "page" : undefined}
             title={c.name}
-            className={`${pill} flex items-center gap-2 ${active ? "" : "text-text-5 shadow-[inset_0_0_0_2px_var(--f1-surface-4)] hover:bg-black/10"}`}
+            className={`${pill} flex items-center gap-2 ${active ? "" : "text-text-5 shadow-[inset_0_0_0_2px_var(--f1-surface-4)] hover:bg-white/10"}`}
             style={
               active
                 ? { backgroundColor: c.color, color: readableOn(c.color) }
@@ -153,7 +153,7 @@ export function StatusChip({
   const styles: Record<typeof status, string> = {
     scheduled: "border border-surface-6 text-text-3",
     live: "bg-live-blue text-white",
-    completed: "bg-black/10 text-text-5",
+    completed: "bg-white/10 text-text-5",
     cancelled: "border border-surface-6 text-text-3 line-through",
   };
   const labels: Record<typeof status, string> = {

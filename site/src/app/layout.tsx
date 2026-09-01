@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "CTR" },
 };
 
-export const viewport = { themeColor: "#15151E" };
+export const viewport = { themeColor: "#131110" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

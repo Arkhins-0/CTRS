@@ -130,10 +130,10 @@ export async function SiteFooter() {
         <div className="f1-inner flex flex-col py-12">
           <div className="flex flex-wrap items-stretch justify-between gap-6 lg:flex-nowrap">
             {/* Fan Zone promo card (F1 app-card slot) */}
-            <div className="relative w-full overflow-clip rounded-md bg-black/[0.04] p-6 lg:min-h-[380px] lg:w-[370px] lg:shrink-0 lg:grow-0 lg:basis-[370px]">
+            <div className="relative w-full overflow-clip rounded-md bg-white/5 p-6 lg:min-h-[380px] lg:w-[370px] lg:shrink-0 lg:grow-0 lg:basis-[370px]">
               <div
                 aria-hidden
-                className="chequer pointer-events-none absolute -bottom-10 -left-10 h-64 w-64 text-black opacity-[0.04]"
+                className="chequer pointer-events-none absolute -bottom-10 -left-10 h-64 w-64 text-white opacity-[0.05]"
               />
               <div className="relative flex h-full flex-col gap-4">
                 <CtrLogo height={40} />

@@ -35,7 +35,7 @@ export function Tag({
     brand: "bg-brand text-brand-fg",
     breaking: "bg-breaking-yellow text-black",
     live: "bg-live-blue text-white",
-    secondary: "bg-black/10 text-text-5",
+    secondary: "bg-white/10 text-text-5",
   };
   return (
     <span
@@ -106,7 +106,7 @@ export function OverlayArticleCard({
 }) {
   return (
     <article
-      className={`group relative overflow-clip rounded-md bg-surface-3 ${heightClass}`}
+      className={`group relative overflow-clip rounded-md border border-surface-4 bg-surface-1 ${heightClass}`}
     >
       <CardImage article={article} sizes={sizes} priority={priority} />
       <span
@@ -136,7 +136,7 @@ export function StackedArticleCard({
   sizes?: string;
 }) {
   return (
-    <article className="group relative flex h-full flex-col overflow-clip rounded-md bg-surface-3">
+    <article className="race-line group relative flex h-full flex-col overflow-clip rounded-md border border-surface-4 bg-surface-1">
       <span className="relative block h-[106px] shrink-0 overflow-clip md:h-[155px] min-[1696px]:h-[293px]">
         <CardImage article={article} sizes={sizes} />
       </span>

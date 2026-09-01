@@ -83,7 +83,7 @@ export function VideoCard({
         )}
         <span
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,transparent,#15151e)]"
+          className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,transparent,#131110)]"
         />
         <span className="absolute inset-x-0 bottom-0 flex items-end justify-between p-3">
           <PlayChip />

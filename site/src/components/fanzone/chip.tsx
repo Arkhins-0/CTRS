@@ -10,9 +10,9 @@ const styles = {
   /** brand tonal — poll/prediction "kind" badges */
   "accent-outline": "bg-brand/10 text-brand",
   /** neutral tonal */
-  outline: "bg-black/10 text-text-5",
+  outline: "bg-white/10 text-text-5",
   /** dimmer tonal — closed/unsubscribed states */
-  faint: "bg-black/5 text-text-3",
+  faint: "bg-white/5 text-text-3",
   green: "bg-positive text-white",
   amber: "bg-breaking-yellow text-static-11",
 } as const;

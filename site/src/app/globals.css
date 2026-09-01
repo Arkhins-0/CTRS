@@ -3,57 +3,74 @@
 @source "../../../packages/ui/src";
 
 /* ══════════════════════════════════════════════════════════════════════════
-   CTR Sports — F1.com 2026 ("f1rd") design system port.
-   Light-first warm surfaces, forced-dark chrome bars, Formula1 display type.
+   CTR Sports — "Night Race" design system. Dark-first, gold-accented.
 
-   Conventions (match the design spec in every component):
-   - Formula1 face: "bold" = font-medium (500), "black" = font-black (900).
-   - Titillium: font-semibold (600) / font-bold (700).
-   - Radius: rounded-sm 4px tags · rounded-md 8px cards/tables · rounded-full
-     pills for ALL buttons. No drop shadows — depth comes from surface steps.
-   - Brand accent: --color-brand follows the CMS accent (--ctr-accent); set the
-     admin theme to #e10600 for the exact F1 hot-red look.
+   This replaces the previous F1.com ("f1rd") port. Two reasons, both real:
+   the port was a near-1:1 copy of another rights-holder's trade dress (their
+   cool carbon-black + hot-red + white palette on their layout), and it was
+   the odd one out in CTR's own product — the admin console, the emails, the
+   PWA icons and the gold eagle mark all already live on near-black.
+
+   What deliberately diverges from F1.com:
+   - WARM charcoal ground (R ≥ G ≥ B, tinted toward the gold), not their
+     cool blue-black #15151E. The whole ramp carries the tint.
+   - Gold #F7D619 as the single accent, treated as scarce: CTAs, live
+     states, leaders. Never decoration-everywhere the way their red is.
+   - Rajdhani/Titillium/JetBrains Mono (all OFL), not their corporate faces.
+   What stays, because it is generic motorsport/sports-site convention:
+   standings tables, countdowns, session schedules, team-colour coding,
+   chequered-flag texture, card grids, pill buttons, the type scale.
+
+   Dark-craft rules (every component follows these):
+   - Elevation by LIGHTENING, never shadow: page < band < card, with
+     hairline borders — shadows are invisible on near-black.
+   - No pure white body text (halation): text-4 ≈ 92%, text-3 ≈ 63%.
+   - Bright/large colour areas get desaturated or framed; full-chroma gold
+     only at small sizes.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Semantic surface/text variables (light default; .dark-section forces the
-      dark chrome palette on any subtree — header nav, sponsor tiers). ─────── */
+/* ── Semantic surface/text variables (dark default; .dark-section forces the
+      DEEPER chrome palette on a subtree — header nav, sponsor tier — so the
+      site's chrome still reads a step apart from its pages). ─────────────── */
 
 :root {
-  --f1-surface-1: #ffffff;
-  --f1-surface-2: #f3f3f4;
-  --f1-surface-3: #f7f4f1;
-  --f1-surface-4: #e0dedc;
-  --f1-surface-5: #cdcdcd;
-  --f1-surface-6: #aaaaaa;
-  --f1-surface-7: #606066;
-  --f1-surface-8: #47464c;
-  --f1-surface-9: #303037;
-  --f1-surface-10: #15151e;
-  --f1-surface-11: #000000;
-  --f1-text-1: #ffffff;
-  --f1-text-2: #f7f4f1;
-  --f1-text-3: #606066;
-  --f1-text-4: #1c1c25;
-  --f1-text-5: #000000;
+  /* 1 = card (lightest of the dark steps) · 2 = page · 3 = band ·
+     4 = hairline · 5..11 climb toward white for contrast elements. */
+  --f1-surface-1: #201c18;
+  --f1-surface-2: #131110;
+  --f1-surface-3: #181512;
+  --f1-surface-4: #2e2924;
+  --f1-surface-5: #3b352e;
+  --f1-surface-6: #524a40;
+  --f1-surface-7: #7a7163;
+  --f1-surface-8: #9e9587;
+  --f1-surface-9: #c4bcaf;
+  --f1-surface-10: #eae5dc;
+  --f1-surface-11: #ffffff;
+  --f1-text-1: #131110;
+  --f1-text-2: #181512;
+  --f1-text-3: #a89f92;
+  --f1-text-4: #eae5dd;
+  --f1-text-5: #f9f7f3;
 }
 
 .dark-section {
-  --f1-surface-1: #000000;
-  --f1-surface-2: #26262b;
-  --f1-surface-3: #15151e;
-  --f1-surface-4: #303037;
-  --f1-surface-5: #47464c;
-  --f1-surface-6: #606066;
-  --f1-surface-7: #aaaaaa;
-  --f1-surface-8: #cdcdcd;
-  --f1-surface-9: #e0dedc;
-  --f1-surface-10: #f7f4f1;
+  --f1-surface-1: #17130f;
+  --f1-surface-2: #0a0908;
+  --f1-surface-3: #0d0b0a;
+  --f1-surface-4: #272119;
+  --f1-surface-5: #332c22;
+  --f1-surface-6: #4a4136;
+  --f1-surface-7: #776d5e;
+  --f1-surface-8: #9c9285;
+  --f1-surface-9: #c2baae;
+  --f1-surface-10: #e9e4db;
   --f1-surface-11: #ffffff;
-  --f1-text-1: #000000;
-  --f1-text-2: #15151e;
-  --f1-text-3: #aaaaaa;
-  --f1-text-4: #ffffff;
-  --f1-text-5: #ffffff;
+  --f1-text-1: #0d0b0a;
+  --f1-text-2: #17130f;
+  --f1-text-3: #a29a8d;
+  --f1-text-4: #ece8e1;
+  --f1-text-5: #faf8f4;
   color: var(--f1-text-4);
 }
 
@@ -76,23 +93,26 @@
   --color-text-4: var(--f1-text-4);
   --color-text-5: var(--f1-text-5);
 
-  /* Brand accent — CMS-driven (admin theme setting), F1 hot red as fallback */
-  --color-brand: var(--ctr-accent, #e10600);
-  --color-brand-dark: var(--ctr-accent-dark, #ca0500);
-  --color-brand-fg: var(--ctr-accent-fg, #ffffff);
+  /* Brand accent — CMS-driven (admin theme setting), CTR gold as fallback */
+  --color-brand: var(--ctr-accent, #f7d619);
+  --color-brand-dark: var(--ctr-accent-dark, #e0bf06);
+  --color-brand-fg: var(--ctr-accent-fg, #0a0a0a);
 
-  /* Fixed accents (never themed) */
-  --color-hot-red: #e10600;
-  --color-hot-red-dark: #ca0500;
-  --color-live-blue: #0076cc;
-  --color-live-blue-dark: #006ab8;
+  /* Fixed accents (never themed) — tuned for the dark ground: semantic
+     green/red match the email palette so the whole product agrees on what
+     "good" and "bad" look like, and each carries enough luminance to hold
+     contrast on near-black. */
+  --color-hot-red: #f0605f;
+  --color-hot-red-dark: #d94a49;
+  --color-live-blue: #2196e3;
+  --color-live-blue-dark: #1a86cd;
   --color-breaking-yellow: #ffd100;
   --color-spark-yellow: #e6f854;
   --color-shift-green: #71cc98;
-  --color-tag-magenta: #e51073;
-  --color-warning-orange: #e66700;
-  --color-positive: #1a8930;
-  --color-negative: #e91711;
+  --color-tag-magenta: #f0448c;
+  --color-warning-orange: #f28a33;
+  --color-positive: #34d399;
+  --color-negative: #f0605f;
 
   /* Static ramp (theme-independent) */
   --color-static-1: #ffffff;
@@ -136,9 +156,9 @@
   --color-line: var(--f1-surface-4);
   --color-fg-muted: var(--f1-text-3);
   --color-fg-faint: var(--f1-surface-6);
-  --color-accent: var(--ctr-accent, #e10600);
-  --color-accent-dark: var(--ctr-accent-dark, #ca0500);
-  --color-accent-fg: var(--ctr-accent-fg, #ffffff);
+  --color-accent: var(--ctr-accent, #f7d619);
+  --color-accent-dark: var(--ctr-accent-dark, #e0bf06);
+  --color-accent-fg: var(--ctr-accent-fg, #0a0a0a);
 }
 
 /* ── Type roles (family + size + line-height; weight via utilities) ──────── */
@@ -202,11 +222,14 @@
   font-weight: 700;
 }
 .btn:focus-visible {
-  outline: 2px solid var(--f1-text-5);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
+/* Press feedback by darkening + nudge — an inset black shadow (the old
+   recipe) is invisible on a dark ground. */
 .btn:active {
-  box-shadow: inset 3px 2px 6px #000;
+  filter: brightness(0.82);
+  transform: translateY(1px);
 }
 .btn:disabled {
   opacity: 0.5;
@@ -218,23 +241,31 @@
 
 .btn-brand { background: var(--color-brand); color: var(--color-brand-fg); }
 .btn-brand:hover { background: var(--color-brand-dark); }
-.btn-black { background: #000; color: #fff; }
-.btn-black:hover { background: #333; }
-.btn-white { background: #fff; color: #000; }
-.btn-white:hover { background: #e5e5e5; }
+/* "black" is the quiet-solid role. On a dark ground that job is done by a
+   raised tonal surface with a hairline, not by a literally black button. */
+.btn-black {
+  background: var(--f1-surface-4);
+  color: var(--f1-text-5);
+  box-shadow: inset 0 0 0 1px var(--f1-surface-5);
+}
+.btn-black:hover { background: var(--f1-surface-5); }
+.btn-white { background: var(--f1-surface-11); color: #0a0a0a; }
+.btn-white:hover { background: var(--f1-surface-10); }
 .btn-stroke {
   background: transparent;
   color: var(--f1-text-5);
-  box-shadow: inset 0 0 0 2px var(--f1-text-5);
+  box-shadow: inset 0 0 0 2px var(--f1-surface-6);
 }
-.btn-stroke:hover { background: rgb(from var(--f1-text-5) r g b / 0.1); }
-.btn-stroke:active { box-shadow: inset 0 0 0 2px var(--f1-text-5), inset 3px 2px 6px #000; }
+.btn-stroke:hover {
+  box-shadow: inset 0 0 0 2px var(--f1-text-5);
+  background: rgb(from var(--f1-text-5) r g b / 0.06);
+}
 .btn-ghost { background: transparent; color: var(--f1-text-5); }
 .btn-ghost:hover { background: rgb(from var(--f1-text-5) r g b / 0.1); }
 .btn-tonal { background: rgb(from var(--f1-text-5) r g b / 0.1); color: var(--f1-text-5); }
-.btn-tonal:hover { background: rgb(from var(--f1-text-5) r g b / 0.2); }
-.btn-live { background: #0076cc; color: #fff; }
-.btn-live:hover { background: #006ab8; }
+.btn-tonal:hover { background: rgb(from var(--f1-text-5) r g b / 0.18); }
+.btn-live { background: var(--color-live-blue); color: #fff; }
+.btn-live:hover { background: var(--color-live-blue-dark); }
 
 /* ── Decorative helpers ──────────────────────────────────────────────────── */
 
@@ -276,6 +307,33 @@
 /* Card image zoom (pair with `group` on the card, `card-img` on the <img>) */
 .card-img { transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1); }
 .group:hover .card-img { transform: scale(1.1); }
+
+/* The system's one signature flourish: a 2px gold racing line that draws
+   itself across an element's bottom edge on hover. Put `race-line` on the
+   element (or inside a `group` card). Deliberately NOT F1's corner-cut —
+   a line tracing an edge, our own motif, used sparingly. */
+.race-line { position: relative; }
+.race-line::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--color-brand);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.race-line:hover::after,
+.group:hover .race-line::after { transform: scaleX(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-img,
+  .race-line::after,
+  .btn { transition: none; }
+  .group:hover .card-img { transform: none; }
+  .btn:active { transform: none; }
+}
 
 body {
   font-family: var(--font-body);

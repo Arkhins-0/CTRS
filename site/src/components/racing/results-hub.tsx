@@ -36,7 +36,7 @@ export function SeasonDropdown({
           <Link
             key={y}
             href={hrefFor(y)}
-            className="body-xs m-1 flex items-center gap-2 rounded-md p-2 font-bold text-text-5 hover:bg-black/10"
+            className="body-xs m-1 flex items-center gap-2 rounded-md p-2 font-bold text-text-5 hover:bg-white/10"
           >
             {y}
             {y === year ? (

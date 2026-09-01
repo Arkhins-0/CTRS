@@ -17,7 +17,7 @@ const TD = "whitespace-nowrap py-4 pl-1 pr-6 md:pr-12";
 /** White table card — combined outer+inner padding of the F1 card (§2.5). */
 function TableCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-md bg-surface-1 px-12 py-8 md:px-16 md:py-10 lg:py-12">
+    <div className="rounded-md border border-surface-4 bg-surface-1 px-12 py-8 md:px-16 md:py-10 lg:py-12">
       <div className="snap-x overflow-x-auto">{children}</div>
     </div>
   );
@@ -71,7 +71,7 @@ export function CategoryDropdown({
             key={c.slug}
             href={hrefFor(c.slug)}
             aria-current={c.slug === activeSlug ? "page" : undefined}
-            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-black/10"
+            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-white/10"
           >
             <CategoryDot color={c.color} className="h-2 w-2" />
             {c.name}
@@ -132,7 +132,11 @@ export function DriverStandingsTable({ rows }: { rows: DriverStandingRow[] }) {
         <tbody className="body-s font-semibold text-text-5">
           {rows.map((row) => (
             <tr key={row.driver.slug} className="border-b border-surface-4 last:border-0">
-              <td className={TD}>{row.position}</td>
+              {/* Numerals in the timing face: the leader's position carries
+                  the gold, the way a timing tower marks P1. */}
+              <td className={`${TD} technical-m ${row.position === 1 ? "text-brand" : ""}`}>
+                {row.position}
+              </td>
               <td className={TD}>
                 <Link
                   href={`/drivers/${row.driver.slug}`}
@@ -171,7 +175,7 @@ export function DriverStandingsTable({ rows }: { rows: DriverStandingRow[] }) {
                   "—"
                 )}
               </td>
-              <td className={`${TD} pr-1 text-right`}>{row.points}</td>
+              <td className={`${TD} technical-m pr-1 text-right`}>{row.points}</td>
             </tr>
           ))}
         </tbody>
@@ -196,7 +200,9 @@ export function ConstructorStandingsTable({ rows }: { rows: ConstructorStandingR
         <tbody className="body-s font-semibold text-text-5">
           {rows.map((row) => (
             <tr key={row.team.teamSlug} className="border-b border-surface-4 last:border-0">
-              <td className={TD}>{row.position}</td>
+              <td className={`${TD} technical-m ${row.position === 1 ? "text-brand" : ""}`}>
+                {row.position}
+              </td>
               <td className={TD}>
                 <Link
                   href={`/teams/${row.team.teamSlug}`}
@@ -206,8 +212,8 @@ export function ConstructorStandingsTable({ rows }: { rows: ConstructorStandingR
                   {row.team.displayName}
                 </Link>
               </td>
-              <td className={TD}>{row.wins}</td>
-              <td className={`${TD} pr-1 text-right`}>{row.points}</td>
+              <td className={`${TD} technical-m`}>{row.wins}</td>
+              <td className={`${TD} technical-m pr-1 text-right`}>{row.points}</td>
             </tr>
           ))}
         </tbody>

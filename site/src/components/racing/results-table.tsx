@@ -38,7 +38,7 @@ export function ResultsTableCard({
   footer?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-md bg-surface-1 px-12 py-8 md:px-16 md:py-10 lg:py-12">
+    <div className="rounded-md border border-surface-4 bg-surface-1 px-12 py-8 md:px-16 md:py-10 lg:py-12">
       <div className="snap-x overflow-x-auto">{children}</div>
       {footer}
     </div>
@@ -81,7 +81,7 @@ export function FilterDropdown({
             key={o.key}
             href={o.href}
             aria-current={o.active ? "page" : undefined}
-            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-black/10"
+            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-white/10"
           >
             {o.label}
             {o.active ? (
@@ -332,10 +332,14 @@ export function ResultsTable({
         <tbody className="text-text-5">
           {rows.map((row) => (
             <tr key={row.id} className={resultsBodyRow}>
-              <td className={resultsTd}>
+              {/* Timing-screen treatment: every numeral in the mono digits
+                  face, P1 in gold — a broadcast tower, not a spreadsheet. */}
+              <td
+                className={`${resultsTd} technical-m ${row.position === 1 ? "text-brand" : ""}`}
+              >
                 {row.position ?? STATUS_POS[row.status] ?? "NC"}
               </td>
-              <td className={resultsTd}>{row.carNumber}</td>
+              <td className={`${resultsTd} technical-m`}>{row.carNumber}</td>
               <td className={resultsTd}>
                 <DriverChip row={row} />
               </td>
@@ -344,8 +348,10 @@ export function ResultsTable({
               </td>
               {kind === "race" ? (
                 <>
-                  <td className={resultsTd}>{row.laps ?? "—"}</td>
-                  <td className={`${resultsTd}${row.fastestLap ? " text-brand" : ""}`}>
+                  <td className={`${resultsTd} technical-m`}>{row.laps ?? "—"}</td>
+                  <td
+                    className={`${resultsTd} technical-m${row.fastestLap ? " text-brand" : ""}`}
+                  >
                     {formatGap({
                       position: row.position,
                       status: row.status,
@@ -354,28 +360,28 @@ export function ResultsTable({
                       timeMs: row.timeMs,
                     })}
                   </td>
-                  <td className={resultsTdEnd}>{row.points}</td>
+                  <td className={`${resultsTdEnd} technical-m`}>{row.points}</td>
                 </>
               ) : kind === "qualifying" ? (
                 <>
                   <td
-                    className={`${resultsTd}${row.fastestLap ? " text-brand" : ""}`}
+                    className={`${resultsTd} technical-m${row.fastestLap ? " text-brand" : ""}`}
                   >
                     {row.status === "finished"
                       ? formatLapTime(row.q1TimeMs ?? row.timeMs)
                       : (STATUS_SHORT[row.status] ?? "—")}
                   </td>
-                  <td className={resultsTd}>{formatLapTime(row.q2TimeMs)}</td>
-                  <td className={resultsTdEnd}>{formatLapTime(row.q3TimeMs)}</td>
+                  <td className={`${resultsTd} technical-m`}>{formatLapTime(row.q2TimeMs)}</td>
+                  <td className={`${resultsTdEnd} technical-m`}>{formatLapTime(row.q3TimeMs)}</td>
                 </>
               ) : (
                 <>
                   <td
-                    className={`${resultsTd}${row.fastestLap ? " text-brand" : ""}`}
+                    className={`${resultsTd} technical-m${row.fastestLap ? " text-brand" : ""}`}
                   >
                     {lapTimeOrGap(row, leaderMs)}
                   </td>
-                  <td className={resultsTdEnd}>{row.laps ?? "—"}</td>
+                  <td className={`${resultsTdEnd} technical-m`}>{row.laps ?? "—"}</td>
                 </>
               )}
             </tr>

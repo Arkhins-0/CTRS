@@ -102,7 +102,7 @@ export default async function AccountPage() {
             <Link
               key={href}
               href={href}
-              className="group flex h-full flex-col rounded-md bg-surface-1 p-6 transition-colors hover:bg-surface-2"
+              className="race-line group flex h-full flex-col overflow-clip rounded-md bg-surface-1 p-6 transition-colors hover:bg-surface-4"
             >
               <Icon size={24} aria-hidden className="text-brand" />
               <h2 className="display-m mt-4 font-medium uppercase text-text-5">{title}</h2>
