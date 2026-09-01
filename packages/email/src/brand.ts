@@ -22,6 +22,11 @@
  * rule still carries a real system fallback for the clients that don't.
  */
 
+/** Attribute-safe escape — brand.ts has no imports, so this stays local
+ *  rather than pulling in templates.ts's escapeHtml and creating a cycle
+ *  (templates.ts already imports from here). */
+const attr = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
 export const COLOR = {
   page: "#0A0A0A", // outer background — true black, not blue-charcoal
   surface: "#141414", // the card
@@ -137,26 +142,41 @@ export const ORG = {
 export type SocialLink = { platform: string; url: string };
 
 /**
- * Short glyph/initials per platform for the footer badges below — chosen
- * over hosted icon images on purpose. An email footer icon row is the one
- * place a broken/blocked image is most likely (image-blocking is the email
- * client default), and a whole row of empty boxes reads worse than no row at
- * all. A table cell with a real glyph always renders, in every client, with
- * no network fetch — the same reasoning that makes hazardStripe() a table
- * instead of a background-image.
+ * Real icon PNGs, self-authored (not downloaded from any icon set — generic
+ * enough shapes, a camera outline / play triangle / crossed strokes, to read
+ * clearly without redrawing any platform's exact trademarked logo), hosted
+ * at the admin console alongside the CTR mark and sponsor logos. Text
+ * glyphs were tried first and looked deliberately wrong in a real inbox:
+ * "▶" (U+25B6) has emoji presentation on several platforms' mail fonts, so
+ * it showed up as a glossy orange emoji next to plain flat letters, and even
+ * the safe ASCII fallback ("YT", "IG") never looked like an actual icon —
+ * just initials in a circle. PNG, same reasoning as the CTR mark and
+ * sponsor logos: universal transparency support, no proxy-mangling risk.
+ * SOCIAL_ICON_PLATFORMS lists what's actually generated (see
+ * scripts/mock-art or the repo's icon-generation script); anything else
+ * falls back to a plain ASCII initials badge rather than a broken image.
  */
-/*
- * Plain ASCII only — no exceptions. "▶" (U+25B6) looked fine here, but
- * that codepoint has emoji presentation on several platforms' default mail
- * fonts (Segoe UI Emoji, Noto Color Emoji), so what actually reached a real
- * inbox was a glossy orange play-button emoji sitting next to plain flat
- * letters — visibly wrong, and inconsistent with the other three badges in
- * the same row. "𝕏" (U+1D54F, mathematical double-struck capital X) is the
- * same risk class from the other direction: it happened to render, but it
- * depends on the recipient's font actually covering that specific Unicode
- * block, which body fonts are not guaranteed to. ASCII letters can't fail
- * either way — every font has them.
- */
+const SOCIAL_ICON_PLATFORMS = new Set([
+  "instagram",
+  "facebook",
+  "x",
+  "twitter",
+  "youtube",
+  "tiktok",
+  "discord",
+  "twitch",
+  "linkedin",
+]);
+
+/** File on disk has no separate "twitter" — it's the same X mark. */
+const ICON_FILE: Record<string, string> = { twitter: "x" };
+
+function socialIconUrl(platform: string): string {
+  const key = platform.trim().toLowerCase();
+  const base = (process.env.ADMIN_URL || DEFAULT_ADMIN_ORIGIN).replace(/\/+$/, "");
+  return `${base}/social/${ICON_FILE[key] ?? key}.png`;
+}
+
 const SOCIAL_GLYPH: Record<string, string> = {
   instagram: "IG",
   twitter: "X",
@@ -174,7 +194,7 @@ function socialGlyph(platform: string): string {
 }
 
 /**
- * A row of small square badges linking out to the org's social accounts,
+ * A row of small circular badges linking out to the org's social accounts,
  * read from the same site_settings.social_links the admin console's Settings
  * page manages — so the footer never drifts from what's actually live.
  * Renders nothing when no links are configured.
@@ -183,15 +203,19 @@ export function socialBadges(links: SocialLink[]): string {
   const usable = links.filter((l) => l.platform && l.url);
   if (!usable.length) return "";
   const cells = usable
-    .map(
-      (l) =>
-        // Circular, accent-ringed — the convention most senders' footers
-        // already train subscribers to recognise as "social links here",
-        // vs. the earlier square badges reading as generic buttons.
-        `<td style="padding:0 6px;">
-           <a href="${l.url}" style="display:block;width:32px;height:32px;line-height:30px;text-align:center;background:${COLOR.panel};border:1px solid ${COLOR.accent};border-radius:50%;font-family:${FONT.display};font-weight:600;font-size:12px;color:${COLOR.accent};text-decoration:none;">${socialGlyph(l.platform)}</a>
-         </td>`,
-    )
+    .map((l) => {
+      const key = l.platform.trim().toLowerCase();
+      const inner = SOCIAL_ICON_PLATFORMS.has(key)
+        ? `<img src="${socialIconUrl(key)}" width="18" height="18" alt="${attr(l.platform)}" style="display:block;width:18px;height:18px;" />`
+        : socialGlyph(l.platform);
+      // Circular, accent-ringed — the convention most senders' footers
+      // already train subscribers to recognise as "social links here".
+      return `<td style="padding:0 6px;">
+           <a href="${l.url}" style="display:block;width:32px;height:32px;line-height:32px;text-align:center;background:${COLOR.panel};border:1px solid ${COLOR.accent};border-radius:50%;font-family:${FONT.display};font-weight:600;font-size:12px;color:${COLOR.accent};text-decoration:none;">
+             <table role="presentation" width="100%" height="100%" cellpadding="0" cellspacing="0"><tr><td align="center" valign="middle">${inner}</td></tr></table>
+           </a>
+         </td>`;
+    })
     .join("");
   return `<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:14px auto 0;"><tr>${cells}</tr></table>`;
 }
