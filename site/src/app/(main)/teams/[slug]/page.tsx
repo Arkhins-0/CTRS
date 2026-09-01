@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CountryFlag } from "@ctr/ui";
 import { DriverRoundel } from "@/components/racing/category-ui";
+import { DriverIdentityCard } from "@/components/racing/driver-identity-card";
 import { readableOn, shadeHex } from "@/components/racing/colors";
 import { getTeamDetail } from "@/components/racing/data";
 import { FactCard, HalftoneWash, StatCard } from "@/components/racing/profile-ui";
@@ -127,58 +128,17 @@ export default async function TeamPage({ params }: Props) {
                   ) : null}
                 </div>
                 <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6 xl:grid-cols-4">
-                  {group.drivers.map((d) => {
-                    const shot = mediaUrl(d.headshotPath);
-                    const initials =
-                      `${d.firstName[0] ?? ""}${d.lastName[0] ?? ""}`.toUpperCase();
-                    return (
-                      <Link
-                        key={d.slug}
-                        href={`/drivers/${d.slug}`}
-                        className="race-line group flex justify-between gap-3 overflow-clip rounded-md border border-surface-4 bg-surface-1 p-4"
-                      >
-                        <div className="flex min-w-0 flex-col">
-                          <p className="font-script text-3xl leading-none text-text-4">
-                            {d.firstName}
-                          </p>
-                          <p className="display-l font-bold uppercase text-text-5 group-hover:underline">
-                            {d.lastName}
-                          </p>
-                          <p
-                            className="font-digits mt-2 text-2xl font-bold leading-none"
-                            style={{ color: teamDark }}
-                          >
-                            {d.carNumber}
-                          </p>
-                          <span className="flex-1" aria-hidden />
-                          <CountryFlag code={d.countryCode} className="text-xl leading-none" />
-                        </div>
-                        {/* headshot on a team-colour halftone tile */}
-                        <span
-                          className="relative h-36 w-28 shrink-0 self-end overflow-hidden rounded-md"
-                          style={{ backgroundColor: color, color: fg }}
-                        >
-                          <HalftoneWash fg={fg} />
-                          {shot ? (
-                            <Image
-                              src={shot}
-                              alt={`${d.firstName} ${d.lastName}`}
-                              fill
-                              sizes="112px"
-                              className="card-img object-cover object-top"
-                            />
-                          ) : (
-                            <span
-                              aria-hidden
-                              className="absolute inset-0 flex items-center justify-center font-display text-3xl font-black opacity-60"
-                            >
-                              {initials}
-                            </span>
-                          )}
-                        </span>
-                      </Link>
-                    );
-                  })}
+                  {group.drivers.map((d) => (
+                    <DriverIdentityCard
+                      key={d.slug}
+                      driver={d}
+                      teamColor={color}
+                      teamName={name}
+                      carNumber={d.carNumber}
+                      category={group.category}
+                      size="sm"
+                    />
+                  ))}
                 </div>
               </div>
             ))}

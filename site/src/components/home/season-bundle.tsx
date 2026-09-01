@@ -8,13 +8,14 @@ import type {
   DriverStandingRow,
   ScheduleGp,
 } from "@/components/racing/data";
+import { DriverIdentityCard } from "@/components/racing/driver-identity-card";
 import { formatDateRange, roundLabel } from "@/components/racing/meta";
 import { HalftoneWash } from "@/components/racing/profile-ui";
 import {
   ConstructorStandingsTable,
   DriverStandingsTable,
 } from "@/components/racing/standings-tables";
-import { mediaUrl, placeholderStyle } from "@/lib/media";
+import { mediaUrl } from "@/lib/media";
 import { RacingLine } from "./band";
 import { StandingsTabs } from "./standings-tabs";
 
@@ -59,74 +60,17 @@ function PodiumCard({
   tall?: boolean;
   orderClass?: string;
 }) {
-  const color = row.team?.color ?? "#67676d";
-  const fg = readableOn(color);
-  const headshot = mediaUrl(row.driver.headshotPath);
-
   return (
-    <article
-      className={`group relative flex overflow-hidden rounded-md ${orderClass} ${podiumHeight(tall)}`}
-      style={{ backgroundColor: color, color: fg }}
-    >
-      <HalftoneWash fg={fg} />
-      <span
-        aria-hidden
-        className="absolute inset-y-0 left-0 w-1.5"
-        style={{ backgroundColor: shadeHex(color, -0.4) }}
-      />
-
-      {headshot ? (
-        <span className="pointer-events-none absolute bottom-0 right-0 aspect-square w-[150px] md:w-[210px] lg:w-[240px]">
-          <Image
-            src={headshot}
-            alt=""
-            fill
-            sizes="240px"
-            className="object-contain object-bottom"
-          />
-        </span>
-      ) : (
-        <span
-          aria-hidden
-          className="technical-l pointer-events-none absolute bottom-4 right-4 flex h-16 w-16 items-center justify-center rounded-full font-bold text-white/70 lg:h-20 lg:w-20"
-          style={placeholderStyle(row.driver.code)}
-        >
-          {row.driver.code}
-        </span>
-      )}
-
-      <div className="relative z-10 flex flex-1 flex-col gap-2 px-4 py-3">
-        <PodiumPosition position={row.position} />
-
-        <Link
-          href={`/drivers/${row.driver.slug}`}
-          className="flex max-w-[60%] flex-col after:absolute after:inset-0 group-hover:underline"
-        >
-          <span className="display-l font-normal">{row.driver.firstName}</span>
-          <span className="display-l font-medium uppercase">{row.driver.lastName}</span>
-        </Link>
-
-        {row.team ? (
-          <span className="display-s max-w-[60%] font-normal opacity-75">
-            {row.team.shortName}
-          </span>
-        ) : null}
-
-        {row.driver.countryCode ? (
-          <CountryFlag
-            code={row.driver.countryCode}
-            className="hidden text-lg leading-none md:block"
-          />
-        ) : null}
-
-        <span className="flex-1" aria-hidden />
-
-        <p className="flex items-baseline gap-1">
-          <span className="technical-xl font-bold">{row.points}</span>
-          <span className="technical-xs font-bold">PTS</span>
-        </p>
-      </div>
-    </article>
+    <DriverIdentityCard
+      driver={row.driver}
+      teamColor={row.team?.color}
+      teamName={row.team?.shortName}
+      carNumber={row.carNumber}
+      position={row.position}
+      points={row.points}
+      size={tall ? "lg" : "md"}
+      className={orderClass}
+    />
   );
 }
 

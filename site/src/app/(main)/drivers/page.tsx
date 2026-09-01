@@ -48,7 +48,7 @@ export default async function DriversPage() {
               ) : null}
               <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-6 xl:grid-cols-4">
                 {drivers.map((driver) => (
-                  <DriverCard key={driver.slug} driver={driver} />
+                  <DriverCard key={driver.slug} driver={driver} category={category} />
                 ))}
               </div>
             </section>
