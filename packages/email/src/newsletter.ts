@@ -106,7 +106,10 @@ function sponsorStrip(sponsors: SponsorLogo[]): string {
     .slice(0, 6)
     .map(
       (s) =>
-        `<td style="padding:0 14px;"><a href="${s.url}"><img src="${s.logoUrl}" alt="${escapeHtml(s.name)}" height="26" style="display:block;height:26px;width:auto;opacity:0.85;" /></a></td>`,
+        // White plate behind every logo: partner artwork is drawn for light
+        // grounds (JK Tyre/FMSCI are near-black) and vanished on the dark
+        // band — same fix as the site footer's partner tiles.
+        `<td style="padding:0 7px;"><a href="${s.url}" style="display:block;background:#ffffff;border-radius:3px;padding:6px 10px;"><img src="${s.logoUrl}" alt="${escapeHtml(s.name)}" height="24" style="display:block;height:24px;width:auto;" /></a></td>`,
     )
     .join("");
   return `

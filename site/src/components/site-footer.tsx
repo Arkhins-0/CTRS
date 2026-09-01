@@ -99,17 +99,20 @@ export async function SiteFooter() {
                 const url = mediaUrl(p.logo?.path);
                 return (
                   <li key={p.id}>
-                    <span className="block w-[72px] rounded-md p-2 transition-colors hover:bg-static-7 md:w-[88px] lg:w-[96px]">
+                    {/* Every logo sits on a white tile: partner artwork is
+                        drawn for light grounds (JK Tyre and FMSCI are near-
+                        black), so on the dark band they simply vanished. */}
+                    <span className="block w-24 rounded-md bg-white p-2.5 shadow-sm transition-transform hover:scale-105 md:w-28 lg:w-32">
                       {url ? (
                         <Image
                           src={url}
                           alt={p.name}
-                          width={96}
-                          height={54}
+                          width={128}
+                          height={72}
                           className="aspect-video w-full object-contain"
                         />
                       ) : (
-                        <span className="body-xs flex aspect-video w-full items-center justify-center text-center font-bold uppercase text-static-4">
+                        <span className="body-xs flex aspect-video w-full items-center justify-center text-center font-bold uppercase text-static-8">
                           {p.name}
                         </span>
                       )}
