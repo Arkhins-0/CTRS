@@ -99,7 +99,10 @@ export function EventTracker({ data }: { data: TrackerData }) {
               </Link>
               <div className="flex items-center gap-3">
                 {data.live ? (
-                  <span className="rounded-sm bg-live-blue px-2 py-0.5 text-[11px] font-bold uppercase leading-4 text-white">
+                  <span
+                    className="rounded-sm bg-live-blue px-2 py-0.5 text-[11px] uppercase leading-4 tracking-wide text-white"
+                    style={{ fontFamily: "var(--font-poster)" }}
+                  >
                     Live
                   </span>
                 ) : null}

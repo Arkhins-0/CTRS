@@ -137,6 +137,11 @@
   --font-digits: var(--font-jetbrains), "Consolas", monospace;
   --font-numeric: var(--font-jetbrains), "Consolas", monospace;
   --font-script: var(--font-caveat), cursive;
+  /* Impact: forward-leaning weight for short, FIXED headings only (a season
+     band's "2026 Season", not arbitrary article titles). Poster: the LIVE
+     badge's chunky face — see packages/ui/fonts.ts for why these exist. */
+  --font-impact: var(--font-exo2), var(--font-rajdhani), sans-serif;
+  --font-poster: var(--font-bungee), var(--font-rajdhani), sans-serif;
 
   /* Breakpoints (F1 system: 735 / 1069 / 1696) */
   --breakpoint-md: 735px;

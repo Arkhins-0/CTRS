@@ -34,12 +34,15 @@ export function Tag({
   const skins: Record<string, string> = {
     brand: "bg-brand text-brand-fg",
     breaking: "bg-breaking-yellow text-black",
-    live: "bg-live-blue text-white",
+    // Poster face + a touch of tracking: the one badge on the site built
+    // to read as a stamp rather than a label — see globals.css --font-poster.
+    live: "bg-live-blue text-white tracking-wide",
     secondary: "bg-white/10 text-text-5",
   };
   return (
     <span
       className={`body-2xs inline-flex items-center gap-1 whitespace-nowrap rounded-xs px-1 py-0.5 font-bold uppercase ${skins[variant]}`}
+      style={variant === "live" ? { fontFamily: "var(--font-poster)" } : undefined}
     >
       {variant === "live" ? (
         <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />

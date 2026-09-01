@@ -138,7 +138,15 @@ export function SeasonStandingsBand({
       <div className="f1-inner flex flex-col gap-6 py-6 md:py-8 lg:gap-8">
         <div className="flex flex-col gap-4 lg:gap-6">
           <RacingLine />
-          <h2 className="display-2xl lg:display-3xl font-black uppercase">{year} Season</h2>
+          {/* The one "poster" moment on the page: impact face, italic
+              slant — see globals.css --font-impact for why it's scoped
+              to this fixed heading and nowhere near article titles. */}
+          <h2
+            className="display-2xl lg:display-3xl italic uppercase"
+            style={{ fontFamily: "var(--font-impact)", fontWeight: 900 }}
+          >
+            {year} Season
+          </h2>
           <p className="body-xs text-text-3">
             {categoryName}
             {note ? ` · ${note}` : ""}

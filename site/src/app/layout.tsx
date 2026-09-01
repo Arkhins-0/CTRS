@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { caveat, jetbrainsMono, rajdhani, titillium } from "@ctr/ui/fonts";
+import { bungee, caveat, exo2, jetbrainsMono, rajdhani, titillium } from "@ctr/ui/fonts";
 import { PwaRegister } from "@/components/push/pwa-register";
 import { ThemeStyle } from "@/components/theme-style";
 import "./globals.css";
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${titillium.variable} ${rajdhani.variable} ${jetbrainsMono.variable} ${caveat.variable}`}
+      className={`${titillium.variable} ${rajdhani.variable} ${jetbrainsMono.variable} ${caveat.variable} ${exo2.variable} ${bungee.variable}`}
     >
       <head>
         <ThemeStyle />
