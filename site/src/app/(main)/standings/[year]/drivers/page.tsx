@@ -8,6 +8,7 @@ import {
   getStandingsSubTypes,
 } from "@/components/racing/data";
 import { formatDateRange } from "@/components/racing/meta";
+import { PodiumBand } from "@/components/racing/podium-card";
 import { ResultsHub } from "@/components/racing/results-hub";
 import {
   CategoryDropdown,
@@ -95,7 +96,10 @@ export default async function DriverStandingsPage({ params, searchParams }: Prop
           The {activeCategory.name} entry list has not been announced yet.
         </StandingsEmpty>
       ) : (
-        <DriverStandingsTable rows={standings.rows} />
+        <>
+          <PodiumBand rows={standings.rows} />
+          <DriverStandingsTable rows={standings.rows} />
+        </>
       )}
     </ResultsHub>
   );

@@ -585,6 +585,7 @@ export type DriverStandingRow = {
     lastName: string;
     code: string;
     countryCode: string | null;
+    headshotPath: string | null;
   };
   team: { shortName: string; color: string; teamSlug: string } | null;
 };
@@ -645,7 +646,7 @@ export function getDriverStandingsForSeason(
               whereEq(s.standingsType, standingsType),
             ),
           orderBy: (s, { asc }) => [asc(s.position)],
-          with: { driver: true },
+          with: { driver: { with: { headshot: true } } },
         }),
         db.query.driverSeasonEntries.findMany({
           where: (e, { and: whereAnd, eq: whereEq }) =>
@@ -674,6 +675,7 @@ export function getDriverStandingsForSeason(
               lastName: s.driver.lastName,
               code: s.driver.code,
               countryCode: s.driver.countryCode,
+              headshotPath: s.driver.headshot?.path ?? null,
             },
             team: entry
               ? {

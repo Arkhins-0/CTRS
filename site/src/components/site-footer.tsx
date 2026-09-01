@@ -19,23 +19,17 @@ const SOCIAL_ICONS: Record<string, typeof Instagram> = {
   youtube: Youtube,
 };
 
-/** Decorative racing-line separator (brand colour), stretched full width. */
-function RacingLine({ className = "" }: { className?: string }) {
+/** Decorative footer separator: a chequered finish-line strip (reusing the
+ *  same .chequer texture the header backdrop and fan-zone card already use)
+ *  banded by brand-colour hairlines, standing in for a plain coloured
+ *  squiggle with something that actually reads as "the race is done here." */
+function FinishLine({ className = "" }: { className?: string }) {
   return (
-    <svg
-      aria-hidden
-      viewBox="0 0 1200 16"
-      preserveAspectRatio="none"
-      className={`h-4 w-full ${className}`}
-    >
-      <path
-        d="M0 13 C 120 13, 170 3, 300 3 S 480 13, 620 13 S 830 2, 950 3 S 1130 12, 1200 8"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-      />
-    </svg>
+    <span className={`block w-full ${className}`}>
+      <span aria-hidden className="block h-0.75 w-full bg-brand" />
+      <span aria-hidden className="chequer block h-4 w-full bg-black text-white" />
+      <span aria-hidden className="block h-0.75 w-full bg-brand" />
+    </span>
   );
 }
 
@@ -166,9 +160,9 @@ export async function SiteFooter() {
             ))}
           </div>
 
-          {/* Racing-line separator */}
+          {/* Finish-line separator */}
           <div role="separator" className="flex items-center gap-6 pb-8 pt-12 lg:pt-16">
-            <RacingLine className="text-brand" />
+            <FinishLine className="rounded-xs overflow-hidden" />
             <CtrLogo height={24} className="shrink-0" />
           </div>
 
