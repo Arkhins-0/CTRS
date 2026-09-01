@@ -228,7 +228,13 @@ export function MediaPickerInput({
         <div className="mb-2 border border-line bg-page p-1">
           {selected.url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={selected.url} alt="" className="max-h-40 w-full object-cover" />
+            <img
+              src={selected.url}
+              alt=""
+              /* object-CONTAIN on a panel ground: previews must show the
+                 whole asset — cover was cropping wide logo art to a strip. */
+              className="max-h-48 w-full rounded-sm bg-panel object-contain p-2"
+            />
           ) : (
             <p className="p-3 text-center text-xs text-fg-muted">Image selected</p>
           )}

@@ -158,7 +158,7 @@ export default async function ChampionshipEditorPage({
       />
 
       {/* ── Championship details ─────────────────────────────────────────── */}
-      <Card className="max-w-4xl">
+      <Card>
         <h2 className="mb-4 text-sm font-black uppercase tracking-wide">Championship details</h2>
         <form action={updateChampionshipAction}>
           <ChampionshipFormFields championship={championship} logoThumbUrl={logoThumb} />

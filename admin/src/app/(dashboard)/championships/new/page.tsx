@@ -17,7 +17,7 @@ export default async function NewChampionshipPage() {
         actions={<LinkButton href="/championships" variant="ghost">Back to championships</LinkButton>}
       />
 
-      <Card className="max-w-3xl">
+      <Card>
         <form action={createChampionshipAction}>
           <ChampionshipFormFields />
         </form>
