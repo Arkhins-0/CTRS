@@ -1076,6 +1076,10 @@ export type TeamIndexCard = {
   color: string;
   base: string | null;
   principal: string | null;
+  /** Team mark for the card roundel. */
+  logoPath: string | null;
+  /** Cutout car render (transparent background) for the card's lower right. */
+  carImagePath: string | null;
   driverCount: number;
   /** Line-up shown as chips on the team card (one entry per driver). */
   drivers: {
@@ -1097,7 +1101,12 @@ export function getTeamsIndex(year: number): Promise<TeamIndexCard[]> {
       const entries = await db.query.teamSeasonEntries.findMany({
         where: (e, { eq: whereEq }) => whereEq(e.championshipSeasonId, season.id),
         with: {
-          team: true,
+          team: { with: { logo: true } },
+          carImage: true,
+          // Fallback source: the entry's own car image is the season's
+          // artwork, but a team that only filled in its car record still
+          // gets a render on the card.
+          car: { with: { image: true } },
           driverEntries: {
             with: { category: true, driver: { with: { headshot: true } } },
           },
@@ -1130,6 +1139,8 @@ export function getTeamsIndex(year: number): Promise<TeamIndexCard[]> {
           color: entry.primaryColor,
           base: entry.team.base,
           principal: entry.teamPrincipal,
+          logoPath: entry.team.logo?.path ?? null,
+          carImagePath: entry.carImage?.path ?? entry.car?.image?.path ?? null,
           driverCount: byDriver.size,
           drivers: [...byDriver.values()]
             .sort((a, b) => a.carNumber - b.carNumber)

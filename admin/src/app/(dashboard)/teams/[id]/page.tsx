@@ -171,8 +171,12 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
                   initialUrl={entry.logo ? publicUrl(variantKey(entry.logo.path, "thumb")) : null}
                 />
               </Field>
-              <Field label="Car image" hint="Season car shot for team/car pages.">
+              <Field
+                label="Car image"
+                hint="Cutout car render on a transparent background — it sits straight on the team colour."
+              >
                 <MediaPickerInput
+                  defaultFolder="teams/cars"
                   name="carImageMediaId"
                   initialId={entry.carImageMediaId}
                   initialUrl={entry.carImage ? publicUrl(variantKey(entry.carImage.path, "thumb")) : null}
@@ -219,8 +223,13 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
                 <Field label="Note">
                   <Input name="note" maxLength={500} defaultValue={specs.note ?? ""} />
                 </Field>
-                <Field label="Car image (media)" className="sm:col-span-3" hint="Studio/side-on car render.">
+                <Field
+                  label="Car image (media)"
+                  className="sm:col-span-3"
+                  hint="Side-on car render, transparent background."
+                >
                   <MediaPickerInput
+                    defaultFolder="teams/cars"
                     name="imageMediaId"
                     initialId={entry.car?.imageMediaId}
                     initialUrl={

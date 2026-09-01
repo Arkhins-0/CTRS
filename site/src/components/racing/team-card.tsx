@@ -1,12 +1,11 @@
-import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { mediaUrl } from "@/lib/media";
-import { CategoryBadge } from "./category-ui";
 import { readableOn, shadeHex } from "./colors";
 import type { TeamIndexCard } from "./data";
+import { HalftoneWash } from "./profile-ui";
 
-/** 2–3 letter roundel stand-in for the team logo (we hold no logo artwork). */
+/** 2–3 letter roundel stand-in, used only until a team uploads a logo. */
 function teamInitials(name: string): string {
   const words = name.split(/[\s-]+/).filter(Boolean);
   if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
@@ -18,9 +17,13 @@ function teamInitials(name: string): string {
 }
 
 /**
- * F1 team card: the bright team colour as the card surface, a 315° dark scrim
- * anchored top-left for text legibility, a DRS chevron strip pinned bottom-right
- * and the line-up as avatar chips. Whole card links; only the name underlines.
+ * Team card — the same language as the driver card: the flat team colour
+ * under a halftone dot screen, the team mark in a darkened roundel top-right
+ * and the car render bleeding off the bottom-right corner.
+ *
+ * The car artwork is expected to be a cutout on a transparent background;
+ * it is composited straight onto the team colour with no plate behind it,
+ * so anything with a baked-in white background will show as a box.
  */
 export function TeamCard({
   team,
@@ -29,31 +32,37 @@ export function TeamCard({
   team: TeamIndexCard;
   className?: string;
 }) {
-  const dark = shadeHex(team.color, -0.45);
+  const dark = shadeHex(team.color, -0.35);
   const fg = readableOn(team.color);
+  const logo = mediaUrl(team.logoPath);
+  const car = mediaUrl(team.carImagePath);
 
   return (
     <Link
       href={`/teams/${team.slug}`}
-      className={`group relative z-0 flex min-h-[256px] flex-col overflow-hidden rounded-md p-4 text-white lg:p-6 ${className}`}
-      style={{ "--team": team.color, backgroundColor: team.color } as CSSProperties}
+      className={`group relative z-0 flex min-h-[256px] flex-col overflow-hidden rounded-lg p-4 lg:p-6 ${className}`}
+      style={{ backgroundColor: team.color, color: fg }}
     >
-      {/* dark scrim — solid top-left, clearing toward the bottom-right */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-10"
-        style={{ background: `linear-gradient(315deg, transparent 0%, ${dark} 100%)` }}
-      />
-      {/* DRS chevron strip, bottom-right */}
-      <span
-        aria-hidden
-        className="drs drs-flip pointer-events-none absolute -bottom-0.5 right-0 z-10 h-32 w-2/3 lg:h-[150px]"
-      />
+      <HalftoneWash fg={fg} />
+
+      {/* car render — cutout PNG/WebP with a transparent background, sitting
+          directly on the team colour and running off the bottom edge */}
+      {car ? (
+        <span className="pointer-events-none absolute -bottom-1 right-0 z-10 h-28 w-[70%] lg:h-36">
+          <Image
+            src={car}
+            alt=""
+            fill
+            sizes="(max-width: 735px) 70vw, 420px"
+            className="card-img object-contain object-bottom-right"
+          />
+        </span>
+      ) : null}
 
       <div className="relative z-20 flex h-full flex-col gap-[22px] lg:gap-9">
         <div className="flex items-start justify-between gap-6">
           <div className="flex flex-col gap-3">
-            <p className="display-l lg:display-xl font-medium group-hover:underline">
+            <p className="display-l lg:display-xl font-bold group-hover:underline">
               {team.displayName}
             </p>
             {team.drivers.length ? (
@@ -64,7 +73,7 @@ export function TeamCard({
                     <span key={d.slug} className="flex items-center gap-2 rounded-sm">
                       <span
                         className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full"
-                        style={{ backgroundColor: team.color }}
+                        style={{ backgroundColor: dark }}
                       >
                         {shot ? (
                           <Image
@@ -77,7 +86,7 @@ export function TeamCard({
                         ) : (
                           <span
                             className="text-[9px] font-bold leading-none"
-                            style={{ color: fg }}
+                            style={{ color: readableOn(dark) }}
                           >
                             {d.carNumber}
                           </span>
@@ -98,25 +107,38 @@ export function TeamCard({
             )}
           </div>
 
-          {/* logo roundel */}
+          {/* logo roundel — the real team mark, initials only as a fallback */}
           <span
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
+            className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full lg:h-16 lg:w-16"
             style={{ backgroundColor: dark }}
           >
-            <span className="font-display text-sm font-medium leading-none text-white">
-              {teamInitials(team.shortName || team.displayName)}
-            </span>
+            {logo ? (
+              <Image
+                src={logo}
+                alt=""
+                fill
+                sizes="64px"
+                className="object-contain p-2"
+              />
+            ) : (
+              <span
+                className="font-display text-sm font-bold leading-none"
+                style={{ color: readableOn(dark) }}
+              >
+                {teamInitials(team.shortName || team.displayName)}
+              </span>
+            )}
           </span>
         </div>
 
         {/* base / principal / categories fill the card's lower half */}
-        <div className="mt-auto flex flex-col gap-3">
+        <div className="mt-auto flex max-w-[60%] flex-col gap-3">
           {team.categories.length ? (
             <div className="flex flex-wrap gap-1.5">
               {team.categories.map((c) => (
                 <span
                   key={c.slug}
-                  className="rounded-xs border border-white/50 px-1.5 py-0.5 text-[11px] font-bold uppercase leading-4 text-white"
+                  className="rounded-xs border border-current px-1.5 py-0.5 text-[11px] font-bold uppercase leading-4 opacity-80"
                 >
                   {c.shortName}
                 </span>
@@ -126,15 +148,13 @@ export function TeamCard({
           <dl className="flex flex-wrap gap-x-8 gap-y-2">
             {team.base ? (
               <div>
-                <dt className="body-2xs font-semibold uppercase text-white/70">Base</dt>
+                <dt className="body-2xs font-semibold uppercase opacity-70">Base</dt>
                 <dd className="body-xs font-bold">{team.base}</dd>
               </div>
             ) : null}
             {team.principal ? (
               <div>
-                <dt className="body-2xs font-semibold uppercase text-white/70">
-                  Team Principal
-                </dt>
+                <dt className="body-2xs font-semibold uppercase opacity-70">Team Principal</dt>
                 <dd className="body-xs font-bold">{team.principal}</dd>
               </div>
             ) : null}
