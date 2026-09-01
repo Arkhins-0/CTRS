@@ -93,7 +93,7 @@ export default async function DriverPage({ params }: Props) {
             <div className="relative z-10 flex min-h-[300px] flex-col p-5 md:min-h-[360px] md:p-8 lg:min-h-[420px] lg:p-10">
               <div className="flex flex-wrap items-center gap-2.5">
                 {driver.current?.category ? (
-                  <CategoryBadge category={driver.current.category} />
+                  <CategoryBadge category={driver.current.category} inheritColor />
                 ) : null}
                 <CountryFlag code={driver.countryCode} className="text-xl leading-none" />
                 <span className="body-xs font-bold uppercase opacity-80">{driver.code}</span>

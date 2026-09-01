@@ -139,14 +139,9 @@ export function DriverIdentityCard({
               <span className="technical-2xs mt-1 font-bold">{ordinalSuffix(position)}</span>
             </span>
           ) : null}
-          {category ? (
-            <CategoryBadge
-              category={category}
-              /* the badge borrows the card's own ink so it reads on any
-                 team colour, rather than its class colour on a clashing one */
-              className="border-current text-current opacity-80"
-            />
-          ) : null}
+          {/* Badge in the card's own ink, matching the name — the class
+              colour on an arbitrary team colour is a coin toss. */}
+          {category ? <CategoryBadge category={category} inheritColor /> : null}
           <CountryFlag code={driver.countryCode} className="text-base leading-none" />
           <span className="body-2xs font-bold uppercase opacity-70">{driver.code}</span>
         </div>

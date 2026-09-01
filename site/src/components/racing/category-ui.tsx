@@ -16,14 +16,30 @@ export type CategoryRef = {
 export function CategoryBadge({
   category,
   className = "",
+  inheritColor = false,
 }: {
   category: Pick<CategoryRef, "shortName" | "color">;
   className?: string;
+  /**
+   * Draw in the surrounding text colour instead of the class colour, for
+   * badges on a team-coloured card. The class colour and the team colour are
+   * unrelated values, so they collide sooner or later — ISC is #E10600 and
+   * so is Kovai, which left a red badge invisible on a red card.
+   *
+   * Note this cannot be done by passing text-current in `className`: the
+   * inline style below always wins over a class, which is exactly why an
+   * earlier attempt at it silently did nothing.
+   */
+  inheritColor?: boolean;
 }) {
   return (
     <span
       className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-xs border px-1.5 py-0.5 text-[11px] font-bold uppercase leading-4 ${className}`}
-      style={{ borderColor: category.color, color: category.color }}
+      style={
+        inheritColor
+          ? { borderColor: "currentColor", color: "currentColor" }
+          : { borderColor: category.color, color: category.color }
+      }
     >
       {category.shortName}
     </span>
