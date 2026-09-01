@@ -5,10 +5,15 @@
  * unmistakably the same product rather than two different design systems
  * that happen to share a yellow button.
  *
- * Every token here is the SAME hex value as the admin console's dark palette
- * (admin/src/app/globals.css) — deliberately, so the whole product (console
- * + email) reads as one system rather than email getting its own palette.
+ * The ground is true black, not the admin console's blue-charcoal (#15151E).
+ * The two used to match exactly (and email inherited that palette from
+ * admin on purpose — see the git history on this file); direct feedback on
+ * a real inbox screenshot was that it read as "charcoal," not black, and
+ * black was what people actually wanted here. This is a deliberate,
+ * scoped divergence: only email moved, admin's own console keeps its
+ * existing palette, and nothing here implies admin should follow.
  *
+
  * Email-specific constraints shape everything below: Outlook's desktop
  * renderer uses Word's HTML engine, which supports NEITHER <style> blocks in
  * a way that reliably cascades NOR CSS grid/flexbox/gradients/clip-path — so
@@ -18,16 +23,16 @@
  */
 
 export const COLOR = {
-  page: "#15151E", // outer background — matches the admin console's page token
-  surface: "#1F1F2B", // the card
-  panel: "#2A2A38", // nested blocks, table headers, alternating rows
-  line: "#38384A", // hairline borders — depth comes from these, never shadows
+  page: "#0A0A0A", // outer background — true black, not blue-charcoal
+  surface: "#141414", // the card
+  panel: "#1E1E1E", // nested blocks, table headers, alternating rows
+  line: "#2E2E2E", // hairline borders — depth comes from these, never shadows
   fg: "#FBFBFB",
   fgMuted: "#A9A9B4",
   fgFaint: "#7A7A88",
   accent: "#F7D619",
   accentDark: "#E0BF06",
-  accentInk: "#15151E", // the only colour allowed to sit on top of accent
+  accentInk: "#0A0A0A", // the only colour allowed to sit on top of accent
   danger: "#F0605F",
   positive: "#34D399",
 } as const;
@@ -63,11 +68,18 @@ export const FONT_FACES = `
 const DEFAULT_ADMIN_ORIGIN = "https://admin.ctr.arkhins.com";
 
 /**
- * The CTR mark, hosted at the admin console's own /ctr-logo.webp — the exact
- * asset the console header already uses, so the logo in an inbox and the
- * logo in the product are the same file. A 16:9 lockup with a transparent
- * ground, designed for a near-black surface, which is exactly what this
- * palette provides everywhere it appears.
+ * The CTR mark, hosted at the admin console's own /ctr-logo-email.png — a
+ * PNG copy of the exact artwork the console header uses (/ctr-logo.webp),
+ * not the WebP itself. Several mail providers proxy and re-encode remote
+ * images before displaying them (Gmail's image proxy chief among them),
+ * and that pipeline has a real history of flattening WebP alpha onto a
+ * solid black canvas instead of preserving transparency — the source was
+ * genuinely fully transparent (alpha 0..255, verified), but showed up
+ * inside a visible dark box in a real inbox. PNG transparency support is
+ * universal across every mail client and every provider's proxy, so the
+ * logo gets its own PNG rendition (resized to 600px — comfortable retina
+ * headroom for the ~132px this ever renders at, without shipping the
+ * source's full 1024px).
  *
  * packages/email stays dependency-free (no db, no required env), so this
  * reads ADMIN_URL directly with a production fallback rather than requiring
@@ -77,7 +89,7 @@ const DEFAULT_ADMIN_ORIGIN = "https://admin.ctr.arkhins.com";
  */
 export function logoUrl(): string {
   const base = (process.env.ADMIN_URL || DEFAULT_ADMIN_ORIGIN).replace(/\/+$/, "");
-  return `${base}/ctr-logo.webp`;
+  return `${base}/ctr-logo-email.png`;
 }
 
 const px = (n: number) => `${n}px`;
