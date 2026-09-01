@@ -12,8 +12,10 @@
    PWA icons and the gold eagle mark all already live on near-black.
 
    What deliberately diverges from F1.com:
-   - WARM charcoal ground (R ≥ G ≥ B, tinted toward the gold), not their
-     cool blue-black #15151E. The whole ramp carries the tint.
+   - TRUE neutral black ground (R = G = B, no tint at all), not their cool
+     blue-black #15151E — an earlier pass here tried a warm charcoal tint
+     toward the gold; direct feedback on it, twice, was "I need black," so
+     the ramp is now genuinely neutral, all the way down.
    - Gold #F7D619 as the single accent, treated as scarce: CTAs, live
      states, leaders. Never decoration-everywhere the way their red is.
    - Rajdhani/Titillium/JetBrains Mono (all OFL), not their corporate faces.
@@ -35,42 +37,44 @@
 
 :root {
   /* 1 = card (lightest of the dark steps) · 2 = page · 3 = band ·
-     4 = hairline · 5..11 climb toward white for contrast elements. */
-  --f1-surface-1: #201c18;
-  --f1-surface-2: #131110;
-  --f1-surface-3: #181512;
-  --f1-surface-4: #2e2924;
-  --f1-surface-5: #3b352e;
-  --f1-surface-6: #524a40;
-  --f1-surface-7: #7a7163;
-  --f1-surface-8: #9e9587;
-  --f1-surface-9: #c4bcaf;
-  --f1-surface-10: #eae5dc;
+     4 = hairline · 5..11 climb toward white for contrast elements.
+     Neutral grey throughout — R = G = B on every step, no warm or cool
+     tint anywhere in the ramp. */
+  --f1-surface-1: #1a1a1a;
+  --f1-surface-2: #0a0a0a;
+  --f1-surface-3: #121212;
+  --f1-surface-4: #262626;
+  --f1-surface-5: #333333;
+  --f1-surface-6: #4d4d4d;
+  --f1-surface-7: #737373;
+  --f1-surface-8: #999999;
+  --f1-surface-9: #c2c2c2;
+  --f1-surface-10: #e6e6e6;
   --f1-surface-11: #ffffff;
-  --f1-text-1: #131110;
-  --f1-text-2: #181512;
-  --f1-text-3: #a89f92;
-  --f1-text-4: #eae5dd;
-  --f1-text-5: #f9f7f3;
+  --f1-text-1: #0a0a0a;
+  --f1-text-2: #121212;
+  --f1-text-3: #a3a3a3;
+  --f1-text-4: #ededed;
+  --f1-text-5: #fafafa;
 }
 
 .dark-section {
-  --f1-surface-1: #17130f;
-  --f1-surface-2: #0a0908;
-  --f1-surface-3: #0d0b0a;
-  --f1-surface-4: #272119;
-  --f1-surface-5: #332c22;
-  --f1-surface-6: #4a4136;
-  --f1-surface-7: #776d5e;
-  --f1-surface-8: #9c9285;
-  --f1-surface-9: #c2baae;
-  --f1-surface-10: #e9e4db;
+  --f1-surface-1: #141414;
+  --f1-surface-2: #050505;
+  --f1-surface-3: #080808;
+  --f1-surface-4: #202020;
+  --f1-surface-5: #2b2b2b;
+  --f1-surface-6: #404040;
+  --f1-surface-7: #666666;
+  --f1-surface-8: #8c8c8c;
+  --f1-surface-9: #b8b8b8;
+  --f1-surface-10: #e0e0e0;
   --f1-surface-11: #ffffff;
-  --f1-text-1: #0d0b0a;
-  --f1-text-2: #17130f;
-  --f1-text-3: #a29a8d;
-  --f1-text-4: #ece8e1;
-  --f1-text-5: #faf8f4;
+  --f1-text-1: #050505;
+  --f1-text-2: #141414;
+  --f1-text-3: #999999;
+  --f1-text-4: #e8e8e8;
+  --f1-text-5: #fafafa;
   color: var(--f1-text-4);
 }
 
