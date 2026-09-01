@@ -37,7 +37,7 @@ export function Tag({
     // Poster face + a touch of tracking: the one badge on the site built
     // to read as a stamp rather than a label — see globals.css --font-poster.
     live: "bg-live-blue text-white tracking-wide",
-    secondary: "bg-white/10 text-text-5",
+    secondary: "bg-black/10 text-text-5",
   };
   return (
     <span

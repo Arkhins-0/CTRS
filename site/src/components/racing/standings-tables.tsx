@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { CountryFlag } from "@ctr/ui";
-import { CategoryDot } from "./category-ui";
+import { CategoryDot, DriverRoundel, TeamRoundel } from "./category-ui";
 import type { ConstructorStandingRow, DriverStandingRow } from "./data";
 
 /* ── Standings tables + filters (F1 results-table primitives) ──────────────
@@ -20,17 +20,6 @@ function TableCard({ children }: { children: React.ReactNode }) {
     <div className="rounded-md border border-surface-4 bg-surface-1 px-12 py-8 md:px-16 md:py-10 lg:py-12">
       <div className="snap-x overflow-x-auto">{children}</div>
     </div>
-  );
-}
-
-/** 20px team-colour disc (avatar slot of the driver/team chip). */
-function TeamDisc({ color }: { color?: string | null }) {
-  return (
-    <span
-      aria-hidden
-      className="h-5 w-5 shrink-0 rounded-full"
-      style={{ backgroundColor: color ?? "var(--f1-surface-4)" }}
-    />
   );
 }
 
@@ -71,7 +60,7 @@ export function CategoryDropdown({
             key={c.slug}
             href={hrefFor(c.slug)}
             aria-current={c.slug === activeSlug ? "page" : undefined}
-            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-white/10"
+            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-black/5"
           >
             <CategoryDot color={c.color} className="h-2 w-2" />
             {c.name}
@@ -132,17 +121,19 @@ export function DriverStandingsTable({ rows }: { rows: DriverStandingRow[] }) {
         <tbody className="body-s font-semibold text-text-5">
           {rows.map((row) => (
             <tr key={row.driver.slug} className="border-b border-surface-4 last:border-0">
-              {/* Numerals in the timing face: the leader's position carries
-                  the gold, the way a timing tower marks P1. */}
-              <td className={`${TD} technical-m ${row.position === 1 ? "text-brand" : ""}`}>
-                {row.position}
-              </td>
+              {/* Numerals in the timing face. (No gold on P1 here — gold text
+                  has no contrast on a white card; the podium band above the
+                  table is what celebrates the leader.) */}
+              <td className={`${TD} technical-m`}>{row.position}</td>
               <td className={TD}>
                 <Link
                   href={`/drivers/${row.driver.slug}`}
                   className="flex items-center gap-2.5 decoration-2 underline-offset-2 hover:underline"
                 >
-                  <TeamDisc color={row.team?.color} />
+                  <DriverRoundel
+                    headshotPath={row.driver.headshotPath}
+                    color={row.team?.color}
+                  />
                   <span className="whitespace-nowrap">
                     <span className="hidden lg:inline">{row.driver.firstName}&nbsp;</span>
                     <span className="hidden font-bold md:inline">{row.driver.lastName}</span>
@@ -168,7 +159,7 @@ export function DriverStandingsTable({ rows }: { rows: DriverStandingRow[] }) {
                     href={`/teams/${row.team.teamSlug}`}
                     className="inline-flex items-center gap-2.5 decoration-2 underline-offset-2 hover:underline"
                   >
-                    <TeamDisc color={row.team.color} />
+                    <TeamRoundel logoPath={row.team.logoPath} color={row.team.color} />
                     {row.team.shortName}
                   </Link>
                 ) : (
@@ -200,15 +191,13 @@ export function ConstructorStandingsTable({ rows }: { rows: ConstructorStandingR
         <tbody className="body-s font-semibold text-text-5">
           {rows.map((row) => (
             <tr key={row.team.teamSlug} className="border-b border-surface-4 last:border-0">
-              <td className={`${TD} technical-m ${row.position === 1 ? "text-brand" : ""}`}>
-                {row.position}
-              </td>
+              <td className={`${TD} technical-m`}>{row.position}</td>
               <td className={TD}>
                 <Link
                   href={`/teams/${row.team.teamSlug}`}
                   className="inline-flex items-center gap-2.5 decoration-2 underline-offset-2 hover:underline"
                 >
-                  <TeamDisc color={row.team.color} />
+                  <TeamRoundel logoPath={row.team.logoPath} color={row.team.color} />
                   {row.team.displayName}
                 </Link>
               </td>

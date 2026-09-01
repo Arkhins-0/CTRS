@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { formatGap, formatLapTime } from "@ctr/db";
 import { CountryFlag } from "@ctr/ui";
-import { StatusChip } from "./category-ui";
+import { DriverRoundel, StatusChip, TeamRoundel } from "./category-ui";
 import type { ClassificationRow, SeasonRoundRow } from "./data";
 import { formatDate, resultsTableKind, type SessionType } from "./meta";
 
@@ -81,7 +81,7 @@ export function FilterDropdown({
             key={o.key}
             href={o.href}
             aria-current={o.active ? "page" : undefined}
-            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-white/10"
+            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-black/5"
           >
             {o.label}
             {o.active ? (
@@ -158,7 +158,7 @@ export function SeasonRoundsTable({
                   {r.hasResults ? (
                     <Link
                       href={`/results/${year}/${r.slug}`}
-                      className="whitespace-nowrap font-bold hover:text-brand"
+                      className="whitespace-nowrap font-bold hover:underline"
                     >
                       Results <span aria-hidden>→</span>
                     </Link>
@@ -194,15 +194,11 @@ const STATUS_SHORT: Partial<Record<ClassificationRow["status"], string>> = {
   nc: "NC",
 };
 
-/** 20px team-colour disc + responsive name: First Last → Last → code. */
+/** Team-tinted headshot roundel + responsive name: First Last → Last → code. */
 function DriverChip({ row }: { row: ClassificationRow }) {
   return (
     <span className="flex items-center gap-2.5">
-      <span
-        aria-hidden
-        className="h-5 w-5 shrink-0 rounded-full"
-        style={{ backgroundColor: row.team.color }}
-      />
+      <DriverRoundel headshotPath={row.driver.headshotPath} color={row.team.color} />
       <span className="whitespace-nowrap">
         <span className="max-lg:hidden">{row.driver.firstName}&nbsp;</span>
         <span className="max-md:hidden">{row.driver.lastName}</span>
@@ -212,15 +208,11 @@ function DriverChip({ row }: { row: ClassificationRow }) {
   );
 }
 
-/** 20px team-colour disc + team short name. */
-function TeamChip({ team }: { team: { shortName: string; color: string } }) {
+/** Team-logo roundel + team short name. */
+function TeamChip({ team }: { team: ClassificationRow["team"] }) {
   return (
     <span className="inline-flex items-center gap-2.5">
-      <span
-        aria-hidden
-        className="h-5 w-5 shrink-0 rounded-full"
-        style={{ backgroundColor: team.color }}
-      />
+      <TeamRoundel logoPath={team.logoPath} color={team.color} />
       {team.shortName}
     </span>
   );
@@ -264,7 +256,9 @@ export function ResultsTable({
       footer={
         fastest ? (
           <p className="body-xs mt-6 flex flex-wrap items-baseline gap-x-2 text-text-3">
-            <span className="font-semibold uppercase text-brand">Fastest lap</span>
+            <span className="rounded-xs bg-brand px-1.5 py-0.5 font-semibold uppercase text-brand-fg">
+              Fastest lap
+            </span>
             <span className="font-semibold text-text-5">
               {fastest.driver.firstName} {fastest.driver.lastName}
             </span>
@@ -333,10 +327,9 @@ export function ResultsTable({
           {rows.map((row) => (
             <tr key={row.id} className={resultsBodyRow}>
               {/* Timing-screen treatment: every numeral in the mono digits
-                  face, P1 in gold — a broadcast tower, not a spreadsheet. */}
-              <td
-                className={`${resultsTd} technical-m ${row.position === 1 ? "text-brand" : ""}`}
-              >
+                  face. (No gold text on the white card — no contrast; the
+                  fastest-lap gold underline is the one accent in here.) */}
+              <td className={`${resultsTd} technical-m`}>
                 {row.position ?? STATUS_POS[row.status] ?? "NC"}
               </td>
               <td className={`${resultsTd} technical-m`}>{row.carNumber}</td>
@@ -350,7 +343,7 @@ export function ResultsTable({
                 <>
                   <td className={`${resultsTd} technical-m`}>{row.laps ?? "—"}</td>
                   <td
-                    className={`${resultsTd} technical-m${row.fastestLap ? " text-brand" : ""}`}
+                    className={`${resultsTd} technical-m${row.fastestLap ? " underline decoration-brand decoration-2 underline-offset-4" : ""}`}
                   >
                     {formatGap({
                       position: row.position,
@@ -365,7 +358,7 @@ export function ResultsTable({
               ) : kind === "qualifying" ? (
                 <>
                   <td
-                    className={`${resultsTd} technical-m${row.fastestLap ? " text-brand" : ""}`}
+                    className={`${resultsTd} technical-m${row.fastestLap ? " underline decoration-brand decoration-2 underline-offset-4" : ""}`}
                   >
                     {row.status === "finished"
                       ? formatLapTime(row.q1TimeMs ?? row.timeMs)
@@ -377,7 +370,7 @@ export function ResultsTable({
               ) : (
                 <>
                   <td
-                    className={`${resultsTd} technical-m${row.fastestLap ? " text-brand" : ""}`}
+                    className={`${resultsTd} technical-m${row.fastestLap ? " underline decoration-brand decoration-2 underline-offset-4" : ""}`}
                   >
                     {lapTimeOrGap(row, leaderMs)}
                   </td>

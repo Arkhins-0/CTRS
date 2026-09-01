@@ -99,7 +99,10 @@ export default async function HomePage() {
   const [editorial, season] = await Promise.all([getHomeEditorial(), getSeasonBundle(year)]);
 
   const { flagship, standings, headshotBySlug, nextGp } = season;
-  const scored = standings.computedThroughRound > 0 && standings.rows.length > 0;
+  // "Scored" = anyone has points at all, not computedThroughRound > 0 — a
+  // season's opening non-championship round is round 0, which yields real
+  // points but a computed-through of 0, and the band should still show.
+  const scored = standings.rows.some((r) => r.points > 0);
   const liveLabel = nextGp?.status === "live" ? nextGp.name : null;
 
   return (

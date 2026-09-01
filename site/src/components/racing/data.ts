@@ -517,8 +517,9 @@ export type ClassificationRow = {
     lastName: string;
     code: string;
     countryCode: string | null;
+    headshotPath: string | null;
   };
-  team: { shortName: string; color: string };
+  team: { shortName: string; color: string; logoPath: string | null };
 };
 
 /** Full classification for one session, ordered by position (nulls last). */
@@ -527,7 +528,14 @@ export function getSessionClassification(sessionId: string): Promise<Classificat
     async () => {
       const rows = await db.query.sessionResults.findMany({
         where: (r, { eq }) => eq(r.sessionId, sessionId),
-        with: { entry: { with: { driver: true, teamSeasonEntry: true } } },
+        with: {
+          entry: {
+            with: {
+              driver: { with: { headshot: true } },
+              teamSeasonEntry: { with: { team: { with: { logo: true } } } },
+            },
+          },
+        },
       });
       return rows
         .map(
@@ -553,10 +561,12 @@ export function getSessionClassification(sessionId: string): Promise<Classificat
               lastName: r.entry.driver.lastName,
               code: r.entry.driver.code,
               countryCode: r.entry.driver.countryCode,
+              headshotPath: r.entry.driver.headshot?.path ?? null,
             },
             team: {
               shortName: r.entry.teamSeasonEntry.shortName,
               color: r.entry.teamSeasonEntry.primaryColor,
+              logoPath: r.entry.teamSeasonEntry.team.logo?.path ?? null,
             },
           }),
         )
@@ -589,7 +599,7 @@ export type DriverStandingRow = {
     countryCode: string | null;
     headshotPath: string | null;
   };
-  team: { shortName: string; color: string; teamSlug: string } | null;
+  team: { shortName: string; color: string; teamSlug: string; logoPath: string | null } | null;
 };
 
 export type DriverStandingsData = {
@@ -653,7 +663,7 @@ export function getDriverStandingsForSeason(
         db.query.driverSeasonEntries.findMany({
           where: (e, { and: whereAnd, eq: whereEq }) =>
             whereAnd(whereEq(e.championshipSeasonId, season.id), whereEq(e.categoryId, categoryId)),
-          with: { teamSeasonEntry: { with: { team: true } } },
+          with: { teamSeasonEntry: { with: { team: { with: { logo: true } } } } },
         }),
       ]);
 
@@ -684,6 +694,7 @@ export function getDriverStandingsForSeason(
                   shortName: entry.teamSeasonEntry.shortName,
                   color: entry.teamSeasonEntry.primaryColor,
                   teamSlug: entry.teamSeasonEntry.team.slug,
+                  logoPath: entry.teamSeasonEntry.team.logo?.path ?? null,
                 }
               : null,
           };
@@ -699,7 +710,13 @@ export type ConstructorStandingRow = {
   position: number;
   points: number;
   wins: number;
-  team: { displayName: string; shortName: string; color: string; teamSlug: string };
+  team: {
+    displayName: string;
+    shortName: string;
+    color: string;
+    teamSlug: string;
+    logoPath: string | null;
+  };
 };
 
 export type ConstructorStandingsData = {
@@ -724,7 +741,7 @@ export function getConstructorStandingsForSeason(
             whereEq(s.standingsType, "team"),
           ),
         orderBy: (s, { asc }) => [asc(s.position)],
-        with: { teamSeasonEntry: { with: { team: true } } },
+        with: { teamSeasonEntry: { with: { team: { with: { logo: true } } } } },
       });
       return {
         computedThroughRound: standings[0]?.computedThroughRound ?? 0,
@@ -738,6 +755,7 @@ export function getConstructorStandingsForSeason(
               shortName: s.teamSeasonEntry.shortName,
               color: s.teamSeasonEntry.primaryColor,
               teamSlug: s.teamSeasonEntry.team.slug,
+              logoPath: s.teamSeasonEntry.team.logo?.path ?? null,
             },
           }),
         ),

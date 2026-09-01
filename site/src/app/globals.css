@@ -3,59 +3,53 @@
 @source "../../../packages/ui/src";
 
 /* ══════════════════════════════════════════════════════════════════════════
-   CTR Sports — "Night Race" design system. Dark-first, gold-accented.
+   CTR Sports — light-first, gold-accented, F1.com-style layout.
 
-   This replaces the previous F1.com ("f1rd") port. Two reasons, both real:
-   the port was a near-1:1 copy of another rights-holder's trade dress (their
-   cool carbon-black + hot-red + white palette on their layout), and it was
-   the odd one out in CTR's own product — the admin console, the emails, the
-   PWA icons and the gold eagle mark all already live on near-black.
+   Direct feedback (screenshots of formula1.com): "change the entire site
+   theme to white and yellow, not black." So the PAGES are white/light-grey
+   with near-black text and the gold accent — while the site CHROME (header
+   nav, footer, hero/promo bands, sponsor tier) keeps the true neutral black
+   the user separately asked for ("I need black" — the .dark-section ramp
+   below). That white-page / black-chrome split is exactly F1.com's own
+   structure, without copying their trade dress: gold accent instead of
+   their red, neutral greys instead of their cool blue-black, and our own
+   OFL typefaces (Rajdhani/Titillium/JetBrains Mono).
 
-   What deliberately diverges from F1.com:
-   - TRUE neutral black ground (R = G = B, no tint at all), not their cool
-     blue-black #15151E — an earlier pass here tried a warm charcoal tint
-     toward the gold; direct feedback on it, twice, was "I need black," so
-     the ramp is now genuinely neutral, all the way down.
-   - Gold #F7D619 as the single accent, treated as scarce: CTAs, live
-     states, leaders. Never decoration-everywhere the way their red is.
-   - Rajdhani/Titillium/JetBrains Mono (all OFL), not their corporate faces.
    What stays, because it is generic motorsport/sports-site convention:
    standings tables, countdowns, session schedules, team-colour coding,
    chequered-flag texture, card grids, pill buttons, the type scale.
 
-   Dark-craft rules (every component follows these):
-   - Elevation by LIGHTENING, never shadow: page < band < card, with
-     hairline borders — shadows are invisible on near-black.
-   - No pure white body text (halation): text-4 ≈ 92%, text-3 ≈ 63%.
-   - Bright/large colour areas get desaturated or framed; full-chroma gold
-     only at small sizes.
+   Light-craft rules (every component follows these):
+   - White cards on a faint grey page, separated by hairline borders.
+   - Body text near-black (text-4), muted copy at ~40% grey (text-3).
+   - Gold is a graphic accent (lines, chips with dark ink on top), never
+     body-text-on-white — #F7D619 has no contrast against white.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Semantic surface/text variables (dark default; .dark-section forces the
-      DEEPER chrome palette on a subtree — header nav, sponsor tier — so the
-      site's chrome still reads a step apart from its pages). ─────────────── */
+/* ── Semantic surface/text variables (light default; .dark-section forces
+      the black chrome palette on a subtree — header nav, footer, promo
+      bands — so chrome reads as chrome, like F1.com's dark bars). ───────── */
 
 :root {
-  /* 1 = card (lightest of the dark steps) · 2 = page · 3 = band ·
-     4 = hairline · 5..11 climb toward white for contrast elements.
-     Neutral grey throughout — R = G = B on every step, no warm or cool
-     tint anywhere in the ramp. */
-  --f1-surface-1: #1a1a1a;
-  --f1-surface-2: #0a0a0a;
-  --f1-surface-3: #121212;
-  --f1-surface-4: #262626;
-  --f1-surface-5: #333333;
-  --f1-surface-6: #4d4d4d;
+  /* 1 = card (white) · 2 = page · 3 = band · 4 = hairline · 5..11 climb
+     toward black for contrast elements. Neutral grey throughout — R = G = B
+     on every step, no warm or cool tint anywhere in the ramp. */
+  --f1-surface-1: #ffffff;
+  --f1-surface-2: #f4f4f4;
+  --f1-surface-3: #ececec;
+  --f1-surface-4: #e5e5e5;
+  --f1-surface-5: #d4d4d4;
+  --f1-surface-6: #a3a3a3;
   --f1-surface-7: #737373;
-  --f1-surface-8: #999999;
-  --f1-surface-9: #c2c2c2;
-  --f1-surface-10: #e6e6e6;
-  --f1-surface-11: #ffffff;
-  --f1-text-1: #0a0a0a;
-  --f1-text-2: #121212;
-  --f1-text-3: #a3a3a3;
-  --f1-text-4: #ededed;
-  --f1-text-5: #fafafa;
+  --f1-surface-8: #525252;
+  --f1-surface-9: #3f3f3f;
+  --f1-surface-10: #1a1a1a;
+  --f1-surface-11: #000000;
+  --f1-text-1: #ffffff;
+  --f1-text-2: #f4f4f4;
+  --f1-text-3: #666666;
+  --f1-text-4: #1f1f1f;
+  --f1-text-5: #000000;
 }
 
 .dark-section {
@@ -102,33 +96,32 @@
   --color-brand-dark: var(--ctr-accent-dark, #e0bf06);
   --color-brand-fg: var(--ctr-accent-fg, #0a0a0a);
 
-  /* Fixed accents (never themed) — tuned for the dark ground: semantic
-     green/red match the email palette so the whole product agrees on what
-     "good" and "bad" look like, and each carries enough luminance to hold
-     contrast on near-black. */
-  --color-hot-red: #f0605f;
-  --color-hot-red-dark: #d94a49;
-  --color-live-blue: #2196e3;
-  --color-live-blue-dark: #1a86cd;
+  /* Fixed accents (never themed) — deep enough to hold contrast on white
+     pages, while still reading on the black chrome bands. */
+  --color-hot-red: #d02a2a;
+  --color-hot-red-dark: #b02020;
+  --color-live-blue: #1673cc;
+  --color-live-blue-dark: #125da6;
   --color-breaking-yellow: #ffd100;
   --color-spark-yellow: #e6f854;
   --color-shift-green: #71cc98;
-  --color-tag-magenta: #f0448c;
-  --color-warning-orange: #f28a33;
-  --color-positive: #34d399;
-  --color-negative: #f0605f;
+  --color-tag-magenta: #d92c78;
+  --color-warning-orange: #e07716;
+  --color-positive: #0e8a4e;
+  --color-negative: #d02a2a;
 
-  /* Static ramp (theme-independent) */
+  /* Static ramp (theme-independent) — neutral R = G = B, same "I need
+     black" rule as the chrome: the old warm/cool tints are gone. */
   --color-static-1: #ffffff;
-  --color-static-2: #f7f4f1;
-  --color-static-3: #e0dedc;
+  --color-static-2: #f5f5f5;
+  --color-static-3: #e0e0e0;
   --color-static-4: #cdcdcd;
   --color-static-5: #aaaaaa;
-  --color-static-6: #606066;
-  --color-static-7: #47464c;
-  --color-static-8: #303037;
-  --color-static-9: #1c1c25;
-  --color-static-10: #15151e;
+  --color-static-6: #666666;
+  --color-static-7: #4d4d4d;
+  --color-static-8: #333333;
+  --color-static-9: #141414;
+  --color-static-10: #0a0a0a;
   --color-static-11: #000000;
 
   /* Typography — all Open Font License, self-hosted via next/font.
@@ -231,11 +224,12 @@
   font-weight: 700;
 }
 .btn:focus-visible {
-  outline: 2px solid var(--color-brand);
+  /* text-5 = near-black on light pages, near-white inside .dark-section —
+     gold alone can't hold a focus ring against white. */
+  outline: 2px solid var(--f1-text-5);
   outline-offset: 2px;
 }
-/* Press feedback by darkening + nudge — an inset black shadow (the old
-   recipe) is invisible on a dark ground. */
+/* Press feedback by darkening + nudge — works on both grounds. */
 .btn:active {
   filter: brightness(0.82);
   transform: translateY(1px);
@@ -250,16 +244,16 @@
 
 .btn-brand { background: var(--color-brand); color: var(--color-brand-fg); }
 .btn-brand:hover { background: var(--color-brand-dark); }
-/* "black" is the quiet-solid role. On a dark ground that job is done by a
-   raised tonal surface with a hairline, not by a literally black button. */
+/* "black" is the contrast-solid role: a black pill on white pages, and it
+   flips to a white pill inside .dark-section (text-5/text-1 swap) — the
+   F1.com "Sign In on a dark header" treatment for free. */
 .btn-black {
-  background: var(--f1-surface-4);
-  color: var(--f1-text-5);
-  box-shadow: inset 0 0 0 1px var(--f1-surface-5);
+  background: var(--f1-text-5);
+  color: var(--f1-text-1);
 }
-.btn-black:hover { background: var(--f1-surface-5); }
-.btn-white { background: var(--f1-surface-11); color: #0a0a0a; }
-.btn-white:hover { background: var(--f1-surface-10); }
+.btn-black:hover { background: var(--f1-surface-9); }
+.btn-white { background: #ffffff; color: #0a0a0a; }
+.btn-white:hover { background: #e6e6e6; }
 .btn-stroke {
   background: transparent;
   color: var(--f1-text-5);

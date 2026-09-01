@@ -125,8 +125,10 @@ export async function SiteFooter() {
         </div>
       ) : null}
 
-      {/* Main band — themed warm surface */}
-      <div className="bg-surface-3">
+      {/* Main band — black chrome, like the header (the pages are white,
+          the chrome is not: the gold logo, white chequer texture and white
+          tint card in here are all drawn for a dark ground). */}
+      <div className="dark-section bg-surface-2">
         <div className="f1-inner flex flex-col py-12">
           <div className="flex flex-wrap items-stretch justify-between gap-6 lg:flex-nowrap">
             {/* Fan Zone promo card (F1 app-card slot) */}

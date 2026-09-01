@@ -1,4 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
+import { mediaUrl } from "@/lib/media";
 import { readableOn } from "./colors";
 
 /* ── Category identity + chips shared across the racing pages ────────────── */
@@ -24,6 +26,53 @@ export function CategoryBadge({
       style={{ borderColor: category.color, color: category.color }}
     >
       {category.shortName}
+    </span>
+  );
+}
+
+/* ── Roundels — the F1.com standings-table avatars: a small team-coloured
+   circle carrying the driver's headshot (cut off at the shoulders) or the
+   team's logo. Falls back to a plain colour disc when no image exists, which
+   is exactly what these tables showed before. ────────────────────────────── */
+
+export function DriverRoundel({
+  headshotPath,
+  color,
+}: {
+  headshotPath: string | null | undefined;
+  color: string | null | undefined;
+}) {
+  const src = mediaUrl(headshotPath);
+  return (
+    <span
+      aria-hidden
+      className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full"
+      style={{ backgroundColor: color ?? "var(--f1-surface-4)" }}
+    >
+      {src ? (
+        <Image src={src} alt="" fill sizes="24px" className="object-cover object-top" />
+      ) : null}
+    </span>
+  );
+}
+
+export function TeamRoundel({
+  logoPath,
+  color,
+}: {
+  logoPath: string | null | undefined;
+  color: string | null | undefined;
+}) {
+  const src = mediaUrl(logoPath);
+  return (
+    <span
+      aria-hidden
+      className="relative flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full"
+      style={{ backgroundColor: color ?? "var(--f1-surface-4)" }}
+    >
+      {src ? (
+        <Image src={src} alt="" fill sizes="24px" className="object-contain p-0.5" />
+      ) : null}
     </span>
   );
 }
@@ -112,7 +161,7 @@ export function CategoryPills({
           className={`${pill} ${
             activeSlug === null
               ? "bg-brand text-brand-fg"
-              : "text-text-5 shadow-[inset_0_0_0_2px_var(--f1-text-5)] hover:bg-white/10"
+              : "text-text-5 shadow-[inset_0_0_0_2px_var(--f1-text-5)] hover:bg-black/5"
           }`}
         >
           {allLabel}
@@ -126,7 +175,7 @@ export function CategoryPills({
             href={hrefFor(c.slug)}
             aria-current={active ? "page" : undefined}
             title={c.name}
-            className={`${pill} flex items-center gap-2 ${active ? "" : "text-text-5 shadow-[inset_0_0_0_2px_var(--f1-surface-4)] hover:bg-white/10"}`}
+            className={`${pill} flex items-center gap-2 ${active ? "" : "text-text-5 shadow-[inset_0_0_0_2px_var(--f1-surface-4)] hover:bg-black/5"}`}
             style={
               active
                 ? { backgroundColor: c.color, color: readableOn(c.color) }
@@ -153,7 +202,7 @@ export function StatusChip({
   const styles: Record<typeof status, string> = {
     scheduled: "border border-surface-6 text-text-3",
     live: "bg-live-blue text-white",
-    completed: "bg-white/10 text-text-5",
+    completed: "bg-black/10 text-text-5",
     cancelled: "border border-surface-6 text-text-3 line-through",
   };
   const labels: Record<typeof status, string> = {

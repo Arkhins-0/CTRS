@@ -29,7 +29,9 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "CTR" },
 };
 
-export const viewport = { themeColor: "#0A0A0A" };
+/* Browser/OS chrome colour — matches the site's black header bar (the pages
+   themselves are white, but the strip this paints sits against the header). */
+export const viewport = { themeColor: "#080808" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
