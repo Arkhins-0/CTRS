@@ -5,6 +5,18 @@ import { readableOn, shadeHex } from "./colors";
 import type { TeamIndexCard } from "./data";
 import { HalftoneWash } from "./profile-ui";
 
+/**
+ * Splits a team name the way the driver card splits a person's: the first
+ * word carries the handwritten script, the rest goes to black caps.
+ * Single-word names keep the whole thing in caps rather than rendering one
+ * lonely script word with nothing to anchor it.
+ */
+function splitTeamName(name: string): { script: string | null; caps: string } {
+  const words = name.trim().split(/\s+/);
+  if (words.length < 2) return { script: null, caps: name };
+  return { script: words[0] as string, caps: words.slice(1).join(" ") };
+}
+
 /** 2–3 letter roundel stand-in, used only until a team uploads a logo. */
 function teamInitials(name: string): string {
   const words = name.split(/[\s-]+/).filter(Boolean);
@@ -36,6 +48,7 @@ export function TeamCard({
   const fg = readableOn(team.color);
   const logo = mediaUrl(team.logoPath);
   const car = mediaUrl(team.carImagePath);
+  const { script, caps } = splitTeamName(team.displayName);
 
   return (
     <Link
@@ -62,8 +75,15 @@ export function TeamCard({
       <div className="relative z-20 flex h-full flex-col gap-[22px] lg:gap-9">
         <div className="flex items-start justify-between gap-6">
           <div className="flex flex-col gap-3">
-            <p className="display-l lg:display-xl font-bold group-hover:underline">
-              {team.displayName}
+            <p className="group-hover:underline">
+              {script ? (
+                <span className="font-script block text-3xl leading-none lg:text-4xl">
+                  {script}
+                </span>
+              ) : null}
+              <span className="display-l lg:display-xl block font-black uppercase leading-tight">
+                {caps}
+              </span>
             </p>
             {team.drivers.length ? (
               <div className="flex flex-col gap-y-2 lg:flex-row lg:flex-wrap lg:gap-x-4">
