@@ -7,9 +7,10 @@ import { db, media, PERMISSIONS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { publicUrl } from "@/lib/storage";
 import { variantKey, MEDIA_VARIANTS } from "@/components/media/variants";
-import { Card, Field, Input, PageHeader, Textarea } from "@/components/ui";
+import { Card, Field, Input, PageHeader, Select, Textarea } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui-client";
-import { deleteMediaAction, updateMediaAction } from "../actions";
+import { deleteMediaAction, moveMediaAction, updateMediaAction } from "../actions";
+import { allFolders } from "@/lib/media-ops";
 import { findMediaUsage } from "../usage";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ export default async function MediaDetailPage({
   });
   if (!row) notFound();
 
-  const usage = await findMediaUsage(id);
+  const [usage, folders] = await Promise.all([findMediaUsage(id), allFolders()]);
 
   return (
     <>
@@ -108,6 +109,28 @@ export default async function MediaDetailPage({
               </Field>
               <SubmitButton>Save details</SubmitButton>
             </form>
+          </Card>
+
+          <Card>
+            <h2 className="mb-3 text-sm font-black uppercase tracking-wide">Folder</h2>
+            <form action={moveMediaAction} className="flex flex-wrap items-end gap-2">
+              <input type="hidden" name="id" value={row.id} />
+              <Field label="Filed under" className="min-w-48 flex-1">
+                <Select name="folder" defaultValue={row.folder}>
+                  <option value="">Library root</option>
+                  {folders.map((f) => (
+                    <option key={f} value={f}>
+                      /{f}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <SubmitButton>Move</SubmitButton>
+            </form>
+            <p className="mt-2 text-xs text-fg-muted">
+              Moving changes where the file is filed in the library. The stored object keeps its
+              key, so every link that already points at this image keeps working.
+            </p>
           </Card>
 
           <Card>

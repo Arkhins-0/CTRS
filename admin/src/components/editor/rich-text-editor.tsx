@@ -261,6 +261,7 @@ function Toolbar({ editor }: { editor: Editor }) {
       </ToolbarButton>
 
       <MediaPicker
+        defaultFolder="news"
         triggerLabel="Image"
         triggerClassName="inline-flex items-center gap-1 border border-line bg-surface px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-fg transition-colors hover:border-fg-faint"
         onSelect={(_id, url) => editor.chain().focus().setImage({ src: url }).run()}

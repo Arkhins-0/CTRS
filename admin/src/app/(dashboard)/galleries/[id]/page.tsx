@@ -143,7 +143,7 @@ export default async function GalleryEditorPage({
             <h2 className="mb-2 text-sm font-black uppercase tracking-wide">Add image</h2>
             <form action={addGalleryItemAction} className="flex flex-wrap items-end gap-3">
               <input type="hidden" name="galleryId" value={gallery.id} />
-              <MediaPickerInput name="mediaId" label="Choose image" />
+              <MediaPickerInput defaultFolder="galleries" name="mediaId" label="Choose image" />
               <SubmitButton>Add to gallery</SubmitButton>
             </form>
           </Card>

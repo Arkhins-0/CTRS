@@ -227,6 +227,7 @@ export default async function ArticleEditorPage({
           <Card>
             <h2 className="mb-3 text-sm font-black uppercase tracking-wide">Hero image</h2>
             <MediaPickerInput
+              defaultFolder="news"
               name="heroMediaId"
               initialId={article.heroMediaId}
               initialUrl={heroThumb}

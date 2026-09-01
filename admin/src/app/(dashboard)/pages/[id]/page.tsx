@@ -290,7 +290,7 @@ export default async function PageEditor({ params }: { params: Promise<{ id: str
                 <Textarea name="metaDescription" rows={3} defaultValue={page.metaDescription ?? ""} />
               </Field>
               <Field label="OG image" hint="Social-share preview image.">
-                <MediaPickerInput name="ogMediaId" initialId={page.ogMediaId} initialUrl={ogThumb} />
+                <MediaPickerInput defaultFolder="pages" name="ogMediaId" initialId={page.ogMediaId} initialUrl={ogThumb} />
               </Field>
               <Field label="Status">
                 <Select name="status" defaultValue={page.status === "published" ? "published" : "draft"}>

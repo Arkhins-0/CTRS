@@ -126,6 +126,7 @@ export function ChampionshipFormFields({
         </div>
         <Field label="Logo" hint="Shown on tabs, headers and the public site.">
           <MediaPickerInput
+            defaultFolder="championships"
             name="logoMediaId"
             initialId={championship?.logoMediaId}
             initialUrl={logoThumbUrl}

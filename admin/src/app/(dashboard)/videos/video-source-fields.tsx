@@ -70,6 +70,7 @@ export function VideoSourceFields({
             Video file
           </span>
           <MediaPickerInput
+            defaultFolder="videos"
             name="mediaId"
             initialId={fileInitialId}
             initialUrl={fileInitialUrl}

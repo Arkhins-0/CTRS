@@ -92,6 +92,7 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
           </Field>
           <Field label="Team logo" className="sm:col-span-2" hint="Canonical logo used across the site.">
             <MediaPickerInput
+              defaultFolder="teams"
               name="logoMediaId"
               initialId={team.logoMediaId}
               initialUrl={team.logo ? publicUrl(variantKey(team.logo.path, "thumb")) : null}
@@ -164,6 +165,7 @@ export default async function TeamEditorPage({ params }: { params: Promise<{ id:
               </Field>
               <Field label="Season logo" hint="Overrides the canonical logo for this season.">
                 <MediaPickerInput
+                  defaultFolder="teams"
                   name="logoMediaId"
                   initialId={entry.logoMediaId}
                   initialUrl={entry.logo ? publicUrl(variantKey(entry.logo.path, "thumb")) : null}

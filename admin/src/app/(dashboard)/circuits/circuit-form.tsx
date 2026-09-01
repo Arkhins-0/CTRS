@@ -67,6 +67,7 @@ export function CircuitFormFields({
       </Field>
       <Field label="Track map" hint="Circuit layout graphic.">
         <MediaPickerInput
+          defaultFolder="circuits/maps"
           name="mapMediaId"
           initialId={circuit?.mapMediaId}
           initialUrl={mapThumbUrl}
@@ -74,6 +75,7 @@ export function CircuitFormFields({
       </Field>
       <Field label="Photo" hint="Venue photo for the circuit page.">
         <MediaPickerInput
+          defaultFolder="circuits"
           name="photoMediaId"
           initialId={circuit?.photoMediaId}
           initialUrl={photoThumbUrl}

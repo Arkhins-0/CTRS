@@ -1,56 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { compressAll, formatBytes } from "./compress";
 
-/*
- * File input that compresses images IN THE BROWSER before the form posts.
+/**
+ * File input that compresses images in the browser before the form posts —
+ * see compress.ts for why that is required rather than a nicety.
  *
- * Why: uploads go through a server action, and the request has hard body
- * limits (Next's serverActions.bodySizeLimit, and ~4.5 MB per request on
- * Vercel functions). A phone photo is routinely 3–8 MB, so raw uploads died
- * before the action ran. The server pipeline resizes every original down to
- * 2000px anyway, so downscaling to 2000px WebP here loses nothing the
- * server would have kept — and turns an 8 MB camera JPEG into a few hundred
- * kilobytes.
- *
- * Files that can't be decoded (or that don't shrink) pass through untouched.
+ * Files that cannot be decoded (or that would not shrink) pass through
+ * untouched; the server validates everything regardless.
  */
-
-const MAX_EDGE = 2000; // matches the server pipeline's original cap
-const COMPRESS_OVER_BYTES = 1_000_000; // leave already-small files alone
-
-async function compressImage(file: File): Promise<File> {
-  if (!file.type.startsWith("image/")) return file;
-  if (file.type === "image/gif" || file.type === "image/svg+xml") return file;
-  if (file.size <= COMPRESS_OVER_BYTES) return file;
-  try {
-    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-    const w = Math.max(1, Math.round(bitmap.width * scale));
-    const h = Math.max(1, Math.round(bitmap.height * scale));
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return file;
-    ctx.drawImage(bitmap, 0, 0, w, h);
-    bitmap.close();
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/webp", 0.85),
-    );
-    if (!blob || blob.size >= file.size) return file;
-    const name = `${file.name.replace(/\.[^.]+$/, "")}.webp`;
-    return new File([blob], name, { type: "image/webp", lastModified: file.lastModified });
-  } catch {
-    // undecodable format (HEIC on some browsers, etc.) — send as-is
-    return file;
-  }
-}
-
-function formatBytes(n: number): string {
-  return n >= 1_048_576 ? `${(n / 1_048_576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
-}
-
 export function UploadInput({ name }: { name: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -65,8 +24,7 @@ export function UploadInput({ name }: { name: string }) {
     setBusy(true);
     setStatus("Preparing images…");
     try {
-      const originals = Array.from(input.files);
-      const compressed = await Promise.all(originals.map(compressImage));
+      const compressed = await compressAll(Array.from(input.files));
       const dt = new DataTransfer();
       for (const f of compressed) dt.items.add(f);
       input.files = dt.files;

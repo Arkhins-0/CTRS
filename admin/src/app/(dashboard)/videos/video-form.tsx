@@ -117,6 +117,7 @@ export function VideoForm({
             Optional override — YouTube videos fall back to the YouTube thumbnail.
           </p>
           <MediaPickerInput
+            defaultFolder="videos"
             name="thumbnailMediaId"
             initialId={video?.thumbnailMediaId}
             initialUrl={thumbnailThumbUrl}

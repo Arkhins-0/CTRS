@@ -77,6 +77,7 @@ export function CategoryFormFields({
       </label>
       <Field label="Image" className="sm:col-span-2" hint="Category hero used on the public site.">
         <MediaPickerInput
+          defaultFolder="categories"
           name="imageMediaId"
           initialId={category?.imageMediaId}
           initialUrl={imageThumbUrl}

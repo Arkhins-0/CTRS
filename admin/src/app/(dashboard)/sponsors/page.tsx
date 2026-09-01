@@ -209,7 +209,7 @@ export default async function SponsorsPage() {
               <Input name="sort" type="number" min={0} defaultValue={0} />
             </Field>
             <Field label="Logo">
-              <MediaPickerInput name="logoMediaId" label="Choose logo" />
+              <MediaPickerInput defaultFolder="sponsors" name="logoMediaId" label="Choose logo" />
             </Field>
             <SubmitButton>Add sponsor</SubmitButton>
           </form>

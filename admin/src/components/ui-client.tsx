@@ -73,6 +73,39 @@ export function ConfirmSubmit({
 }
 
 /**
+ * Icon-sized confirm-and-submit, for destructive actions that live inside a
+ * dense row (a folder tile) where the full red pill would dominate.
+ */
+export function ConfirmIconSubmit({
+  children,
+  message,
+  label,
+  className = "",
+}: {
+  children: React.ReactNode;
+  message: string;
+  label: string;
+  className?: string;
+}) {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      aria-label={label}
+      aria-busy={pending}
+      onClick={(e) => {
+        if (!confirm(message)) e.preventDefault();
+      }}
+      className={`grid size-7 place-items-center rounded-sm text-fg-faint transition-colors hover:bg-panel hover:text-f1-red ${
+        pending ? "pointer-events-none opacity-50" : ""
+      } ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/**
  * Submit button for forms whose action branches on which button was pressed
  * (Save / Publish / Schedule / Archive).
  *

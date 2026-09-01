@@ -200,7 +200,7 @@ export default async function RaceEditorPage({
               Sprint weekend
             </label>
             <Field label="Hero image" className="sm:col-span-2" hint="Shown on the weekend's public pages.">
-              <MediaPickerInput name="heroMediaId" initialId={round.heroMediaId} initialUrl={heroThumb} />
+              <MediaPickerInput defaultFolder="race-weekends" name="heroMediaId" initialId={round.heroMediaId} initialUrl={heroThumb} />
             </Field>
             <div className="sm:col-span-2">
               <SubmitButton>Save weekend</SubmitButton>

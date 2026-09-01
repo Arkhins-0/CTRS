@@ -129,6 +129,7 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
           </Field>
           <Field label="Headshot" className="sm:col-span-2">
             <MediaPickerInput
+              defaultFolder="drivers"
               name="headshotMediaId"
               initialId={driver.headshotMediaId}
               initialUrl={driver.headshot ? publicUrl(variantKey(driver.headshot.path, "thumb")) : null}

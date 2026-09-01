@@ -47,12 +47,36 @@ export const sponsorTierEnum = pgEnum("sponsor_tier", [
 
 /* ── Media library (files live in S3; `path` is the object key) ──────────── */
 
+/**
+ * Folders are real rows rather than a value derived from media.folder, so an
+ * empty folder can exist — you create one, then upload into it. `path` is the
+ * full slash-separated path with no leading or trailing slash ("drivers" or
+ * "drivers/2026"); the library root is the empty string and is never stored.
+ */
+export const mediaFolders = pgTable(
+  "media_folders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    path: varchar("path", { length: 300 }).notNull().unique(),
+    createdBy: uuid("created_by").references(() => adminUsers.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("media_folders_path_idx").on(t.path)],
+);
+
 export const media = pgTable(
   "media",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     kind: mediaKindEnum("kind").notNull().default("image"),
-    path: text("path").notNull(), // S3 object key, e.g. media/2026/08/uuid.webp
+    path: text("path").notNull(), // S3 object key, e.g. media/drivers/uuid.webp
+    /**
+     * Library folder this file lives in — "" is the root. Mirrored into the
+     * S3 key at upload time, but this column is the authority: objects
+     * uploaded before folders existed keep their dated keys and simply sit
+     * at the root.
+     */
+    folder: varchar("folder", { length: 300 }).notNull().default(""),
     filename: varchar("filename", { length: 255 }).notNull(),
     mime: varchar("mime", { length: 120 }).notNull(),
     width: integer("width"),
@@ -64,7 +88,7 @@ export const media = pgTable(
     uploadedBy: uuid("uploaded_by").references(() => adminUsers.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("media_created_idx").on(t.createdAt)],
+  (t) => [index("media_created_idx").on(t.createdAt), index("media_folder_idx").on(t.folder)],
 );
 
 /* ── News ────────────────────────────────────────────────────────────────── */

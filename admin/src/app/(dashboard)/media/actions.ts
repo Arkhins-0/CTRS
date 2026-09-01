@@ -7,58 +7,90 @@ import { eq } from "drizzle-orm";
 import { db, media, PERMISSIONS, TAGS } from "@ctr/db";
 import { requirePermission } from "@/lib/auth";
 import { writeAudit } from "@/lib/audit";
+import {
+  createFolder,
+  deleteFolder,
+  deleteMediaById,
+  moveMedia,
+  uploadImages,
+} from "@/lib/media-ops";
 import { revalidateSite } from "@/lib/revalidate";
-import { deleteObject } from "@/lib/storage";
-import { processAndStoreImage } from "@/components/media/process-image";
-import { MEDIA_VARIANTS, variantKey } from "@/components/media/variants";
-import { findMediaUsage } from "./usage";
+import { normalizeFolder } from "@/components/media/folders";
 
-const MAX_UPLOAD_BYTES = 25 * 1024 * 1024; // per file
+/** Where to send the browser back to after a folder-scoped action. */
+function folderHref(folder: string, extra?: string): string {
+  const params = new URLSearchParams();
+  if (folder) params.set("folder", folder);
+  if (extra) params.set("error", extra);
+  const qs = params.toString();
+  return qs ? `/media?${qs}` : "/media";
+}
 
-/** Upload zone on /media — accepts multiple image files. */
+/** Upload zone on /media — accepts multiple image files into one folder. */
 export async function uploadMediaAction(formData: FormData) {
   const session = await requirePermission(PERMISSIONS.MEDIA_MANAGE); // 1. RBAC
 
+  const folder = normalizeFolder(formData.get("folder")?.toString()); // 2
   const files = formData
     .getAll("files")
     .filter((f): f is File => f instanceof File && f.size > 0);
 
-  let uploaded = 0;
-  for (const file of files) {
-    // 2. validate — images only, sane size, non-empty name
-    const check = z
-      .object({
-        name: z.string().min(1).max(255),
-        type: z.string().regex(/^image\//),
-        size: z.number().int().positive().max(MAX_UPLOAD_BYTES),
-      })
-      .safeParse({ name: file.name, type: file.type, size: file.size });
-    if (!check.success) continue;
-
-    // 3. mutation — process, store to S3 (+3 variants) and insert one row
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const row = await processAndStoreImage({
-      buffer,
-      filename: file.name,
-      uploadedBy: session.user.id,
-    });
-
-    // 4. audit (per file)
-    await writeAudit({
-      actorId: session.user.id,
-      action: "media.upload",
-      entityType: "media",
-      entityId: row.id,
-      diff: { after: { path: row.path, filename: row.filename, sizeBytes: row.sizeBytes } },
-    });
-    uploaded += 1;
-  }
+  // 3. mutation — validate, process, store to S3 (+ variants), insert rows.
+  //    4. per-file audit happens inside uploadImages.
+  const { items } = await uploadImages({ files, folder, actorId: session.user.id });
 
   // 5. revalidateSite intentionally skipped — media isn't rendered publicly
   //    until something references it.
   // 6. refresh admin UI
   revalidatePath("/media");
-  redirect(uploaded > 0 ? "/media" : "/media?error=no-valid-files");
+  redirect(items.length > 0 ? folderHref(folder) : folderHref(folder, "no-valid-files"));
+}
+
+/** "New folder" form on /media. */
+export async function createFolderAction(formData: FormData) {
+  const session = await requirePermission(PERMISSIONS.MEDIA_MANAGE); // 1
+
+  const parent = normalizeFolder(formData.get("parent")?.toString()); // 2
+  const name = formData.get("name")?.toString() ?? "";
+  const path = parent ? `${parent}/${name}` : name;
+
+  const result = await createFolder(path, session.user.id); // 3 + 4 (audits inside)
+
+  revalidatePath("/media"); // 6
+  redirect(result.ok ? folderHref(result.path) : folderHref(parent, `folder-${result.reason}`));
+}
+
+/** Delete-folder button on /media — only ever removes empty folders. */
+export async function deleteFolderAction(formData: FormData) {
+  const session = await requirePermission(PERMISSIONS.MEDIA_MANAGE); // 1
+
+  const parsed = z
+    .object({ path: z.string().min(1).max(300) })
+    .safeParse({ path: formData.get("path") }); // 2
+  if (!parsed.success) redirect(folderHref("", "invalid"));
+
+  const result = await deleteFolder(parsed.data.path, session.user.id); // 3 + 4
+  const parent = parsed.data.path.slice(0, Math.max(0, parsed.data.path.lastIndexOf("/")));
+
+  revalidatePath("/media"); // 6
+  redirect(result.ok ? folderHref(parent) : folderHref(parent, `folder-${result.reason}`));
+}
+
+/** "Folder" select on /media/[id]. */
+export async function moveMediaAction(formData: FormData) {
+  const session = await requirePermission(PERMISSIONS.MEDIA_MANAGE); // 1
+
+  const parsed = z
+    .object({ id: z.string().uuid(), folder: z.string().max(300) })
+    .safeParse({ id: formData.get("id"), folder: formData.get("folder") ?? "" }); // 2
+  if (!parsed.success) redirect("/media?error=invalid");
+
+  const ok = await moveMedia(parsed.data.id, parsed.data.folder, session.user.id); // 3 + 4
+  if (!ok) redirect("/media?error=not-found");
+
+  // 5 — the folder is an admin-side filing detail; nothing public renders it.
+  revalidatePath(`/media/${parsed.data.id}`); // 6
+  redirect(`/media/${parsed.data.id}?saved=1`);
 }
 
 const metaSchema = z.object({
@@ -115,28 +147,12 @@ export async function deleteMediaAction(formData: FormData) {
   if (!parsed.success) redirect("/media?error=invalid");
   const { id } = parsed.data;
 
-  const [row] = await db.select().from(media).where(eq(media.id, id));
-  if (!row) redirect("/media?error=not-found");
-
-  const usage = await findMediaUsage(id);
-  if (usage.length > 0) redirect(`/media/${id}?error=in-use`);
-
-  // 3 — remove the original + all derived variants from S3, then the row.
-  // S3 failures must not orphan the DB row invisibly, so delete objects first
-  // and tolerate individual misses (allSettled).
-  await Promise.allSettled([
-    deleteObject(row.path),
-    ...MEDIA_VARIANTS.map((v) => deleteObject(variantKey(row.path, v))),
-  ]);
-  await db.delete(media).where(eq(media.id, id));
-
-  await writeAudit({
-    actorId: session.user.id,
-    action: "media.delete",
-    entityType: "media",
-    entityId: id,
-    diff: { before: { path: row.path, filename: row.filename } },
-  }); // 4
+  // 3 + 4 — usage guard, S3 objects, row and audit all live in the shared op
+  // so the explorer's delete button behaves identically to this one.
+  const result = await deleteMediaById(id, session.user.id);
+  if (!result.ok) {
+    redirect(result.reason === "in-use" ? `/media/${id}?error=in-use` : "/media?error=not-found");
+  }
 
   // 5 — nothing public referenced this media (guard above), so no site tags
   //     need invalidating.

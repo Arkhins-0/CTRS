@@ -55,6 +55,7 @@ export default async function SponsorEditor({ params }: { params: Promise<{ id: 
             </Field>
             <Field label="Logo" hint="Shown in the sponsor grids across the public site.">
               <MediaPickerInput
+                defaultFolder="sponsors"
                 name="logoMediaId"
                 label="Choose logo"
                 initialId={sponsor.logoMediaId}
