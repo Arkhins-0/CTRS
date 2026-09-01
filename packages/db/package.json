@@ -14,7 +14,8 @@
     "migrate": "drizzle-kit migrate",
     "push": "drizzle-kit push",
     "seed": "tsx src/seed/index.ts",
-    "seed:fill": "tsx src/seed/fill-mock.ts"
+    "seed:fill": "tsx src/seed/fill-mock.ts",
+    "seed:past-round": "tsx src/seed/seed-past-round.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.750.0",
