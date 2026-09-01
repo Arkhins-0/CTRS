@@ -35,7 +35,7 @@ export function MemberShell({
 
   return (
     <div className="min-h-dvh bg-page">
-      <header className="safe-t sticky top-0 z-40 border-b border-line bg-page/95 backdrop-blur">
+      <header className="dark-chrome safe-t sticky top-0 z-40 border-b border-line bg-page/95 backdrop-blur">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-2.5">
           <Link href="/m" className="flex items-center gap-2">
             <Image src="/ctr-logo.webp" alt="CTR Sports" width={40} height={23} priority />
@@ -77,7 +77,7 @@ export function MemberShell({
       <main className="mx-auto max-w-4xl px-4 py-5 pb-28 sm:pb-8">{children}</main>
 
       {/* Mobile: fixed bottom tabs. */}
-      <nav className="safe-b fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page/95 backdrop-blur sm:hidden">
+      <nav className="dark-chrome safe-b fixed inset-x-0 bottom-0 z-40 border-t border-line bg-page/95 backdrop-blur sm:hidden">
         <ul className="flex">
           {items.map((item) => {
             const Icon = item.icon;

@@ -52,7 +52,7 @@ export default async function DriversPage({
         <Input name="q" defaultValue={q} placeholder="Search by name or code…" aria-label="Search drivers" />
         <button
           type="submit"
-          className="chamfer-tr bg-panel px-4 py-2 text-sm font-bold uppercase tracking-wide text-white hover:bg-line"
+          className="chamfer-tr bg-panel px-4 py-2 text-sm font-bold uppercase tracking-wide text-fg hover:bg-line"
         >
           Search
         </button>
@@ -87,7 +87,7 @@ export default async function DriversPage({
                       className="size-9 rounded-full border border-line object-cover"
                     />
                   ) : (
-                    <span className="flex size-9 items-center justify-center rounded-full bg-panel text-[10px] font-black text-white">
+                    <span className="flex size-9 items-center justify-center rounded-full bg-panel text-[10px] font-black text-fg">
                       {d.code}
                     </span>
                   )}

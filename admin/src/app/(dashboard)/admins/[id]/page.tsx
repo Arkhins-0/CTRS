@@ -104,7 +104,7 @@ export default async function AdminEditor({
               Status:{" "}
               <span
                 className={`inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
-                  user.isActive ? "bg-emerald-600 text-white" : "bg-line text-white"
+                  user.isActive ? "bg-emerald-600 text-white" : "bg-line text-fg"
                 }`}
               >
                 {user.isActive ? "Active" : "Inactive"}

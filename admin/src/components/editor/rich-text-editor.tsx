@@ -331,7 +331,7 @@ function ToolbarButton({
       onClick={onClick}
       className={`inline-flex h-7 w-7 items-center justify-center border transition-colors disabled:opacity-40 ${
         active
-          ? "border-line bg-panel text-white"
+          ? "border-line bg-panel text-fg"
           : "border-line bg-surface text-fg hover:border-fg-faint"
       }`}
     >

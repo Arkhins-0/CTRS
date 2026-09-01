@@ -182,7 +182,7 @@ export default async function DriverEditorPage({ params }: { params: Promise<{ i
                 <Badge tone="amber">No category</Badge>
               )}
               {entry.classification ? (
-                <span className="inline-flex items-center border border-line bg-panel px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                <span className="inline-flex items-center border border-line bg-panel px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-fg">
                   {entry.classification}
                 </span>
               ) : null}

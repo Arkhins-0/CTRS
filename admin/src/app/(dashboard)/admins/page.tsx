@@ -49,7 +49,7 @@ export default async function AdminsIndex() {
                     u.userRoles.map((ur) => (
                       <span
                         key={ur.roleId}
-                        className="inline-block bg-panel px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white"
+                        className="inline-block bg-panel px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-fg"
                       >
                         {ur.role.name}
                       </span>
@@ -62,7 +62,7 @@ export default async function AdminsIndex() {
               <td>
                 <span
                   className={`inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
-                    u.isActive ? "bg-emerald-600 text-white" : "bg-line text-white"
+                    u.isActive ? "bg-emerald-600 text-white" : "bg-line text-fg"
                   }`}
                 >
                   {u.isActive ? "Active" : "Inactive"}

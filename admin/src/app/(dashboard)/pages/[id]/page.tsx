@@ -148,7 +148,7 @@ function BlockCard({
     <Card>
       <div className="mb-4 flex items-center justify-between gap-3 border-b border-line pb-3">
         <p className="text-xs font-black uppercase tracking-wide">
-          <span className="mr-2 inline-block bg-panel px-1.5 py-0.5 text-white">{index + 1}</span>
+          <span className="mr-2 inline-block bg-panel px-1.5 py-0.5 text-fg">{index + 1}</span>
           {BLOCK_LABELS[block.type]}
         </p>
         <div className="flex items-center gap-1.5">

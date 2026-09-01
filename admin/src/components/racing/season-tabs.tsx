@@ -49,7 +49,7 @@ export function SeasonTabs({
           key={s.id}
           href={`${base}?season=${s.id}`}
           className={`px-4 py-2 text-sm font-black uppercase tracking-wide transition-colors ${
-            s.id === activeId ? "chamfer-tr bg-panel text-white" : "text-fg-muted hover:text-fg"
+            s.id === activeId ? "chamfer-tr bg-panel text-fg" : "text-fg-muted hover:text-fg"
           }`}
         >
           {s.label}

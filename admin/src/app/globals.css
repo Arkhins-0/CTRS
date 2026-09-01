@@ -4,26 +4,62 @@
 
 /*
  * ── Admin console palette ─────────────────────────────────────────────────
- * The console is dark-first and deliberately separate from the public site's
- * palette. Depth comes from three surface steps plus a hairline border, never
- * from shadows (they don't read on dark). CTR yellow is the only chromatic
- * colour and is reserved for the write action, active nav and focus.
+ * Light-first, matching the public site's redesign: white cards on a faint
+ * neutral-grey page, separated by hairline borders; nav chrome (rail, top
+ * bar, tab bar) stays true black via .dark-chrome, the same white-page /
+ * black-chrome split the site uses. CTR yellow remains the only chromatic
+ * colour — the write action, active nav and focus.
  *
  * These override the shared site tokens for the admin app only.
  */
 @theme {
-  --color-page: #15151e; /* app background — matches the manifest theme_color */
-  --color-surface: #1f1f2b; /* cards, tables, inputs */
-  --color-panel: #2a2a38; /* nested blocks, hover, table headers */
-  --color-line: #38384a; /* hairline borders */
+  --color-page: #f4f4f4; /* app background — the site's page grey */
+  --color-surface: #ffffff; /* cards, tables, inputs */
+  --color-panel: #ececec; /* nested blocks, hover, table headers */
+  --color-line: #e5e5e5; /* hairline borders */
 
-  --color-fg: #fbfbfb;
-  --color-fg-muted: #a9a9b4;
-  --color-fg-faint: #7a7a88;
+  --color-fg: #1a1a1a;
+  --color-fg-muted: #666666;
+  --color-fg-faint: #8c8c8c;
+
+  /* Same faces as the site: Rajdhani display / Titillium body / JetBrains
+     Mono numerals (all OFL, self-hosted via next/font in layout.tsx). */
+  --font-display: var(--font-rajdhani), var(--font-titillium), "Segoe UI", sans-serif;
+  --font-body: var(--font-titillium), "Segoe UI", system-ui, sans-serif;
+  --font-numeric: var(--font-jetbrains), Consolas, "Courier New", monospace;
+}
+
+/*
+ * Black chrome, scoped: put .dark-chrome on the nav rail / top bar / tab bar
+ * and every semantic token inside flips to the site's neutral-black ramp —
+ * the components themselves keep using bg-page / text-fg / border-line.
+ */
+.dark-chrome {
+  --color-page: #0a0a0a;
+  --color-surface: #141414;
+  --color-panel: #202020;
+  --color-line: #262626;
+  --color-fg: #f0f0f0;
+  --color-fg-muted: #999999;
+  --color-fg-faint: #737373;
+  color: var(--color-fg);
+}
+
+/*
+ * The F1-style chamfered corners are retired with the dark theme: every
+ * chamfer-* becomes the site's rounded-card corner instead. Unlayered on
+ * purpose so it beats the @utility clip-paths from the shared theme.
+ */
+.chamfer-tr,
+.chamfer-br,
+.chamfer-both,
+.chamfer-tr-lg {
+  clip-path: none;
+  border-radius: 8px;
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -32,9 +68,10 @@ body {
   color: var(--color-fg);
 }
 
-/* Keep focus visible against every surface step. */
+/* Keep focus visible against every surface step — near-black on the light
+   pages (gold has no contrast on white), near-white inside .dark-chrome. */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-fg);
   outline-offset: 2px;
 }
 

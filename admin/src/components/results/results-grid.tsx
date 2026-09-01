@@ -207,7 +207,7 @@ export function ResultsGrid({
       <div className="chamfer-tr overflow-x-auto border border-line bg-surface shadow-sm">
         <table className="w-full min-w-760px text-sm">
           <thead>
-            <tr className="border-b-2 border-line bg-panel text-left text-xs font-bold uppercase tracking-wide text-white [&>th]:px-2 [&>th]:py-2.5">
+            <tr className="border-b-2 border-line bg-panel text-left text-xs font-bold uppercase tracking-wide text-fg [&>th]:px-2 [&>th]:py-2.5">
               <th className="w-16 pl-3">Pos</th>
               <th>Driver</th>
               {raceLike ? (

@@ -63,7 +63,7 @@ export function ConfirmSubmit({
       onClick={(e) => {
         if (!confirm(message)) e.preventDefault();
       }}
-      className={`chamfer-tr inline-flex min-h-11 items-center gap-1 border border-f1-red bg-surface px-3 text-xs font-bold uppercase text-f1-red transition-colors hover:bg-f1-red hover:text-white ${
+      className={`inline-flex min-h-11 items-center gap-1 rounded-full border border-f1-red bg-surface px-3 text-xs font-bold uppercase text-f1-red transition-colors hover:bg-f1-red hover:text-white ${
         pending ? "pointer-events-none opacity-50" : ""
       } ${className}`}
     >

@@ -106,7 +106,7 @@ export default async function FansPage({
                 <td>
                   <span
                     className={`inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
-                      active ? "bg-emerald-600 text-white" : "bg-line text-white"
+                      active ? "bg-emerald-600 text-white" : "bg-line text-fg"
                     }`}
                   >
                     {active ? "Active" : "Deactivated"}

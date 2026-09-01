@@ -88,7 +88,7 @@ function DesktopRail({
 }) {
   return (
     <aside
-      className={`safe-l safe-b fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-line bg-page lg:flex ${
+      className={`dark-chrome safe-l safe-b fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-line bg-page lg:flex ${
         collapsed ? "w-16" : "w-60"
       } transition-[width] duration-200`}
     >
@@ -177,7 +177,7 @@ function MobileNav({
 
   return (
     <>
-      <header className="safe-t sticky top-0 z-40 border-b border-line bg-page/95 backdrop-blur lg:hidden">
+      <header className="dark-chrome safe-t sticky top-0 z-40 border-b border-line bg-page/95 backdrop-blur lg:hidden">
         <div className="flex items-center gap-2 px-3 py-2">
           <button
             type="button"
@@ -218,7 +218,7 @@ function MobileNav({
             role="dialog"
             aria-modal="true"
             aria-label="Navigation"
-            className="safe-t safe-b absolute inset-y-0 left-0 flex w-[17rem] max-w-[85vw] flex-col border-r border-line bg-page outline-none"
+            className="dark-chrome safe-t safe-b absolute inset-y-0 left-0 flex w-[17rem] max-w-[85vw] flex-col border-r border-line bg-page outline-none"
           >
             <div className="flex items-center gap-2 border-b border-line px-3 py-3">
               <Image src="/ctr-logo.webp" alt="" width={36} height={20} priority />

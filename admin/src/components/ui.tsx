@@ -20,7 +20,7 @@ import type {
  */
 
 const btnBase =
-  "inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed chamfer-tr";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-bold uppercase tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
 const btnStyles: Record<string, string> = {
   primary: "bg-accent text-accent-fg hover:bg-accent-dark",
@@ -92,7 +92,7 @@ export function Field({
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`chamfer-tr border border-line bg-surface p-4 sm:p-5 ${className}`}>
+    <div className={`rounded-md border border-line bg-surface p-4 sm:p-5 ${className}`}>
       {children}
     </div>
   );
