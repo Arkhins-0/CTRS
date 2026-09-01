@@ -112,6 +112,16 @@ export function brandMark(width = 132): string {
   return `<img src="${logoUrl()}" width="${width}" height="${h}" alt="CTR Sports" style="display:block;width:${px(width)};height:${px(h)};" />`;
 }
 
+/** Same org identity the site footer prints — kept in one place so the
+ *  two never drift apart. */
+export const ORG = {
+  name: "CTR Unified",
+  tagline: "One Nation. One Championship.",
+  address: "29, Tilak Street, T. Nagar, Chennai, Tamil Nadu 600017",
+  phone: "9500016999",
+  email: "admin@ctrsports.in",
+} as const;
+
 export type SocialLink = { platform: string; url: string };
 
 /**
@@ -151,10 +161,40 @@ export function socialBadges(links: SocialLink[]): string {
   const cells = usable
     .map(
       (l) =>
+        // Circular, accent-ringed — the convention most senders' footers
+        // already train subscribers to recognise as "social links here",
+        // vs. the earlier square badges reading as generic buttons.
         `<td style="padding:0 6px;">
-           <a href="${l.url}" style="display:block;width:30px;height:30px;line-height:30px;text-align:center;background:${COLOR.panel};border:1px solid ${COLOR.line};border-radius:2px;font-family:${FONT.display};font-weight:600;font-size:12px;color:${COLOR.fg};text-decoration:none;">${socialGlyph(l.platform)}</a>
+           <a href="${l.url}" style="display:block;width:32px;height:32px;line-height:30px;text-align:center;background:${COLOR.panel};border:1px solid ${COLOR.accent};border-radius:50%;font-family:${FONT.display};font-weight:600;font-size:12px;color:${COLOR.accent};text-decoration:none;">${socialGlyph(l.platform)}</a>
          </td>`,
     )
     .join("");
   return `<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:14px auto 0;"><tr>${cells}</tr></table>`;
+}
+
+/**
+ * "We're here to help" block — the piece the newsletter footer was missing
+ * next to the unsubscribe line: a real, human way to reach CTR that isn't
+ * "hit reply". No invented "Help Center" link — the site doesn't have an
+ * FAQ page yet, and a dead link would read worse than no link.
+ */
+export function helpBlock(): string {
+  return `
+<tr><td style="padding:24px 32px 0;text-align:center;" bgcolor="${COLOR.page}">
+  <p style="margin:0 0 6px;font-family:${FONT.display};font-weight:600;font-size:13px;letter-spacing:0.3px;text-transform:uppercase;color:${COLOR.fg};">We're here to help</p>
+  <p style="margin:0;font-family:${FONT.body};font-size:12.5px;line-height:1.6;color:${COLOR.fgMuted};">
+    Questions about your subscription, tickets or the championship?
+    <a href="mailto:${ORG.email}" style="color:${COLOR.accent};text-decoration:underline;">Email ${ORG.email}</a>
+  </p>
+</td></tr>`;
+}
+
+/** Org identity + postal address — required on any marketing/bulk email
+ *  under CAN-SPAM/anti-spam law, and the same block the site footer prints. */
+export function orgAddressBlock(): string {
+  return `
+<tr><td style="padding:20px 32px 0;text-align:center;" bgcolor="${COLOR.page}">
+  <p style="margin:0 0 3px;font-family:${FONT.display};font-weight:600;font-size:12px;text-transform:uppercase;color:${COLOR.fgMuted};">${ORG.name} — ${ORG.tagline}</p>
+  <p style="margin:0;font-family:${FONT.body};font-size:11.5px;line-height:1.6;color:${COLOR.fgFaint};">${ORG.address} · ${ORG.phone}</p>
+</td></tr>`;
 }

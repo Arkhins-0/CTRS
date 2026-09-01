@@ -8,6 +8,8 @@ import {
   FONT,
   FONT_FACES,
   hazardStripe,
+  helpBlock,
+  orgAddressBlock,
   socialBadges,
   type SocialLink,
 } from "./brand";
@@ -132,12 +134,17 @@ function masthead(editionLine: string): string {
 function footer(unsubscribeUrl: string, socialLinks: SocialLink[] = []): string {
   return `
 <tr><td>${hazardStripe(WIDTH)}</td></tr>
-<tr><td style="padding:26px 32px 22px;text-align:center;" bgcolor="${COLOR.page}">
+<tr><td style="padding:26px 32px 0;text-align:center;" bgcolor="${COLOR.page}">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
     ${brandMark(96)}
   </td></tr></table>
   ${socialBadges(socialLinks)}
-  <p style="margin:18px 0 6px;font-family:${FONT.body};font-size:11.5px;line-height:1.6;color:${COLOR.fgFaint};">
+</td></tr>
+${helpBlock()}
+<tr><td style="padding:20px 32px 0;" bgcolor="${COLOR.page}"><table role="presentation" width="100%"><tr><td style="border-top:1px solid ${COLOR.line};font-size:0;line-height:0;">&nbsp;</td></tr></table></td></tr>
+${orgAddressBlock()}
+<tr><td style="padding:18px 32px 22px;text-align:center;" bgcolor="${COLOR.page}">
+  <p style="margin:0 0 6px;font-family:${FONT.body};font-size:11.5px;line-height:1.6;color:${COLOR.fgFaint};">
     You're receiving this because you subscribed to CTR Sports race-week updates.
   </p>
   <p style="margin:0;font-family:${FONT.body};font-size:11.5px;">
