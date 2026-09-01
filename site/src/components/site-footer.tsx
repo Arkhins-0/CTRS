@@ -21,16 +21,19 @@ const SOCIAL_ICONS: Record<string, typeof Instagram> = {
   youtube: Youtube,
 };
 
-/** Decorative footer separator: a chequered finish-line strip (reusing the
- *  same .chequer texture the header backdrop and fan-zone card already use)
- *  banded by brand-colour hairlines, standing in for a plain coloured
- *  squiggle with something that actually reads as "the race is done here." */
+/** Decorative footer separator: a slim chequered finish line banded by
+ *  brand-colour hairlines. Deliberately fine-grained (see .chequer-fine) —
+ *  at the default 14px squares a strip this short showed one broken row and
+ *  read as a fat stripe instead of a flag. */
 function FinishLine({ className = "" }: { className?: string }) {
   return (
     <span className={`block w-full ${className}`}>
-      <span aria-hidden className="block h-0.75 w-full bg-brand" />
-      <span aria-hidden className="chequer block h-4 w-full bg-black text-white" />
-      <span aria-hidden className="block h-0.75 w-full bg-brand" />
+      <span aria-hidden className="block h-px w-full bg-brand" />
+      <span
+        aria-hidden
+        className="chequer chequer-fine block h-1.5 w-full bg-black text-white"
+      />
+      <span aria-hidden className="block h-px w-full bg-brand" />
     </span>
   );
 }
@@ -133,9 +136,13 @@ export async function SiteFooter() {
           <div className="flex flex-wrap items-stretch justify-between gap-6 lg:flex-nowrap">
             {/* Fan Zone promo card (F1 app-card slot) */}
             <div className="relative w-full overflow-clip rounded-md bg-white/5 p-6 lg:min-h-[380px] lg:w-[370px] lg:shrink-0 lg:grow-0 lg:basis-[370px]">
-              <div
+              {/* The card used to carry a chequer patch in one corner, which
+                  read as a stray scrap of flag rather than a texture. The
+                  halftone screen the driver and team cards use covers the
+                  whole card instead, and ties the footer to them. */}
+              <span
                 aria-hidden
-                className="chequer pointer-events-none absolute -bottom-10 -left-10 h-64 w-64 text-white opacity-[0.05]"
+                className="halftone pointer-events-none absolute inset-0 text-white/15"
               />
               <div className="relative flex h-full flex-col gap-4">
                 <CtrLogo height={40} />

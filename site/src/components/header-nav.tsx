@@ -22,6 +22,22 @@ export function HeaderNav({
   // Close the drawer on navigation.
   useEffect(() => setOpen(false), [pathname]);
 
+  // Escape closes it, and the page behind is locked so it cannot be scrolled
+  // away underneath the panel.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
   const isActive = (href: string) => {
     const base = href.split("/").filter(Boolean)[0];
     const current = pathname.split("/").filter(Boolean)[0];
@@ -61,9 +77,30 @@ export function HeaderNav({
         {open ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* full-screen drawer */}
+      {/*
+       * Full-screen drawer, anchored to the viewport top with its OWN close
+       * button. It used to start at a hard-coded offset matching the nav bar
+       * (top-[54px]/58/64) — but the masthead above it adds height on desktop
+       * and scrolls away again, so the offset was wrong exactly often enough
+       * to leave the panel covering the hamburger that opens and closes it,
+       * with no way out. Owning the close control removes the dependency on
+       * the header's height entirely.
+       */}
       {open ? (
-        <div className="dark-section fixed inset-0 top-[54px] z-50 overflow-y-auto bg-surface-3 md:top-[58px] lg:top-[64px]">
+        <div className="dark-section fixed inset-0 z-[60] overflow-y-auto bg-surface-3">
+          <div className="f1-inner flex min-h-[54px] items-center justify-between gap-4 border-b border-surface-4 py-2 md:min-h-[58px] lg:min-h-[64px]">
+            <span className="font-display text-sm font-bold uppercase tracking-wide text-white">
+              Menu
+            </span>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close menu"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+            >
+              <X size={22} />
+            </button>
+          </div>
           <div className="f1-inner py-8">
             <ul className="grid gap-1 min-[1440px]:grid-cols-2 min-[1440px]:gap-x-16">
               {links.map((l) => (

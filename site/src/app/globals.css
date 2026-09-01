@@ -278,6 +278,13 @@
   background-size: 14px 14px;
 }
 
+/* Fine grain, for strips only a few pixels tall: at the 14px default a slim
+   finish line shows barely one row of squares and reads as a fat stripe
+   rather than a flag. */
+.chequer-fine {
+  background-size: 6px 6px;
+}
+
 /* Halftone dot fade (podium/team cards): a print-style dot screen in
    currentColor, densest toward the right edge and dissolving leftward —
    the flat-colour replacement for the old darkening "shadow" gradient. */
