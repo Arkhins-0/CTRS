@@ -76,9 +76,15 @@ export async function findMediaUsage(mediaId: string): Promise<MediaUsage[]> {
       .from(drivers)
       .where(eq(drivers.headshotMediaId, mediaId)),
     db
-      .select({ id: circuits.id, name: circuits.name })
+      .select({
+        id: circuits.id,
+        name: circuits.name,
+        isMap: circuits.mapMediaId,
+      })
       .from(circuits)
-      .where(eq(circuits.mapMediaId, mediaId)),
+      // Both circuit image slots — photo was missing here, which let a
+      // circuit's photo be deleted out from under the schedule cards.
+      .where(or(eq(circuits.mapMediaId, mediaId), eq(circuits.photoMediaId, mediaId))),
     db
       .select({ id: rounds.id, name: rounds.name, year: championshipSeasons.year })
       .from(rounds)
@@ -126,7 +132,11 @@ export async function findMediaUsage(mediaId: string): Promise<MediaUsage[]> {
       name: `${r.first} ${r.last}`,
       href: "/drivers",
     })),
-    ...circuitRows.map((r) => ({ type: "Circuit map", name: r.name, href: "/circuits" })),
+    ...circuitRows.map((r) => ({
+      type: r.isMap === mediaId ? "Circuit map" : "Circuit photo",
+      name: r.name,
+      href: "/circuits",
+    })),
     ...roundRows.map((r) => ({
       type: "Round hero",
       name: `${r.name} ${r.year}`,
