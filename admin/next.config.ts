@@ -22,6 +22,17 @@ remotePatterns.push({ protocol: "https", hostname: "img.youtube.com" });
 const nextConfig: NextConfig = {
   transpilePackages: ["@ctr/db", "@ctr/ui"],
   serverExternalPackages: ["ws", "sharp", "mammoth", "web-push"],
+  experimental: {
+    /*
+     * Server actions reject request bodies over 1 MB by default, which made
+     * every real photo upload in the media library die with a generic
+     * client-side exception before the action even ran. 8 MB gives batches
+     * of browser-compressed images comfortable headroom. (Vercel's own
+     * ~4.5 MB function body ceiling still applies in production — the
+     * media library compresses images client-side to stay under it.)
+     */
+    serverActions: { bodySizeLimit: "8mb" },
+  },
   images: { remotePatterns },
   // monorepo root for correct file tracing in production builds (Vercel/standalone)
   outputFileTracingRoot: path.resolve(process.cwd(), ".."),

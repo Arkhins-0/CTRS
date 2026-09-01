@@ -7,6 +7,7 @@ import { publicUrl } from "@/lib/storage";
 import { variantKey } from "@/components/media/variants";
 import { Button, Card, EmptyState, Input, LinkButton, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/ui-client";
+import { UploadInput } from "@/components/media/upload-input";
 import { uploadMediaAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -59,18 +60,11 @@ export default async function MediaLibraryPage({
       <Card className="mb-6">
         <h2 className="text-sm font-black uppercase tracking-wide">Upload images</h2>
         <p className="mt-1 text-xs text-fg-muted">
-          Images are converted to webp, stripped of metadata and stored with hero / card / thumb
-          renditions.
+          Large images are compressed in your browser first, then converted to webp, stripped of
+          metadata and stored with hero / card / thumb renditions.
         </p>
         <form action={uploadMediaAction} className="mt-3 flex flex-wrap items-center gap-3">
-          <input
-            type="file"
-            name="files"
-            multiple
-            required
-            accept="image/*"
-            className="text-sm file:mr-3 file:cursor-pointer file:border file:border-line file:bg-page file:px-3 file:py-2 file:text-xs file:font-bold file:uppercase file:tracking-wide"
-          />
+          <UploadInput name="files" />
           <SubmitButton>Upload</SubmitButton>
         </form>
       </Card>
