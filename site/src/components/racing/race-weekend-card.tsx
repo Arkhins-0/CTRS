@@ -7,12 +7,14 @@ import { InlineCountdown } from "./countdown";
 import type { ScheduleGp } from "./data";
 import { formatDateRange } from "./meta";
 
-/* ── Season-calendar card (F1 schedule grid, variants B/C/D) ───────────────
-   One flat card per round on the warm band. Completed rounds show the
-   flagship-category podium, the next round fills solid live-blue with a
-   countdown, upcoming rounds show the date plus the circuit map (or a photo
-   strip). The whole card is one link: hovering underlines the GP name and
-   zooms the photo. ───────────────────────────────────────────────────────── */
+/* ── Season-calendar card ──────────────────────────────────────────────────
+   One card per round: the CIRCUIT PHOTO fills the whole card, darkened by a
+   black scrim so every word on top is white — no floating track-map art
+   (an earlier pass tried that; the map files have opaque white canvases and
+   it looked broken). Completed rounds lay the stepped podium over the
+   photo, the next round tints its scrim live-blue and carries the
+   countdown, upcoming rounds close with the date. The whole card is one
+   link: hovering underlines the GP name and slowly zooms the photo. ──────── */
 
 const ORDINALS = ["th", "st", "nd", "rd"] as const;
 
@@ -23,7 +25,7 @@ function ordinalSuffix(n: number): string {
 }
 
 /** Stepped row widths — a literal podium: the winner's row is the widest,
- *  3rd's the narrowest, and the freed corner holds the circuit map. */
+ *  3rd's the narrowest. */
 const PODIUM_WIDTH: Record<number, string> = {
   1: "w-full",
   2: "w-[88%]",
@@ -31,7 +33,7 @@ const PODIUM_WIDTH: Record<number, string> = {
 };
 
 /** Podium chip — position numeral, headshot in a team-colour roundel,
- *  driver code and gap. */
+ *  driver code and gap. Translucent dark row so the photo shows through. */
 function PodiumChip({
   position,
   code,
@@ -48,11 +50,11 @@ function PodiumChip({
   const headshot = mediaUrl(headshotPath);
   return (
     <li
-      className={`flex min-h-12 items-center gap-2 rounded-md bg-surface-3 p-2 ${
+      className={`flex min-h-12 items-center gap-2 rounded-md bg-black/50 p-2 ${
         PODIUM_WIDTH[position] ?? "w-full"
       }`}
     >
-      <span className="font-display min-w-5 shrink-0 font-medium uppercase leading-none text-text-4">
+      <span className="font-display min-w-5 shrink-0 font-medium uppercase leading-none text-white/85">
         <span className="text-[0.625rem]">{position}</span>
         <span className="text-[0.375rem] align-super">{ordinalSuffix(position)}</span>
       </span>
@@ -66,8 +68,8 @@ function PodiumChip({
         ) : null}
       </span>
       <span className="flex min-w-0 flex-col gap-1">
-        <span className="display-s font-medium uppercase text-text-5">{code}</span>
-        <span className="technical-2xs truncate text-text-3">{gap}</span>
+        <span className="display-s font-medium uppercase text-white">{code}</span>
+        <span className="technical-2xs truncate text-white/75">{gap}</span>
       </span>
     </li>
   );
@@ -80,7 +82,7 @@ export function RoundCard({
 }: {
   gp: ScheduleGp;
   year: number;
-  /** Renders the highlighted "up next" variant (solid live blue). */
+  /** Renders the highlighted "up next" variant (live-blue tinted scrim). */
   next?: boolean;
 }) {
   const dates = formatDateRange(gp.startDate, gp.endDate);
@@ -89,9 +91,7 @@ export function RoundCard({
   const highlight = next && !cancelled && !completed;
 
   const podium = completed && gp.podium?.lines.length ? gp.podium : null;
-  // Every variant carries the circuit map — no card is left imageless.
-  const mapUrl = mediaUrl(gp.circuit.mapPath);
-  const photoUrl = !completed && !highlight && !mapUrl ? mediaUrl(gp.circuit.photoPath) : null;
+  const photoUrl = mediaUrl(gp.circuit.photoPath);
 
   const subtitle =
     gp.officialName ??
@@ -106,7 +106,7 @@ export function RoundCard({
   const dateLine = dates ? (
     <span
       className={`font-digits text-base font-bold lg:text-xl ${
-        cancelled ? "text-text-3 line-through" : ""
+        cancelled ? "text-white/60 line-through" : "text-white"
       }`}
     >
       {dates}
@@ -115,31 +115,40 @@ export function RoundCard({
 
   return (
     <Link href={`/schedule/${year}/${gp.slug}`} className="group block h-full">
-      <article
-        className={`relative z-0 flex h-full min-h-75 flex-col overflow-hidden rounded-md p-3 md:min-h-57.5 md:p-4 ${
-          highlight ? "bg-live-blue text-white" : "bg-surface-1 text-text-5"
-        }`}
-      >
-        {/* Decorative chequer wash behind the highlight card */}
-        {highlight ? (
-          <span
-            aria-hidden
-            className="chequer absolute inset-y-0 left-1/2 right-0 z-0 text-black opacity-15 transition-opacity duration-300 group-hover:opacity-30"
+      <article className="relative z-0 flex h-full min-h-75 flex-col overflow-hidden rounded-md bg-static-9 p-3 text-white md:min-h-57.5 md:p-4">
+        {/* circuit photo fills the card… */}
+        {photoUrl ? (
+          <Image
+            src={photoUrl}
+            alt=""
+            fill
+            sizes="(max-width: 735px) 100vw, 50vw"
+            className={`card-img -z-20 object-cover ${cancelled ? "grayscale" : ""}`}
           />
         ) : null}
+        {/* …under a black scrim (blue-tinted for the up-next round) that
+            keeps every word on top readable in white */}
+        <span
+          aria-hidden
+          className={`absolute inset-0 -z-10 ${
+            highlight
+              ? "bg-[linear-gradient(180deg,rgba(10,49,95,0.88),rgba(16,84,158,0.72)_55%,rgba(8,34,66,0.9))]"
+              : "bg-[linear-gradient(180deg,rgba(0,0,0,0.68),rgba(0,0,0,0.45)_50%,rgba(0,0,0,0.78))]"
+          }`}
+        />
 
-        <div className="relative z-10 flex h-full flex-col">
+        <div className="relative flex h-full flex-col">
           {/* Eyebrow row: round number + date pill / status */}
           <div className="flex min-h-6 items-start justify-between gap-2">
             <span
               className={`body-2xs font-bold uppercase ${
-                highlight ? "text-white" : "text-text-3"
+                highlight ? "rounded-sm bg-live-blue px-2 py-0.5 text-white" : "text-white/80"
               }`}
             >
               {eyebrow}
             </span>
             {completed && dates ? (
-              <span className="technical-xs inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-surface-3 px-2.5 py-1 text-text-4">
+              <span className="technical-xs inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-black/50 px-2.5 py-1 text-white/90">
                 <span aria-hidden>&#127937;</span>
                 {dates}
               </span>
@@ -155,7 +164,7 @@ export function RoundCard({
             <CountryFlag code={gp.circuit.countryCode} className="text-xl leading-none" />
             <span
               className={`display-xl font-medium group-hover:underline ${
-                cancelled ? "text-text-3 line-through" : ""
+                cancelled ? "text-white/60 line-through" : ""
               }`}
             >
               {gp.name}
@@ -163,32 +172,14 @@ export function RoundCard({
           </h3>
 
           {/* Long official title — grows so the footer sits on the baseline */}
-          <p
-            className={`body-xs mt-1.5 grow font-semibold ${
-              highlight ? "text-white/85" : "text-text-3"
-            }`}
-          >
-            {subtitle}
-          </p>
+          <p className="body-xs mt-1.5 grow font-semibold text-white/80">{subtitle}</p>
 
           {podium ? (
-            <div className="relative mt-3">
-              {/* the circuit map sits in the staircase corner the stepped
-                  rows free up */}
-              {mapUrl ? (
-                <Image
-                  aria-hidden
-                  src={mapUrl}
-                  alt=""
-                  width={240}
-                  height={100}
-                  className="pointer-events-none absolute bottom-1 right-0 z-0 h-20 w-auto max-w-[36%] object-contain object-right-bottom opacity-90"
-                />
-              ) : null}
-              <p className="body-2xs mb-1 font-bold uppercase text-text-3">
+            <div className="mt-3">
+              <p className="body-2xs mb-1 font-bold uppercase text-white/80">
                 {podium.categoryShortName ? `${podium.categoryShortName} podium` : "Podium"}
               </p>
-              <ul className="relative z-10 flex flex-col gap-0.5">
+              <ul className="flex flex-col gap-0.5">
                 {podium.lines.map((line) => (
                   <PodiumChip
                     key={line.position}
@@ -201,57 +192,16 @@ export function RoundCard({
                 ))}
               </ul>
             </div>
-          ) : highlight ? (
-            <>
-              {mapUrl ? (
-                <span className="my-2 flex flex-1 items-center justify-center">
-                  {/* black line art flattened to a white silhouette so the
-                      map holds on the solid live-blue card */}
-                  <Image
-                    src={mapUrl}
-                    alt={`${gp.circuit.name} track map`}
-                    width={240}
-                    height={100}
-                    className="h-24 w-auto max-w-[70%] object-contain brightness-0 invert opacity-90 md:h-28"
-                  />
-                </span>
-              ) : null}
-              <div className="mt-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
-                {dateLine}
-                {gp.firstRaceStartsAt ? (
-                  <InlineCountdown
-                    targetIso={gp.firstRaceStartsAt}
-                    className="body-xs font-bold text-white"
-                  />
-                ) : null}
-              </div>
-            </>
-          ) : mapUrl ? (
-            <div className="mt-3 flex items-end justify-between gap-3">
-              {dateLine}
-              <Image
-                src={mapUrl}
-                alt={`${gp.circuit.name} track map`}
-                width={240}
-                height={100}
-                className="h-25 w-auto max-w-[50%] object-contain"
-              />
-            </div>
-          ) : photoUrl ? (
-            <div className="mt-3 flex flex-col gap-3">
-              {dateLine}
-              <span className="block overflow-hidden rounded-sm">
-                <Image
-                  src={photoUrl}
-                  alt={gp.circuit.name}
-                  width={600}
-                  height={200}
-                  className="card-img max-h-28 w-full object-cover"
-                />
-              </span>
-            </div>
           ) : (
-            <div className="mt-3">{dateLine}</div>
+            <div className="mt-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+              {dateLine}
+              {highlight && gp.firstRaceStartsAt ? (
+                <InlineCountdown
+                  targetIso={gp.firstRaceStartsAt}
+                  className="body-xs font-bold text-white"
+                />
+              ) : null}
+            </div>
           )}
         </div>
       </article>
