@@ -40,6 +40,8 @@ export type GridRow = {
   status: ResultStatus;
   points: number;
   fastestLap: boolean;
+  /** the fastest lap itself ("1:31.204") — only read from the flagged row */
+  fastestLapText: string;
 };
 
 /** Race 1/2/3 are all type "race" (any sequence); sprint also pays points. */

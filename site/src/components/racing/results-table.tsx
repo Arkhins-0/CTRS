@@ -28,10 +28,19 @@ export const resultsTheadRow = "border-b-2 border-surface-6 text-text-3";
 export const resultsBodyRow = "border-b border-surface-4 last:border-0";
 
 /** White rounded-md card with the spec's combined gutters + mobile x-scroll. */
-export function ResultsTableCard({ children }: { children: React.ReactNode }) {
+export function ResultsTableCard({
+  children,
+  footer,
+}: {
+  children: React.ReactNode;
+  /** Sits inside the card but outside the scroller, so a caption stays put
+   *  when a wide table is scrolled sideways on mobile. */
+  footer?: React.ReactNode;
+}) {
   return (
     <div className="rounded-md bg-surface-1 px-12 py-8 md:px-16 md:py-10 lg:py-12">
       <div className="snap-x overflow-x-auto">{children}</div>
+      {footer}
     </div>
   );
 }
@@ -243,8 +252,32 @@ export function ResultsTable({
   const kind = resultsTableKind(sessionType);
   const leaderMs = rows[0] ? (rows[0].timeMs ?? rows[0].q1TimeMs) : null;
 
+  /*
+   * The tinted cell says WHO set the fastest lap; this caption is the only
+   * place the lap itself is readable. Shown whenever the flag is set, even
+   * with no time recorded yet, so the tint is never unexplained.
+   */
+  const fastest = rows.find((r) => r.fastestLap);
+
   return (
-    <ResultsTableCard>
+    <ResultsTableCard
+      footer={
+        fastest ? (
+          <p className="body-xs mt-6 flex flex-wrap items-baseline gap-x-2 text-text-3">
+            <span className="font-semibold uppercase text-brand">Fastest lap</span>
+            <span className="font-semibold text-text-5">
+              {fastest.driver.firstName} {fastest.driver.lastName}
+            </span>
+            {fastest.fastestLapTimeMs != null ? (
+              <span className="font-semibold text-text-5">
+                {formatLapTime(fastest.fastestLapTimeMs)}
+              </span>
+            ) : null}
+            <span>{fastest.team.shortName}</span>
+          </p>
+        ) : null
+      }
+    >
       <table className="w-full">
         <thead>
           <tr className={resultsTheadRow}>

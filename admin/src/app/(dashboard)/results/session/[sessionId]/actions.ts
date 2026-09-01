@@ -43,6 +43,7 @@ const rowSchema = z.object({
   status: z.enum(["finished", "dnf", "dns", "dsq", "nc"]),
   points: z.number().min(0).max(200),
   fastestLap: z.boolean(),
+  fastestLapText: z.string().max(24),
 });
 
 const payloadSchema = z.object({
@@ -86,6 +87,9 @@ function toInsertValues(
       lapsBehind: winner ? null : lapsBehind,
       points: row.points,
       fastestLap: row.fastestLap,
+      // Only meaningful on the row that actually set it — storing a time
+      // against an unflagged row would leave two competing "fastest" laps.
+      fastestLapTimeMs: row.fastestLap ? parseTimeToMs(row.fastestLapText.trim()) : null,
     };
   }
 

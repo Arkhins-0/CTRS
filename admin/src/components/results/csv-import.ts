@@ -87,6 +87,7 @@ type Column =
   | "status"
   | "points"
   | "fastestLap"
+  | "fastestLapTime"
   | "q1"
   | "q2"
   | "q3";
@@ -156,6 +157,12 @@ const HEADER_ALIASES: Record<string, Column> = {
   fl: "fastestLap",
   "fastest lap": "fastestLap",
   fastest: "fastestLap",
+
+  // NB: "best lap" is deliberately absent — it already maps to "time" above,
+  // which is what a practice sheet means by it.
+  "fl time": "fastestLapTime",
+  "fl_time": "fastestLapTime",
+  "fastest lap time": "fastestLapTime",
 
   q1: "q1",
   "q1 time": "q1",
@@ -302,7 +309,17 @@ export function importResultsCsv(
       patch.points = hasPoints
         ? (Number.parseFloat(cellAt(cells, "points")) || 0)
         : schemePoints(scheme, patch.position ?? null, status);
-      patch.fastestLap = col("fastestLap") === -1 ? false : truthy(cellAt(cells, "fastestLap"));
+      /*
+       * Timing exports write the FL column two ways: a flag ("x", "1") or
+       * the lap itself ("1:31.204"). Accept both — a value that is not a
+       * recognised flag but does look like a time means "fastest lap, and
+       * here it is". A dedicated FL-time column always wins.
+       */
+      const flRaw = col("fastestLap") === -1 ? "" : cellAt(cells, "fastestLap");
+      const flTimeRaw = cellAt(cells, "fastestLapTime");
+      const flIsTime = Boolean(flRaw) && !truthy(flRaw) && /\d[:.]\d/.test(flRaw);
+      patch.fastestLap = truthy(flRaw) || flIsTime || Boolean(flTimeRaw);
+      patch.fastestLapText = flTimeRaw || (flIsTime ? flRaw : "");
     } else if (qualiLike) {
       patch.status = status;
       patch.q1Text = cellAt(cells, "q1");
@@ -331,7 +348,10 @@ export function importResultsCsv(
     const flagged = rows.filter((r) => r.fastestLap).sort(compareRows);
     if (flagged.length > 1) {
       warnings.push("Multiple fastest-lap rows in the file — kept the best-classified one.");
-      rows = rows.map((r) => ({ ...r, fastestLap: r.entryId === flagged[0].entryId }));
+      rows = rows.map((r) => {
+        const isIt = r.entryId === flagged[0].entryId;
+        return { ...r, fastestLap: isIt, fastestLapText: isIt ? r.fastestLapText : "" };
+      });
     }
   }
 

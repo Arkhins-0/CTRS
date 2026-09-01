@@ -509,6 +509,7 @@ export type ClassificationRow = {
   q3TimeMs: number | null;
   points: number;
   fastestLap: boolean;
+  fastestLapTimeMs: number | null;
   carNumber: number;
   driver: {
     slug: string;
@@ -544,6 +545,7 @@ export function getSessionClassification(sessionId: string): Promise<Classificat
             q3TimeMs: r.q3TimeMs,
             points: r.points,
             fastestLap: r.fastestLap,
+            fastestLapTimeMs: r.fastestLapTimeMs,
             carNumber: r.entry.carNumber,
             driver: {
               slug: r.entry.driver.slug,

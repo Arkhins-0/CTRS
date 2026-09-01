@@ -111,6 +111,7 @@ export default async function SessionResultsPage({
         status: r?.status ?? "finished",
         points: r?.points ?? 0,
         fastestLap: r?.fastestLap ?? false,
+        fastestLapText: r?.fastestLapTimeMs != null ? formatLapTime(r.fastestLapTimeMs) : "",
       };
     })
     .sort(compareRows);

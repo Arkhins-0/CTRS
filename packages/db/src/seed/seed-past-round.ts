@@ -232,6 +232,7 @@ async function seed() {
       await db.insert(sessionResults).values([
         ...finishers.map((e, idx) => {
           if (idx > 0) gap += 600 + Math.round(rnd(`${seed}-gap-${e.id}`) * 5200);
+          const isFastest = idx === (session.sequence === 1 ? 0 : 1);
           return {
             sessionId: session.id,
             driverSeasonEntryId: e.id,
@@ -240,7 +241,11 @@ async function seed() {
             status: "finished" as const,
             laps: RACE_LAPS,
             points: pointsForPosition(scheme, idx + 1),
-            fastestLap: idx === (session.sequence === 1 ? 0 : 1),
+            fastestLap: isFastest,
+            // A shade under the race average, as a real fastest lap is.
+            fastestLapTimeMs: isFastest
+              ? catLap - 900 - Math.round(rnd(`${seed}-fl`) * 700)
+              : null,
             timeMs: winnerMs + gap,
             gapMs: idx === 0 ? null : gap,
           };

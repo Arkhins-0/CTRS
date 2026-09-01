@@ -98,8 +98,15 @@ export function ResultsGrid({
   const reapplyPoints = () =>
     setRows((prev) => prev.map((r) => ({ ...r, points: schemePoints(scheme, r.position, r.status) })));
 
+  /** Exactly one row holds the flag; clearing it also drops its time, so a
+   *  stale lap can't linger on a row that no longer claims the fastest lap. */
   const setFastestLap = (entryId: string, checked: boolean) =>
-    setRows((prev) => prev.map((r) => ({ ...r, fastestLap: checked && r.entryId === entryId })));
+    setRows((prev) =>
+      prev.map((r) => {
+        const isIt = checked && r.entryId === entryId;
+        return { ...r, fastestLap: isIt, fastestLapText: isIt ? r.fastestLapText : "" };
+      }),
+    );
 
   const importCsvFile = async (file: File) => {
     try {
@@ -211,6 +218,9 @@ export function ResultsGrid({
                   <th className="w-28">Status</th>
                   <th className="w-12 text-center" title="Fastest lap">
                     FL
+                  </th>
+                  <th className="w-28" title="Fastest lap time">
+                    FL time
                   </th>
                   <th className="w-20">Pts</th>
                 </>
@@ -327,6 +337,20 @@ export function ResultsGrid({
                         className="size-4 accent-f1-red"
                         checked={row.fastestLap}
                         onChange={(e) => setFastestLap(row.entryId, e.target.checked)}
+                      />
+                    </td>
+                    <td className={cell}>
+                      <input
+                        type="text"
+                        aria-label={`Fastest lap time for ${row.driverName}`}
+                        className={`${inputBase} font-mono disabled:opacity-40`}
+                        placeholder="1:31.204"
+                        // only the flagged row can carry a time — see setFastestLap
+                        disabled={!row.fastestLap}
+                        value={row.fastestLapText}
+                        onChange={(e) =>
+                          patchRow(row.entryId, { fastestLapText: e.target.value })
+                        }
                       />
                     </td>
                     <td className={cell}>
