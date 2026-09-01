@@ -34,6 +34,7 @@ export default async function ResultsYearPage({ params }: Props) {
       filters={
         rounds.length > 0 ? (
           <FilterDropdown
+            eyebrow="Race weekend"
             ariaLabel="Filter by Grand Prix"
             label="All"
             options={[

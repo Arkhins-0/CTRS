@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { CountryFlag } from "@ctr/ui";
 import { CategoryDot, DriverRoundel, TeamRoundel } from "./category-ui";
 import type { ConstructorStandingRow, DriverStandingRow } from "./data";
+import { SelectActiveDot, selectItem, selectItemActive, selectMenu } from "./results-table";
 
 /* ── Standings tables + filters (F1 results-table primitives) ──────────────
    White rounded card on the beige hub band; thead 14px uppercase muted over
@@ -49,24 +50,32 @@ export function CategoryDropdown({
 }) {
   const active = categories.find((c) => c.slug === activeSlug);
   return (
-    <details className="relative max-md:w-full">
-      <summary className="btn btn-md btn-stroke cursor-pointer select-none list-none max-md:w-full [&::-webkit-details-marker]:hidden">
-        {active?.name ?? "Category"}
-        <ChevronDown size={16} aria-hidden />
+    <details className="group relative max-md:w-full md:min-w-64">
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-4 rounded-md border border-surface-4 bg-surface-1 px-4 py-2.5 transition-colors hover:border-surface-6 [&::-webkit-details-marker]:hidden">
+        <span className="flex min-w-0 flex-col text-left">
+          <span className="body-2xs font-bold uppercase text-text-3">Category</span>
+          <span className="body-s flex items-center gap-2 truncate font-bold text-text-5">
+            {active ? <CategoryDot color={active.color} className="h-2 w-2" /> : null}
+            {active?.name ?? "Category"}
+          </span>
+        </span>
+        <ChevronDown
+          size={18}
+          aria-hidden
+          className="shrink-0 text-text-3 transition-transform duration-200 group-open:rotate-180"
+        />
       </summary>
-      <div className="absolute left-0 z-30 mt-3 max-h-[50vh] min-w-52 overflow-y-auto rounded-md border-2 border-text-5 bg-surface-1 p-1">
+      <div className={selectMenu}>
         {categories.map((c) => (
           <Link
             key={c.slug}
             href={hrefFor(c.slug)}
             aria-current={c.slug === activeSlug ? "page" : undefined}
-            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-black/5"
+            className={`${selectItem}${c.slug === activeSlug ? ` ${selectItemActive}` : ""}`}
           >
             <CategoryDot color={c.color} className="h-2 w-2" />
             {c.name}
-            {c.slug === activeSlug ? (
-              <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
-            ) : null}
+            {c.slug === activeSlug ? <SelectActiveDot /> : null}
           </Link>
         ))}
       </div>

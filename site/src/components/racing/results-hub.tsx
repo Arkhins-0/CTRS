@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SelectActiveDot, selectItem, selectItemActive, selectMenu } from "./results-table";
 import { ChevronDown } from "lucide-react";
 
 /* ── Shared results/standings hub scaffolding (F1 results-hub skeleton) ────
@@ -26,22 +27,24 @@ export function SeasonDropdown({
   hrefFor: (year: number) => string;
 }) {
   return (
-    <details className="relative">
-      <summary className="btn btn-sm btn-ghost cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
+    <details className="group relative">
+      <summary className="body-s flex cursor-pointer select-none items-center gap-2 rounded-md border border-surface-4 bg-surface-1 px-3 py-2 font-bold text-text-5 transition-colors hover:border-surface-6 [&::-webkit-details-marker]:hidden">
         {year}
-        <ChevronDown size={16} aria-hidden />
+        <ChevronDown
+          size={16}
+          aria-hidden
+          className="text-text-3 transition-transform duration-200 group-open:rotate-180"
+        />
       </summary>
-      <div className="absolute left-0 z-30 mt-3 max-h-80 min-w-32 overflow-y-auto rounded-md border-2 border-text-5 bg-surface-1 p-1">
+      <div className={`${selectMenu} max-h-80 min-w-32`}>
         {years.map((y) => (
           <Link
             key={y}
             href={hrefFor(y)}
-            className="body-xs m-1 flex items-center gap-2 rounded-md p-2 font-bold text-text-5 hover:bg-black/5"
+            className={`${selectItem}${y === year ? ` ${selectItemActive}` : ""}`}
           >
             {y}
-            {y === year ? (
-              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand" />
-            ) : null}
+            {y === year ? <SelectActiveDot /> : null}
           </Link>
         ))}
       </div>

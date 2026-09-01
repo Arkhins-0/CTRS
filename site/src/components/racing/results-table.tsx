@@ -57,36 +57,65 @@ export type FilterOption = {
   active?: boolean;
 };
 
+/** Shared skin for the select-card menus (the standings CategoryDropdown
+ *  and the hub SeasonDropdown import these so all filters age together). */
+export const selectMenu =
+  "absolute left-0 z-30 mt-2 max-h-[50vh] w-full min-w-56 overflow-y-auto rounded-md border border-surface-4 bg-surface-1 p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.14)]";
+export const selectItem =
+  "body-s flex items-center gap-2 whitespace-nowrap rounded-sm px-3 py-2.5 font-semibold text-text-4 hover:bg-black/5";
+export const selectItemActive = "bg-black/5 text-text-5";
+
+/** Gold marker on the currently selected menu row. */
+export function SelectActiveDot() {
+  return <span aria-hidden className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />;
+}
+
+/**
+ * Filter as a CARD, not a pill: white rounded rectangle in the same voice
+ * as every other card on the page — small uppercase role label over the
+ * bold current value, chevron flipping while open. Native-details, still
+ * server-only.
+ */
 export function FilterDropdown({
+  eyebrow,
   label,
   options,
   ariaLabel,
 }: {
+  /** What this filter chooses ("Race weekend", "Session"). */
+  eyebrow: string;
   label: React.ReactNode;
   options: FilterOption[];
   ariaLabel?: string;
 }) {
   return (
-    <details className="relative max-md:w-full">
+    <details className="group relative max-md:w-full md:min-w-64">
       <summary
         aria-label={ariaLabel}
-        className="btn btn-md btn-stroke cursor-pointer select-none list-none max-md:w-full [&::-webkit-details-marker]:hidden"
+        className="flex cursor-pointer select-none items-center justify-between gap-4 rounded-md border border-surface-4 bg-surface-1 px-4 py-2.5 transition-colors hover:border-surface-6 [&::-webkit-details-marker]:hidden"
       >
-        {label}
-        <ChevronDown size={16} aria-hidden />
+        <span className="flex min-w-0 flex-col text-left">
+          <span className="body-2xs font-bold uppercase text-text-3">{eyebrow}</span>
+          <span className="body-s flex items-center gap-2 truncate font-bold text-text-5">
+            {label}
+          </span>
+        </span>
+        <ChevronDown
+          size={18}
+          aria-hidden
+          className="shrink-0 text-text-3 transition-transform duration-200 group-open:rotate-180"
+        />
       </summary>
-      <div className="absolute left-0 z-30 mt-3 max-h-[50vh] min-w-52 overflow-y-auto rounded-md border-2 border-text-5 bg-surface-1 p-1">
+      <div className={selectMenu}>
         {options.map((o) => (
           <Link
             key={o.key}
             href={o.href}
             aria-current={o.active ? "page" : undefined}
-            className="body-s m-1 flex items-center gap-2 whitespace-nowrap rounded-md p-2 font-semibold text-text-5 hover:bg-black/5"
+            className={`${selectItem}${o.active ? ` ${selectItemActive}` : ""}`}
           >
             {o.label}
-            {o.active ? (
-              <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
-            ) : null}
+            {o.active ? <SelectActiveDot /> : null}
           </Link>
         ))}
       </div>

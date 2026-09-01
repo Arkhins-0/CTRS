@@ -100,6 +100,7 @@ export default async function RoundResultsPage({ params, searchParams }: Props) 
         <>
           {/* Race selector — every round of the season */}
           <FilterDropdown
+            eyebrow="Race weekend"
             ariaLabel="Choose a Grand Prix"
             label={gp.name}
             options={rounds.map((r) => ({
@@ -119,6 +120,7 @@ export default async function RoundResultsPage({ params, searchParams }: Props) 
           {/* Session selector — this weekend's classifications */}
           {selected ? (
             <FilterDropdown
+              eyebrow="Session"
               ariaLabel="Choose a session"
               label={sessionLabel(selected)}
               options={withResults.map((s) => ({
