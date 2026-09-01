@@ -87,7 +87,7 @@ export function HeaderNav({
        * the header's height entirely.
        */}
       {open ? (
-        <div className="dark-section fixed inset-0 z-[60] overflow-y-auto bg-surface-3">
+        <div className="dark-section fixed inset-0 z-[60] overflow-y-auto bg-surface-3 pt-[env(safe-area-inset-top)]">
           <div className="f1-inner flex min-h-[54px] items-center justify-between gap-4 border-b border-surface-4 py-2 md:min-h-[58px] lg:min-h-[64px]">
             <span className="font-display text-sm font-bold uppercase tracking-wide text-white">
               Menu

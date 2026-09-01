@@ -165,7 +165,7 @@ export async function SiteHeader() {
       </div>
 
       {/* Bars 2+3 — sticky primary nav + collapsing event tracker */}
-      <header className="sticky top-0 z-50">
+      <header className="sticky-safe z-50">
         <div className="dark-section relative overflow-x-clip border-b border-surface-4 bg-surface-3">
           {/* faint chequered backdrop fading toward the bar's bottom edge */}
           <div

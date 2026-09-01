@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { CountryFlag } from "@ctr/ui";
-import { CategoryDot, DriverRoundel, TeamRoundel } from "./category-ui";
+import { CategoryBadge, DriverRoundel, TeamRoundel } from "./category-ui";
 import type { ConstructorStandingRow, DriverStandingRow } from "./data";
 import { SelectActiveDot, selectItem, selectItemActive, selectMenu } from "./results-table";
 
@@ -35,7 +35,7 @@ export function StandingsEmpty({ children }: { children: React.ReactNode }) {
 
 /* ── Filters ─────────────────────────────────────────────────────────────── */
 
-export type CategoryOption = { slug: string; name: string; color: string };
+export type CategoryOption = { slug: string; name: string; shortName: string; color: string };
 
 /** Black-stroked pill dropdown listing the championship's race categories
  *  (native-details recipe, stroke-medium skin per the filter-row spec). */
@@ -55,7 +55,7 @@ export function CategoryDropdown({
         <span className="flex min-w-0 flex-col text-left">
           <span className="body-2xs font-bold uppercase text-text-3">Category</span>
           <span className="body-s flex items-center gap-2 truncate font-bold text-text-5">
-            {active ? <CategoryDot color={active.color} className="h-2 w-2" /> : null}
+            {active ? <CategoryBadge category={active} /> : null}
             {active?.name ?? "Category"}
           </span>
         </span>
@@ -73,7 +73,7 @@ export function CategoryDropdown({
             aria-current={c.slug === activeSlug ? "page" : undefined}
             className={`${selectItem}${c.slug === activeSlug ? ` ${selectItemActive}` : ""}`}
           >
-            <CategoryDot color={c.color} className="h-2 w-2" />
+            <CategoryBadge category={c} />
             {c.name}
             {c.slug === activeSlug ? <SelectActiveDot /> : null}
           </Link>

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { mediaUrl } from "@/lib/media";
-import { readableOn } from "./colors";
+import { readableOn, inkOnLight } from "./colors";
 
 /* ── Category identity + chips shared across the racing pages ────────────── */
 
@@ -38,7 +38,9 @@ export function CategoryBadge({
       style={
         inheritColor
           ? { borderColor: "currentColor", color: "currentColor" }
-          : { borderColor: category.color, color: category.color }
+          : /* Default mode always renders on a light surface, so a pale class
+               colour is darkened just enough to read — see inkOnLight. */
+            { borderColor: inkOnLight(category.color), color: inkOnLight(category.color) }
       }
     >
       {category.shortName}

@@ -64,3 +64,26 @@ export function whiteScreenFails(hex: string): boolean {
   const saturation = max === 0 ? 0 : (max - min) / max;
   return luma < 80 && saturation > 0.9;
 }
+
+/**
+ * A version of `hex` dark enough to read as text on the light surfaces the
+ * class badges actually sit on (white cards, the light grey band, the filter
+ * menu). ITC's gold is the case that needs it: #FFC800 on white is about
+ * 1.7:1, effectively unreadable. It comes back as the same hue with enough
+ * weight to read. Colours already dark enough are returned untouched, which
+ * is six of the seven categories.
+ */
+export function inkOnLight(hex: string): string {
+  const { r, g, b } = hexToRgb(hex);
+  let luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  if (luma <= 165) return hex;
+  let amount = 0;
+  let out = hex;
+  while (luma > 140 && amount > -0.75) {
+    amount -= 0.05;
+    out = shadeHex(hex, amount);
+    const c = hexToRgb(out);
+    luma = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  }
+  return out;
+}

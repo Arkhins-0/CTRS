@@ -31,7 +31,15 @@ export const metadata: Metadata = {
 
 /* Browser/OS chrome colour — matches the site's black header bar (the pages
    themselves are white, but the strip this paints sits against the header). */
-export const viewport = { themeColor: "#080808" };
+/*
+ * viewportFit "cover" lets the page paint into the notch / status-bar area,
+ * which is what makes env(safe-area-inset-*) report real values. Without it
+ * those are always 0, and on a device that draws system bars over the app
+ * (iOS with a translucent status bar, Android 15's edge-to-edge) the header
+ * ends up underneath them with no way to detect it. globals.css then insets
+ * the page and the sticky header by those values.
+ */
+export const viewport = { themeColor: "#080808", viewportFit: "cover" as const };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
