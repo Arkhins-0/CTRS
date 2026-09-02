@@ -110,6 +110,16 @@ export async function SiteHeader() {
 
   return (
     <>
+      {/* Paints the notch / status-bar strip in the chrome colour. This can
+          not be done with the html background: that colour also shows
+          through rubber-band overscroll, where it flashed black behind wide
+          tables. Zero-height on a device without insets. */}
+      <div
+        aria-hidden
+        className="fixed inset-x-0 top-0 z-[70] bg-[#080808]"
+        style={{ height: "env(safe-area-inset-top)" }}
+      />
+
       <a
         href="#maincontent"
         className="btn btn-sm btn-brand absolute left-4 top-[-112px] z-[60] focus:top-2"

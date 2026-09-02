@@ -39,7 +39,7 @@ export function ResultsTableCard({
 }) {
   return (
     <div className="rounded-md border border-surface-4 bg-surface-1 px-12 py-8 md:px-16 md:py-10 lg:py-12">
-      <div className="snap-x overflow-x-auto">{children}</div>
+      <div className="snap-x overflow-x-auto overscroll-x-contain">{children}</div>
       {footer}
     </div>
   );

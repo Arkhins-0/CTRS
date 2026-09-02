@@ -374,9 +374,21 @@ body {
 
 html {
   scrollbar-gutter: stable;
-  /* Fills the notch / status-bar strip and the rubber-band overscroll area
-     with the chrome colour rather than the page grey. */
-  background-color: #080808;
+  /*
+   * The canvas colour is what shows through rubber-band overscroll, so it
+   * has to be the PAGE colour. Painting it the chrome black to cover the
+   * status-bar strip looked right at the top but flashed a black panel
+   * whenever a wide results table was swiped past its end — the strip is
+   * painted by its own fixed element in the header instead.
+   */
+  background-color: var(--f1-surface-2);
+  /*
+   * A horizontal swipe inside a table scroller must not chain out to the
+   * viewport once that table reaches its end; body clips horizontal
+   * overflow, so the page cannot scroll and the browser bounces the whole
+   * view instead, revealing the canvas behind the layout.
+   */
+  overscroll-behavior-x: none;
 }
 
 /** Sticky chrome that must clear the status bar once the page scrolls. */
