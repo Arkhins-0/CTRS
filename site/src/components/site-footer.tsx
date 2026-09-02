@@ -97,25 +97,32 @@ export async function SiteFooter() {
             <p className="display-xl mt-3 font-black uppercase lg:mt-4">
               Championship Partners
             </p>
-            <ul className="flex flex-wrap items-center justify-center gap-11 pb-2">
+            <ul className="flex flex-wrap items-center justify-center gap-x-12 gap-y-10 pb-2 lg:gap-x-16">
               {partnerRows.map((p) => {
                 const url = mediaUrl(p.logo?.path);
                 return (
                   <li key={p.id}>
-                    {/* Every logo sits on a white tile: partner artwork is
-                        drawn for light grounds (JK Tyre and FMSCI are near-
-                        black), so on the dark band they simply vanished. */}
-                    <span className="block w-24 rounded-md bg-white p-2.5 shadow-sm transition-transform hover:scale-105 md:w-28 lg:w-32">
+                    {/*
+                     * No plate: the logos are rendered as white silhouettes
+                     * instead. Partner artwork is drawn for light grounds
+                     * (JK Tyre and FMSCI are near-black) and would vanish on
+                     * this band, so `brightness-0 invert` flattens each mark
+                     * to white — which needs a transparent source, the
+                     * reason the placeholder marks were redrawn without
+                     * their opaque backgrounds. Slightly dimmed at rest and
+                     * full strength on hover, the usual partner-row move.
+                     */}
+                    <span className="block w-28 md:w-32 lg:w-36">
                       {url ? (
                         <Image
                           src={url}
                           alt={p.name}
-                          width={128}
-                          height={72}
-                          className="aspect-video w-full object-contain"
+                          width={144}
+                          height={81}
+                          className="aspect-video w-full object-contain opacity-75 brightness-0 invert transition-opacity duration-200 hover:opacity-100"
                         />
                       ) : (
-                        <span className="body-xs flex aspect-video w-full items-center justify-center text-center font-bold uppercase text-static-8">
+                        <span className="body-xs flex aspect-video w-full items-center justify-center text-center font-bold uppercase text-white/70">
                           {p.name}
                         </span>
                       )}
