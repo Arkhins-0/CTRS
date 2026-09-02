@@ -383,11 +383,19 @@ html {
    */
   background-color: var(--f1-surface-2);
   /*
-   * A horizontal swipe inside a table scroller must not chain out to the
-   * viewport once that table reaches its end; body clips horizontal
-   * overflow, so the page cannot scroll and the browser bounces the whole
-   * view instead, revealing the canvas behind the layout.
+   * Clip horizontal overflow at the ROOT, not only on body.
+   *
+   * body already carried overflow-x: clip, but that only reaches the
+   * viewport by propagation, and propagation is skipped whenever the root
+   * itself establishes anything — which left the page pannable sideways
+   * into empty space beside the layout. Setting it here removes the
+   * dependency on that rule entirely. Inner scrollers (the results and
+   * standings tables, the tab rails) set their own overflow and are
+   * unaffected; the page itself is never meant to scroll sideways.
    */
+  overflow-x: clip;
+  /* And a swipe that runs past the end of one of those inner scrollers
+     must not chain out to bounce the whole view. */
   overscroll-behavior-x: none;
 }
 
